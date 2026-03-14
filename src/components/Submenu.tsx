@@ -14,7 +14,7 @@ export function Submenu({
   actions: Actions;
 }) {
   if (!option.submenu) return null;
-  const key = submenuStateKey(parentControlId, option.id);
+  const key = submenuStateKey(parentControlId, option.text);
   const submenuState = state.controls[key];
   const kind = option.submenu.kind ?? 'and';
   const isPlural = isSubjectPlural(state)
@@ -23,19 +23,19 @@ export function Submenu({
     <div className="submenu">
       <div className="submenu-option-group">
         {option.submenu.options.map((child) => {
-          if (meetsConditions(state, child.hides)) return null;
-          const disabled = meetsConditions(state, child.disables);
+          if (meetsConditions(state, child.hiddenBys)) return null;
+          const disabled = meetsConditions(state, child.disabledBys);
 
           if (kind === 'or') {
-            const checked = submenuState.selectedOptionId === child.id;
+            const checked = submenuState.selectedOptionId === child.text;
             return (
-              <label key={child.id} className="inline-control">
+              <label key={child.text} className="inline-control">
                 <input
                   type="radio"
                   name={key}
                   checked={checked}
                   disabled={disabled}
-                  onClick={() => actions.setRadio(key, checked ? '' : child.id)}
+                  onClick={() => actions.setRadio(key, checked ? '' : child.text)}
                   readOnly
                 />
                 <span>{getOptionText(child, isPlural)}</span>
@@ -43,14 +43,14 @@ export function Submenu({
             );
           }
 
-          const checked = submenuState.checkedOptionIds.includes(child.id);
+          const checked = submenuState.checkedOptionIds.includes(child.text);
           return (
-            <label key={child.id} className="inline-control">
+            <label key={child.text} className="inline-control">
               <input
                 type="checkbox"
                 checked={checked}
                 disabled={disabled}
-                onChange={() => actions.toggleCheck(key, child.id)}
+                onChange={() => actions.toggleCheck(key, child.text)}
               />
               <span>{getOptionText(child, isPlural)}</span>
             </label>

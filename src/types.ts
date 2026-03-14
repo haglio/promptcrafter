@@ -1,6 +1,63 @@
+// state
+
+export type State = {
+  controls: Record<string, ControlState>;
+  sections: Record<string, { weight: number }>;
+  positiveText: string;
+  negativeText: string;
+  positiveMode: 'auto' | 'manual';
+  negativeMode: 'auto' | 'manual';
+};
+
+export type ControlState = {
+  selectedOptionId?: string;    // only relevant for 'or' types
+  checkedOptionIds: string[];   // only relevant for 'and' types
+  toggleOn: boolean;            // only relevant for 'toggle' types
+  weight: number;
+};
+
+// schema
+
+export type Schema = {
+  sections: Section[];
+};
+
+export type Section = BaseItem & {
+  promptTarget?: PromptTarget;
+  controls: Control[];
+};
+
+export type Control = BaseItem & {
+  kind: ControlKind;
+  customText?: string;
+  customPluralText?: string;
+  initiallySelected?: boolean; // only relevant for toggle types
+  options?: Option[];
+};
+
+export type Option = BaseItem & {
+  submenu?: Submenu;
+  initiallySelected?: boolean;
+};
+
+export type Submenu = {
+  kind?: 'and' | 'or';
+  placement?: 'before' | 'after';
+  options: Option[];
+};
+
+// other
+
+export type BaseItem = {
+  text: string;
+  pluralText?: string;
+  hiddenBys?: Condition[];
+  disabledBys?: Condition[];
+};
+
 export type PromptTarget = 'positive' | 'negative';
 
-export type ControlKind =
+type ControlKind =
   | 'or'
   | 'or-adv'
   | 'or-adj'
@@ -14,58 +71,4 @@ export type ControlKind =
 export type Condition = {
   controlId: string;
   optionId?: string;
-};
-
-export type Submenu = {
-  kind?: 'and' | 'or';
-  placement?: 'before' | 'after';
-  options: Option[];
-};
-
-export type Option = {
-  id: string;
-  plural?: string;
-  beginOn?: boolean;
-  hides?: Condition[];
-  disables?: Condition[];
-  submenu?: Submenu;
-};
-
-export type Control = {
-  id: string;
-  kind: ControlKind;
-  promptTarget?: PromptTarget;
-  customText?: string;
-  beginOn?: boolean;
-  options?: Option[];
-  hides?: Condition[];
-  disables?: Condition[];
-};
-
-export type Section = {
-  id: string;
-  promptTarget?: PromptTarget;
-  controls: Control[];
-  hides?: Condition[];
-  disables?: Condition[];
-};
-
-export type Schema = {
-  sections: Section[];
-};
-
-export type ControlState = {
-  selectedOptionId?: string;
-  checkedOptionIds: string[];
-  toggleOn: boolean;
-  weight: number;
-};
-
-export type State = {
-  controls: Record<string, ControlState>;
-  sections: Record<string, { weight: number }>;
-  positiveText: string;
-  negativeText: string;
-  positiveBound: boolean;
-  negativeBound: boolean;
 };

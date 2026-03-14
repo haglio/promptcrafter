@@ -1,7 +1,7 @@
 import type { State, Control, Option, Section, Condition } from '../types';
 
 export function getOptionText(option: Option, isPlural: boolean): string {
-  return isPlural && option.plural ? option.plural : option.id
+  return isPlural && option.pluralText ? option.pluralText : option.text
 }
 
 export function isSubjectPlural(state: State): boolean {
@@ -13,7 +13,7 @@ export function sectionHasSelection(section: Section, state: State) {
 }
 
 export function controlHasSelection(control: Control, state: State) {
-  const s = state.controls[control.id];
+  const s = state.controls[control.text];
 
   if (control.kind === 'required') return true;
   if (control.kind === 'toggle') return s.toggleOn;

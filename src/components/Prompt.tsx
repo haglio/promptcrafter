@@ -1,11 +1,11 @@
 import { useState } from 'react';
 
-export function Prompt({ label, value, bound, onChange, onToggleBound }: {
+export function Prompt({ label, value, mode, onChange, onToggleMode }: {
   label: string;
   value: string;
-  bound: boolean;
+  mode: 'auto' | 'manual';
   onChange: (value: string) => void;
-  onToggleBound: (bound: boolean) => void;
+  onToggleMode: (mode: 'auto' | 'manual') => void;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -36,11 +36,11 @@ export function Prompt({ label, value, bound, onChange, onToggleBound }: {
         </button>
         <button
           type="button"
-          className={`bind-toggle ${bound ? 'manual' : 'auto'}`}
-          onClick={() => onToggleBound(!bound)}
-          aria-pressed={!bound}
+          className={`mode-toggle ${mode}`}
+          onClick={() => onToggleMode(mode === 'auto' ? 'manual' : 'auto')}
+          aria-pressed={mode === 'manual'}
         >
-          {bound ? 'manual' : 'auto'}
+          {mode === 'auto' ? 'manual' : 'auto'}
         </button>
         <label className="prompt-label"><h3>{label}</h3></label>
       </div>
@@ -48,7 +48,7 @@ export function Prompt({ label, value, bound, onChange, onToggleBound }: {
         aria-label={label}
         className={label === 'Negative prompt' ? 'negative-textarea' : 'positive-textarea'}
         value={value}
-        disabled={bound}
+        disabled={mode === 'auto'}
         onChange={(event) => onChange(event.target.value)}
       />
     </section>

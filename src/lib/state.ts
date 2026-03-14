@@ -2,31 +2,31 @@ import type { State, Control, ControlState, Schema, Section } from '../types';
 
 function createControlState(control: Control): ControlState {
   if (control.kind === 'toggle') {
-    return { checkedOptionIds: [], toggleOn: control.beginOn ?? false, weight: 1, selectedOptionId: undefined };
+    return { checkedOptionIds: [], toggleOn: control.initiallySelected ?? false, weight: 1, selectedOptionId: undefined };
   }
   if (control.kind === 'required') {
-    const always = control.options?.find((option) => option.beginOn) ?? control.options?.[0];
-    return { checkedOptionIds: always ? [always.id] : [], toggleOn: false, weight: 1, selectedOptionId: always?.id };
+    const always = control.options?.find((option) => option.initiallySelected) ?? control.options?.[0];
+    return { checkedOptionIds: always ? [always.text] : [], toggleOn: false, weight: 1, selectedOptionId: always?.text };
   }
   const isRadio = control.kind.startsWith('or');
-  const preselected = control.options?.find((option) => option.beginOn);
+  const preselected = control.options?.find((option) => option.initiallySelected);
   return {
-    checkedOptionIds: isRadio ? [] : (control.options?.filter((option) => option.beginOn).map((option) => option.id) ?? []),
+    checkedOptionIds: isRadio ? [] : (control.options?.filter((option) => option.initiallySelected).map((option) => option.text) ?? []),
     toggleOn: false,
     weight: 1,
-    selectedOptionId: isRadio ? preselected?.id : undefined,
+    selectedOptionId: isRadio ? preselected?.text : undefined,
   };
 }
 
 function walkControls(controls: Control[], bucket: Record<string, ControlState>) {
   for (const control of controls) {
-    bucket[control.id] = createControlState(control);
+    bucket[control.text] = createControlState(control);
     for (const option of control.options ?? []) {
       if (option.submenu) {
-        bucket[`${control.id}__${option.id}__submenu`] = {
-          checkedOptionIds: option.submenu.options.filter((o) => o.beginOn).map((o) => o.id),
+        bucket[`${control.text}__${option.text}__submenu`] = {
+          checkedOptionIds: option.submenu.options.filter((o) => o.initiallySelected).map((o) => o.text),
           selectedOptionId: option.submenu.kind === 'or'
-            ? option.submenu.options.find((o) => o.beginOn)?.id
+            ? option.submenu.options.find((o) => o.initiallySelected)?.text
             : undefined,
           toggleOn: false,
           weight: 1,
@@ -37,7 +37,7 @@ function walkControls(controls: Control[], bucket: Record<string, ControlState>)
 }
 
 function createSectionState(sections: Section[]) {
-  return Object.fromEntries(sections.map((section) => [section.id, { weight: 1 }]));
+  return Object.fromEntries(sections.map((section) => [section.text, { weight: 1 }]));
 }
 
 export function createInitialState(schema: Schema): State {
@@ -48,7 +48,7 @@ export function createInitialState(schema: Schema): State {
     sections: createSectionState(schema.sections),
     positiveText: '',
     negativeText: '',
-    positiveBound: true,
-    negativeBound: true,
+    positiveMode: 'auto',
+    negativeMode: 'auto',
   };
 }

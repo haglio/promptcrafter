@@ -41,8 +41,8 @@ describe('prompt building', () => {
     );
   });
 
-  // TODO: test of disables
-  // TODO: test of hides (and don't have one of these in real schema anymore)
+  // TODO: test of disabledBys ... apparently disabledBys can apply at the the section level, control level, and option level
+  // TODO: test of hiddenBys... same as with disabledBys, but also we don't have an example of these in the real schema anymore, but I'm fairly confident that we will need it
 
   // TODO: should show something after hero
   it('parts of sections - weights override section weight', () => {

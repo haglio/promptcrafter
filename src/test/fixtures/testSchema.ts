@@ -3,192 +3,189 @@ import type { Schema } from "../../types";
 export const testSchema: Schema = {
   sections: [
     {
-      id: 'subject-core',
-      promptTarget: 'positive',
+      text: 'subject-core',
       controls: [
         {
-          id: 'subject-base',
+          text: 'subject-base',
           kind: 'required',
-          options: [{ id: 'space robo dino demon monster', beginOn: true }],
+          options: [{ text: 'space robo dino demon monster', initiallySelected: true }],
         },
         {
-          id: 'count',
+          text: 'count',
           kind: 'or-prefix',
           options: [
-            { id: 'or' },
+            { text: 'or' },
             { 
-              id: 'two', 
+              text: 'two', 
               submenu: {
                 placement: 'after',
                 options: [
-                  { id: 'different' },
+                  { text: 'different' },
                 ]
               }
             }
           ]
         },
         {
-          id: 'alignment',
+          text: 'alignment',
           kind: 'or',
           options: [
-            { id: 'hero', plural: 'heroes' },
-            { id: 'villain', plural: 'villains' }
+            { text: 'hero', pluralText: 'heroes' },
+            { text: 'villain', pluralText: 'villains' }
           ]
         },
         {
-          id: 'silhouette',
+          text: 'silhouette',
           kind: 'or-adv',
           customText: 'outline',
           options: [
-            { id: 'towering' },
-            { id: 'lanky' },
-            { id: 'hulking' }
+            { text: 'towering' },
+            { text: 'lanky' },
+            { text: 'hulking' }
           ]
         },
         {
-          id: 'element prefix',
+          text: 'element prefix',
           kind: 'or-prefix',
           options: [
-            { id: 'void' },
-            { id: 'plasma' },
-            { id: 'nebula' }
+            { text: 'void' },
+            { text: 'plasma' },
+            { text: 'nebula' }
           ]
         },
         {
-          id: 'armor',
+          text: 'armor',
           kind: 'or-adj',
           options: [
-            { id: 'chrome' },
-            { id: 'obsidian' },
-            { id: 'bone' }
+            { text: 'chrome' },
+            { text: 'obsidian' },
+            { text: 'bone' }
           ]
         }
       ]
     },
     {
-      id: 'details',
-      promptTarget: 'positive',
+      text: 'details',
       controls: [
         {
-          id: 'appendages',
+          text: 'appendages',
           kind: 'and-commas',
           options: [
             {
-              id: 'wings',
+              text: 'wings',
               submenu: {
                 options: [
-                  { id: 'feathered' },
-                  { id: 'mechanical' }
+                  { text: 'feathered' },
+                  { text: 'mechanical' }
                 ]
               }
             },
             { 
-              id: 'horns', 
+              text: 'horns', 
               submenu: {
                 kind: 'or',
                 placement: 'after',
                 options: [
-                  { id: 'wishily' },
-                  { id: 'washily' }
+                  { text: 'wishily' },
+                  { text: 'washily' }
                 ]
               }
             },
-            { id: 'tail' }
+            { text: 'tail' }
           ]
         },
         {
-          id: 'sitting on',
+          text: 'sitting on',
           kind: 'and-commas-adv',
           customText: 'alighting upon', 
           options: [
-            { id: 'etchings' },
-            { id: 'scars' },
-            { id: 'glow' }
+            { text: 'etchings' },
+            { text: 'scars' },
+            { text: 'glow' }
           ]
         },
         {
-          id: 'surface borks',
+          text: 'surface borks',
           kind: 'and-commas-adv',
           options: [
-            { id: 'fetchings' },
-            { id: 'fscars' },
-            { id: 'fglow' }
+            { text: 'fetchings' },
+            { text: 'fscars' },
+            { text: 'fglow' }
           ]
         },
         {
-          id: 'stance',
+          text: 'stance',
           kind: 'and-commas-adv',
           options: [
-            { id: 'lunging' },
-            { id: 'roaring' },
-            { id: 'three-quarter' }
+            { text: 'lunging' },
+            { text: 'roaring' },
+            { text: 'three-quarter' }
           ]
         },
         {
-          id: 'render style',
+          text: 'render style',
           kind: 'and-spaces-adj',
           options: [
-            { id: 'cinematic' },
-            { id: 'hyperdetailed' },
-            { id: 'volumetric' }
+            { text: 'cinematic' },
+            { text: 'hyperdetailed' },
+            { text: 'volumetric' }
           ]
         }
       ]
     },
     {
-      id: 'modes',
-      promptTarget: 'positive',
+      text: 'modes',
       controls: [
         {
-          id: 'is portrait',
+          text: 'is portrait',
           kind: 'toggle',
-          beginOn: false,
-          options: [{ id: 'portrait' }]
+          initiallySelected: false,
+          options: [{ text: 'portrait' }]
         },
         {
-          id: 'camera angle',
+          text: 'camera angle',
           kind: 'or',
-          disables: [{ type: 'toggle-on', controlId: 'is portrait' }],
+          disabledBys: [{ controlId: 'is portrait' }],
           options: [
-            { id: 'low' },
-            { id: 'overhead' },
-            { id: 'dutch' }
+            { text: 'low' },
+            { text: 'overhead' },
+            { text: 'dutch' }
           ]
         },
         {
-          id: 'portrait focus',
+          text: 'portrait focus',
           kind: 'and-commas',
-          hides: [{ type: 'toggle-on', controlId: 'is portrait' }],
+          hiddenBys: [{ controlId: 'is portrait' }],
           options: [
-            { id: 'face' },
-            { id: 'torso' }
+            { text: 'face' },
+            { text: 'torso' }
           ]
         }
       ]
     },
     {
-      id: 'negative modes',
+      text: 'negative modes',
       promptTarget: 'negative',
       controls: [
         {
-          id: 'negative-switch',
+          text: 'negative-switch',
           kind: 'toggle',
-          beginOn: true,
-          options: [{ id: 'no clutter' }]
+          initiallySelected: true,
+          options: [{ text: 'no clutter' }]
         }
       ]
     },
     {
-      id: 'negative polish',
+      text: 'negative polish',
       promptTarget: 'negative',
       controls: [
         {
-          id: 'neg-quality',
+          text: 'neg-quality',
           kind: 'and-commas',
           options: [
-            { id: 'blurry' },
-            { id: 'muddy' },
-            { id: 'extra limbs' }
+            { text: 'blurry' },
+            { text: 'muddy' },
+            { text: 'extra limbs' }
           ]
         }
       ]

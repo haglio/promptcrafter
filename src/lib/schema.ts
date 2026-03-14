@@ -3,126 +3,126 @@ import type { Schema } from '../types';
 export const schema: Schema = {
   sections: [
     {
-      id: 'or types',
+      text: 'or types',
       controls: [
         {
-          id: 'count',
+          text: 'count',
           kind: 'or-prefix',
           options: [
-            { id: 'or' },
+            { text: 'or' },
             { 
-              id: 'two', 
+              text: 'two', 
               submenu: {
                 placement: 'after',
                 options: [
-                  { id: 'different' },
+                  { text: 'different' },
                 ]
               }
             }
           ]
         },
         {
-          id: 'alignment',
+          text: 'alignment',
           kind: 'or',
           options: [
-            { id: 'hero', plural: 'heroes' },
-            { id: 'villain', plural: 'villains' }
+            { text: 'hero', pluralText: 'heroes' },
+            { text: 'villain', pluralText: 'villains' }
           ]
         },
         {
-          id: 'climbing',
+          text: 'climbing',
           kind: 'or-adv',
           options: [
-            { id: 'funnily' },
-            { id: 'weirdly' },
-            { id: 'happily' }
+            { text: 'funnily' },
+            { text: 'weirdly' },
+            { text: 'happily' }
           ]
         },
         {
-          id: 'armor',
+          text: 'armor',
           kind: 'or-adj',
           options: [
-            { id: 'chrome' },
-            { id: 'obsidian' },
-            { id: 'bone' }
+            { text: 'chrome' },
+            { text: 'obsidian' },
+            { text: 'bone' }
           ]
         }
       ]
     },
     {
-      id: 'and types',
+      text: 'and types',
       controls: [
         {
-          id: 'reading',
+          text: 'reading',
           kind: 'and-commas-adv',
           options: [
-            { id: 'books' },
-            { id: 'magazines' },
-            { id: 'blogs' }
+            { text: 'books' },
+            { text: 'magazines' },
+            { text: 'blogs' }
           ]
         },
         {
-          id: 'kicking',
+          text: 'kicking',
           kind: 'and-commas-adv',
           options: [
-            { id: 'the bucket' },
+            { text: 'the bucket' },
             {
-              id: 'redacted',
+              text: 'redacted',
               submenu: {
                 options: [
-                  { id: 'big' },
-                  { id: 'small' }
+                  { text: 'big' },
+                  { text: 'small' }
                 ]
               }
             },
             { 
-              id: 'pigeons', 
+              text: 'pigeons', 
               submenu: {
                 kind: 'or',
                 placement: 'after',
                 options: [
-                  { id: 'in the park' },
-                  { id: 'with a vengeance' }
+                  { text: 'in the park' },
+                  { text: 'with a vengeance' }
                 ]
               }
             },
           ]
         },
         {
-          id: 'render',
+          text: 'render',
           kind: 'and-spaces-adj',
           customText: 'rendering',
           options: [
-            { id: 'cinematic' },
-            { id: 'hyperdetailed' },
-            { id: 'volumetric' }
+            { text: 'cinematic' },
+            { text: 'hyperdetailed' },
+            { text: 'volumetric' }
           ]
         }
       ]
     },
     {
-      id: 'negative prompt',
+      text: 'negative prompt',
       promptTarget: 'negative',
       controls: [
         {
-          id: 'stay safe',
+          text: 'stay safe',
           kind: 'required',
-          options: [{ id: 'space robo dino demon monster', beginOn: true }],
+          options: [{ text: 'space robo dino demon monster', initiallySelected: true }],
         },
         {
-          id: 'wakka',
+          text: 'wakka',
           kind: 'toggle',
-          beginOn: true,
-          options: [{ id: 'no clutter' }]
+          initiallySelected: true,
+          options: [{ text: 'no clutter' }]
         },
         {
-          id: 'camera angle',
+          text: 'camera angle',
           kind: 'and-commas',
-          disables: [{ type: 'toggle-on', controlId: 'wakka' }],
+          disabledBys: [{ controlId: 'wakka' }],
           options: [
-            { id: 'low' },
-            { id: 'overhead' },
-            { id: 'dutch' }
+            { text: 'low' },
+            { text: 'overhead' },
+            { text: 'dutch' }
           ]
         }
       ]

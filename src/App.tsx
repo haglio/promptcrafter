@@ -23,8 +23,8 @@ export default function App({schema}: {schema: Schema}) {
   useEffect(() => {
     setState((current) => ({
       ...current,
-      positiveText: current.positiveBound ? generated.positive : current.positiveText,
-      negativeText: current.negativeBound ? generated.negative : current.negativeText,
+      positiveText: current.positiveMode === 'auto' ? generated.positive : current.positiveText,
+      negativeText: current.negativeMode === 'auto' ? generated.negative : current.negativeText,
     }));
   }, [generated.negative, generated.positive]);
 
@@ -33,29 +33,44 @@ export default function App({schema}: {schema: Schema}) {
       setState((current) => ({ ...current, sections: { ...current.sections, [sectionId]: { weight } } }));
     },
     setControlWeight(controlId: string, weight: number) {
-      setState((current) => ({ ...current, controls: { ...current.controls, [controlId]: { ...current.controls[controlId], weight } } }));
+      setState((current) => {
+        const control = current.controls[controlId];
+        if (!control) return current;
+        return { ...current, controls: { ...current.controls, [controlId]: { selectedOptionId: control.selectedOptionId, checkedOptionIds: control.checkedOptionIds, toggleOn: control.toggleOn, weight } } };
+      });
     },
     setRadio(controlId: string, optionId: string) {
-      setState((current) => ({ ...current, controls: { ...current.controls, [controlId]: { ...current.controls[controlId], selectedOptionId: optionId } } }));
+      setState((current) => {
+        const control = current.controls[controlId];
+        if (!control) return current;
+        return { ...current, controls: { ...current.controls, [controlId]: { selectedOptionId: optionId, checkedOptionIds: control.checkedOptionIds, toggleOn: control.toggleOn, weight: control.weight } } };
+      });
     },
     toggleCheck(controlId: string, optionId: string) {
       setState((current) => {
         const control = current.controls[controlId];
+        if (!control) return current;
         const exists = control.checkedOptionIds.includes(optionId);
         return {
           ...current,
           controls: {
             ...current.controls,
             [controlId]: {
-              ...control,
+              selectedOptionId: control.selectedOptionId,
               checkedOptionIds: exists ? control.checkedOptionIds.filter((value) => value !== optionId) : [...control.checkedOptionIds, optionId],
+              toggleOn: control.toggleOn,
+              weight: control.weight,
             },
           },
         };
       });
     },
     setToggle(controlId: string, value: boolean) {
-      setState((current) => ({ ...current, controls: { ...current.controls, [controlId]: { ...current.controls[controlId], toggleOn: value } } }));
+      setState((current) => {
+        const control = current.controls[controlId];
+        if (!control) return current;
+        return { ...current, controls: { ...current.controls, [controlId]: { selectedOptionId: control.selectedOptionId, checkedOptionIds: control.checkedOptionIds, toggleOn: value, weight: control.weight } } };
+      });
     },
   };
 
@@ -69,21 +84,21 @@ export default function App({schema}: {schema: Schema}) {
         <Prompt
           label="Positive prompt"
           value={state.positiveText}
-          bound={state.positiveBound}
+          mode={state.positiveMode}
           onChange={(value) => setState((current) => ({ ...current, positiveText: value }))}
-          onToggleBound={(bound) => setState((current) => ({ ...current, positiveBound: bound, positiveText: bound ? generated.positive : current.positiveText }))}
+          onToggleMode={(mode) => setState((current) => ({ ...current, positiveMode: mode, positiveText: mode === 'auto' ? generated.positive : current.positiveText }))}
         />
         <Prompt
           label="Negative prompt"
           value={state.negativeText}
-          bound={state.negativeBound}
+          mode={state.negativeMode}
           onChange={(value) => setState((current) => ({ ...current, negativeText: value }))}
-          onToggleBound={(bound) => setState((current) => ({ ...current, negativeBound: bound, negativeText: bound ? generated.negative : current.negativeText }))}
+          onToggleMode={(mode) => setState((current) => ({ ...current, negativeMode: mode, negativeText: mode === 'auto' ? generated.negative : current.negativeText }))}
         />
       </div>
 
       <div className="sections">
-        {schema.sections.map((section) => <Section key={section.id} section={section} state={state} actions={actions} schema={schema} />)}
+        {schema.sections.map((section) => <Section key={section.text} section={section} state={state} actions={actions} schema={schema} />)}
       </div>
     </main>
   );

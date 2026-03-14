@@ -20,7 +20,7 @@ describe('PromptCrafter UI', () => {
     );
   });
 
-  it('unbinds the positive prompt so manual edits persist', async () => {
+  it('switches the positive prompt to manual mode so manual edits persist', async () => {
     const user = userEvent.setup();
     render(<App schema={testSchema} />);
 

@@ -15,9 +15,9 @@ export function Control({
   actions: Actions;
   submenuKind?: 'and' | 'or';
 }) {
-  if (meetsConditions(state, control.hides)) return null;
-  const controlState = state.controls[control.id];
-  const disabled = meetsConditions(state, control.disables);
+  if (meetsConditions(state, control.hiddenBys)) return null;
+  const controlState = state.controls[control.text];
+  const disabled = meetsConditions(state, control.disabledBys);
   const isSubmenuOverride = submenuKind !== undefined;
   const isRadio = isSubmenuOverride
     ? submenuKind === 'or'
@@ -30,12 +30,12 @@ export function Control({
   return (
     <div className={`control ${disabled ? 'disabled' : ''}`}>
       <div className="control-header">
-        <strong>{control.id}</strong>
+        <strong>{control.text}</strong>
         {controlHasSelection(control, state) && (
           <Weight
-            label={control.id}
+            label={control.text}
             value={controlState.weight}
-            onChange={(value) => actions.setControlWeight(control.id, value)}
+            onChange={(value) => actions.setControlWeight(control.text, value)}
           />
         )}
       </div>
@@ -45,10 +45,10 @@ export function Control({
           <label className="inline-control toggle-switch">
             <input
               type="checkbox"
-              aria-label={control.id}
+              aria-label={control.text}
               checked={controlState.toggleOn}
               disabled={disabled}
-              onChange={(event) => actions.setToggle(control.id, event.target.checked)}
+              onChange={(event) => actions.setToggle(control.text, event.target.checked)}
             />
             <span className="toggle-track" />
           </label>
@@ -58,22 +58,22 @@ export function Control({
       {isRadio && (
         <div className="option-group">
           {(control.options ?? []).map((option) => {
-            if (meetsConditions(state, option.hides)) return null;
-            const optionDisabled = disabled || meetsConditions(state, option.disables);
-            const checked = controlState.selectedOptionId === option.id;
+            if (meetsConditions(state, option.hiddenBys)) return null;
+            const optionDisabled = disabled || meetsConditions(state, option.disabledBys);
+            const checked = controlState.selectedOptionId === option.text;
             return (
-              <div key={option.id} className="option-stack">
+              <div key={option.text} className="option-stack">
                 <label className="inline-control">
                   <input
                     type="radio"
-                    name={control.id}
+                    name={control.text}
                     checked={checked}
                     disabled={optionDisabled}
                     onClick={() => {
                       if (checked) {
-                        actions.setRadio(control.id, '');
+                        actions.setRadio(control.text, '');
                       } else {
-                        actions.setRadio(control.id, option.id);
+                        actions.setRadio(control.text, option.text);
                       }
                     }}
                     readOnly
@@ -81,7 +81,7 @@ export function Control({
                   <span>{getOptionText(option, isPlural)}</span>
                 </label>
                 {checked && <Submenu
-                  parentControlId={control.id}
+                  parentControlId={control.text}
                   option={option}
                   state={state}
                   actions={actions}
@@ -95,27 +95,27 @@ export function Control({
       {isCheckboxList && (
         <div className="option-group">
           {(control.options ?? []).map((option) => {
-            if (meetsConditions(state, option.hides)) return null;
+            if (meetsConditions(state, option.hiddenBys)) return null;
             const optionDisabled =
               disabled ||
               control.kind === 'required' ||
-              meetsConditions(state, option.disables);
-            const checked = controlState.checkedOptionIds.includes(option.id);
+              meetsConditions(state, option.disabledBys);
+            const checked = controlState.checkedOptionIds.includes(option.text);
 
             return (
-              <div key={option.id} className="option-stack">
+              <div key={option.text} className="option-stack">
                 <label className="inline-control">
                   <input
                     type="checkbox"
                     checked={checked}
                     disabled={optionDisabled}
-                    onChange={() => actions.toggleCheck(control.id, option.id)}
+                    onChange={() => actions.toggleCheck(control.text, option.text)}
                   />
                   <span>{getOptionText(option, isPlural)}</span>
                 </label>
                 {checked && (
                   <Submenu
-                    parentControlId={control.id}
+                    parentControlId={control.text}
                     option={option}
                     state={state}
                     actions={actions}

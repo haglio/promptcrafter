@@ -29,7 +29,6 @@ button, input, textarea { font: inherit; }
 .section-header, .control-header { 
   display: flex; 
   justify-content: space-between; 
-  gap: 12px; 
   align-items: center; 
 }
 
@@ -196,7 +195,7 @@ textarea {
 
 .section-header-actions { display:flex; align-items:center; gap:8px; }
 
-.prompt-header button, .section-header button { margin-right: 8px; }
+.section-header button { margin-right: 12px; }
 .prompt-header h3, .section-header h3 { margin-top: 0px; margin-bottom: 0px; }
 
 .copy-button {
@@ -222,7 +221,7 @@ textarea {
   background: #334155;
 }
 
-.bind-toggle {
+.mode-toggle {
   border: none;
   border-radius: 6px;
   padding: 4px 8px;
@@ -230,12 +229,12 @@ textarea {
   text-transform: lowercase;
 }
 
-.bind-toggle.auto {
+.mode-toggle.auto {
   background: #334155;
   color: #cbd5e1;
 }
 
-.bind-toggle.manual {
+.mode-toggle.manual {
   background: #0f766e;
   color: #f0fdfa;
 }
