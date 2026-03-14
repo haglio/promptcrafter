@@ -64,7 +64,7 @@ describe('prompt building', () => {
     });
   });
 
-  describe('custom text', () => {
+  describe('control custom text', () => {
     it("renders custom text for the 'or-adv' control kind", () => {
       const state = createInitialState(testSchema);
       state.controls['silhouette'].selectedOptions = 'towering';
@@ -93,6 +93,31 @@ describe('prompt building', () => {
       state.controls['finish profile'].selectedOptions = ['matte', 'pearlescent'];
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, matte pearlescent finish');
+    });
+  });
+
+  it('options can override the text of their control', () => {
+    const state = createInitialState(testSchema);
+    state.controls['silhouette'].selectedOptions = 'lanky';
+
+    expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, frame lanky');
+  });
+
+  describe('supplements', () => {
+    it('options can supplement the text of other controls', () => {
+      const state = createInitialState(testSchema);
+      state.controls['element prefix'].selectedOptions = 'nebula';
+      state.controls['surface treatment'].selectedOptions = 'runed';
+
+      expect(buildPrompt(testSchema, state, 'positive')).toContain('runed plating within nebula');
+    });
+
+    it('controls can supplement the text of other controls', () => {
+      const state = createInitialState(testSchema);
+      state.controls['element prefix'].selectedOptions = 'nebula';
+      state.controls['armor'].selectedOptions = 'chrome';
+
+      expect(buildPrompt(testSchema, state, 'positive')).toContain('chrome armor elemental');
     });
   });
 

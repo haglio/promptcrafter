@@ -38,6 +38,8 @@ export type Control = BaseItem & {
 };
 
 export type Option = BaseItem & {
+  customControlText?: string;
+  customControlPluralText?: string;
   submenu?: Submenu;
 };
 
@@ -53,6 +55,7 @@ export type BaseItem = {
   pluralText?: string;
   hiddenBys?: DisabledOrHiddenBy[];
   disabledBys?: DisabledOrHiddenBy[];
+  supplementedBys?: SupplementedBy[];
 };
 
 export type PromptTarget = 'positive' | 'negative';
@@ -78,3 +81,15 @@ export type DisabledOrHiddenBy = {
   controlText?: string;
   optionText?: string;
 };
+
+export type SupplementedBy =
+  | {
+      controlText: string;
+      optionText?: never;
+      supplementalText: string;
+    }
+  | {
+      controlText?: never;
+      optionText: string;
+      supplementalText: string;
+    };

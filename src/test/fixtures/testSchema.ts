@@ -41,7 +41,7 @@ export const testSchema: Schema = {
           customText: 'outline',
           options: [
             { text: 'towering' },
-            { text: 'lanky' },
+            { text: 'lanky', customControlText: 'frame' },
             { text: 'hulking' }
           ]
         },
@@ -65,6 +65,12 @@ export const testSchema: Schema = {
         {
           text: 'armor',
           kind: 'or-adj',
+          supplementedBys: [
+            {
+              controlText: 'element prefix',
+              supplementalText: 'elemental'
+            }
+          ],
           options: [
             { text: 'chrome' },
             { text: 'obsidian' },
@@ -75,6 +81,12 @@ export const testSchema: Schema = {
           text: 'surface treatment',
           kind: 'or-adj',
           customText: 'plating',
+          supplementedBys: [
+            {
+              optionText: 'nebula',
+              supplementalText: 'within nebula'
+            }
+          ],
           options: [
             { text: 'runed' },
             { text: 'etched' }

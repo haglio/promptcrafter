@@ -1,5 +1,5 @@
 import type { Control, Option, PromptTarget, Schema, Section, State } from "../types";
-import { getOptionText, isSubjectPlural, joinParts, submenuStateKey, isHidden, isDisabled } from "./utlities";
+import { getOptionText, isSubjectPlural, joinParts, submenuStateKey, isHidden, isDisabled, getSupplementalTexts } from "./utlities";
 import type { Segment } from "./types";
 
 function applyWeight(text: string, weight: number): string {
@@ -46,8 +46,17 @@ function renderOptionWithModifiers(parentControlText: string, option: Option, st
     `${modifierText} ${optionText}`;
 }
 
-function getControlText(control: Control, state: State): string {
+function appendSupplements(baseText: string, state: State, control: Control): string {
+  if (!baseText.trim()) return '';
+  const supplementalTexts = getSupplementalTexts(state, control.supplementedBys);
+  if (supplementalTexts.length === 0) return baseText;
+  return `${baseText} ${supplementalTexts.join(' ')}`;
+}
+
+function getControlText(control: Control, state: State, option?: Option): string {
   const isPlural = isSubjectPlural(state);
+  if (isPlural && option?.customControlPluralText) return option.customControlPluralText;
+  if (option?.customControlText) return option.customControlText;
   if (isPlural && control.customPluralText) return control.customPluralText;
   if (control.customText) return control.customText;
   if (isPlural && control.pluralText) return control.pluralText;
@@ -87,12 +96,12 @@ function renderControl(control: Control, state: State): Segment[] {
   if (control.kind === 'toggle') {
     if (!(controlState.selectedOptions as boolean) || disabled) return [];
     const base = control.options?.[0]?.text ?? control.text;
-    return [{ text: base, weight: ownWeight }];
+    return [{ text: appendSupplements(base, state, control), weight: ownWeight }];
   }
 
   if (control.kind === 'required') {
     const base = control.options?.[0]?.text ?? control.text;
-    return [{ text: base, weight: ownWeight }];
+    return [{ text: appendSupplements(base, state, control), weight: ownWeight }];
   }
 
   const radioKinds = new Set([
@@ -106,8 +115,9 @@ function renderControl(control: Control, state: State): Segment[] {
     const option = optionById(control, disabled ? undefined : controlState.selectedOptions as string);
     if (!option || isHidden(state, option.hiddenBys) || isDisabled(state, option.disabledBys)) return [];
     let text = renderOptionWithModifiers(control.text, option, state);
-    if (control.kind === 'or-adv') text = `${getControlText(control, state)} ${text}`;
-    if (control.kind === 'or-adj') text = `${text} ${getControlText(control, state)}`;
+    if (control.kind === 'or-adv') text = `${getControlText(control, state, option)} ${text}`;
+    if (control.kind === 'or-adj') text = `${text} ${getControlText(control, state, option)}`;
+    text = appendSupplements(text, state, control);
     return text ? [{ text, weight: ownWeight }] : [];
   }
 
@@ -125,14 +135,16 @@ function renderControl(control: Control, state: State): Segment[] {
       combined = optionValues.join(', ');
       break;
     case 'and-commas-adv':
-      combined = optionValues.map((value) => `${getControlText(control, state)} ${value}`).join(', ');
+      combined = selectedOptions.map((option, index) => `${getControlText(control, state, option)} ${optionValues[index]}`).join(', ');
       break;
     case 'and-spaces-adj':
-      combined = `${optionValues.join(' ')} ${getControlText(control, state)}`;
+      combined = `${optionValues.join(' ')} ${getControlText(control, state, selectedOptions[0])}`;
       break;
     default:
       combined = optionValues.join(', ');
   }
+
+  combined = appendSupplements(combined.trim(), state, control);
 
   return combined.trim() ? [{ text: combined.trim(), weight: ownWeight }] : [];
 }
