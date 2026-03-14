@@ -13,7 +13,7 @@ export const schema: Schema = {
             { 
               text: 'two', 
               submenu: {
-                placement: 'after',
+                kind: 'and-adv',
                 options: [
                   { text: 'different' },
                 ]
@@ -69,6 +69,7 @@ export const schema: Schema = {
             {
               text: 'redacted',
               submenu: {
+                kind: 'or-adj',
                 options: [
                   { text: 'big' },
                   { text: 'small' }
@@ -78,8 +79,7 @@ export const schema: Schema = {
             { 
               text: 'pigeons', 
               submenu: {
-                kind: 'or',
-                placement: 'after',
+                kind: 'or-adv',
                 options: [
                   { text: 'in the park' },
                   { text: 'with a vengeance' }

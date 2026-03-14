@@ -18,7 +18,7 @@ export const testSchema: Schema = {
             { 
               text: 'two', 
               submenu: {
-                placement: 'after',
+                kind: 'and-adv',
                 options: [
                   { text: 'different' },
                 ]
@@ -74,6 +74,7 @@ export const testSchema: Schema = {
             {
               text: 'wings',
               submenu: {
+                kind: 'or-adj',
                 options: [
                   { text: 'feathered' },
                   { text: 'mechanical' }
@@ -83,8 +84,7 @@ export const testSchema: Schema = {
             { 
               text: 'horns', 
               submenu: {
-                kind: 'or',
-                placement: 'after',
+                kind: 'or-adv',
                 options: [
                   { text: 'wishily' },
                   { text: 'washily' }

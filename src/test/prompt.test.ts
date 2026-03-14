@@ -21,7 +21,7 @@ describe('prompt building', () => {
 
     // TODO: 'or-adj', with custom text
 
-    // 'and-commas', with submenu
+    // 'and-commas', with submenu TODO: but this isn't good enough; we need to test all four different kinds of submenus
     state.controls['appendages'].checkedOptionIds = ['wings', 'tail'];
     state.controls['appendages__wings__submenu'].checkedOptionIds = ['mechanical'];
 
@@ -42,17 +42,18 @@ describe('prompt building', () => {
   });
 
   // TODO: test of disabledBys ... apparently disabledBys can apply at the the section level, control level, and option level
+
   // TODO: test of hiddenBys... same as with disabledBys, but also we don't have an example of these in the real schema anymore, but I'm fairly confident that we will need it
 
-  // TODO: should show something after hero
   it('parts of sections - weights override section weight', () => {
     const state = createInitialState(testSchema);
     state.controls['alignment'].selectedOptionId = 'hero';
     state.sections['subject-core'].weight = 5;
     state.controls['alignment'].weight = 3;
+    state.controls['silhouette'].selectedOptionId = 'towering';
 
     const prompt = buildPrompt(testSchema, state, 'positive');
-    expect(prompt).toContain('(space robo dino demon monster:5.0), (hero:3.0)');
+    expect(prompt).toContain('(space robo dino demon monster:5.0), (hero:3.0), (outline towering:5.0)');
   });
 
   it('builds the negative prompt independently', () => {
@@ -61,4 +62,6 @@ describe('prompt building', () => {
 
     expect(buildPrompt(testSchema, state, 'negative')).toBe('no clutter, blurry, extra limbs');
   });
+
+  // TODO: test of plurality; customText needs to support plurality, see "sweater" in real-life prompt for example why. and make sure that pluralText doesn't work only for Controls but also Options and Sections
 })

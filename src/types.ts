@@ -31,7 +31,7 @@ export type Control = BaseItem & {
   kind: ControlKind;
   customText?: string;
   customPluralText?: string;
-  initiallySelected?: boolean; // only relevant for toggle types
+  initiallySelected?: boolean;  // only relevant for toggle types
   options?: Option[];
 };
 
@@ -41,8 +41,7 @@ export type Option = BaseItem & {
 };
 
 export type Submenu = {
-  kind?: 'and' | 'or';
-  placement?: 'before' | 'after';
+  kind: SubmenuKind;
   options: Option[];
 };
 
@@ -67,6 +66,12 @@ type ControlKind =
   | 'and-spaces-adj'
   | 'required'
   | 'toggle';
+
+type SubmenuKind =
+  | 'or-adv'
+  | 'or-adj'
+  | 'and-adv'
+  | 'and-adj';
 
 export type Condition = {
   controlId: string;

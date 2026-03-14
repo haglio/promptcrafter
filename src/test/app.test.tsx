@@ -51,7 +51,7 @@ describe('PromptCrafter UI', () => {
     expect(within(modesSection!).getByLabelText('low')).toBeDisabled();
   });
 
-  // TODO: test of how it shouldn't show the weight slider for sections if no thing has been chosen from that section, and weight slider tests in general
+  // TODO: tests of weight sliders - how when you change it positive or negative it modifies the text in the prompt, and how it shouldn't show the weight slider for sections if no thing has been chosen from that section... and similarly that it doesn't appear for a control, and that in either case the reset button doesn't appear until it deviates from 1, and when you push the reset button it resets to 1
 
-  // TODO: tests of copy buttons
+  // TODO: tests of copy buttons, if it's even possible to test the clipboard
 });

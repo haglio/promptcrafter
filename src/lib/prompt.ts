@@ -46,11 +46,12 @@ function renderSubmenu(parentControlId: string, option: Option, state: State): s
 
 function renderOptionWithModifiers(parentControlId: string, option: Option, state: State): string {
   const modifierText = renderSubmenu(parentControlId, option, state);
-  const placement = option.submenu?.placement ?? 'before';
   const isPlural = isSubjectPlural(state)
   const optionText = getOptionText(option, isPlural)
   if (!modifierText) return optionText;
-  return placement === 'after' ? `${optionText} ${modifierText}` : `${modifierText} ${optionText}`;
+  return option.submenu?.kind === 'and-adv' || option.submenu?.kind === 'or-adv' ? 
+    `${optionText} ${modifierText}` : 
+    `${modifierText} ${optionText}`;
 }
 
 function getControlText(control: Control): string {
