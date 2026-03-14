@@ -1,41 +1,48 @@
-import type { State, Control, Option, Section, Condition } from '../types';
+import type { State, Control, Option, Section, DisabledOrHiddenBy } from '../types';
 
 export function getOptionText(option: Option, isPlural: boolean): string {
   return isPlural && option.pluralText ? option.pluralText : option.text
 }
 
 export function isSubjectPlural(state: State): boolean {
-  return state.controls.count?.selectedOptionId == 'two'
+  return state.controls.count?.selectedOption == 'two'
 }
 
-export function sectionHasSelection(section: Section, state: State) {
-  return section.controls.some((control) => controlHasSelection(control, state));
+export function sectionHasAtLeastOneSelection(section: Section, state: State) {
+  return section.controls.some((control) => controlHasAtLeastOneSelection(control, state));
 }
 
-export function controlHasSelection(control: Control, state: State) {
+export function controlHasAtLeastOneSelection(control: Control, state: State) {
   const s = state.controls[control.text];
 
   if (control.kind === 'required') return true;
-  if (control.kind === 'toggle') return s.toggleOn;
+  if (control.kind === 'toggle') return s.toggledOn;
 
   if (control.kind.startsWith('or')) {
-    return Boolean(s.selectedOptionId);
+    return Boolean(s.selectedOption);
   }
 
-  return s.checkedOptionIds.length > 0;
+  return s.checkedOptions.length > 0;
 }
 
-export function submenuStateKey(parentControlId: string, optionId: string) {
-  return `${parentControlId}__${optionId}__submenu`;
+export function submenuStateKey(parentControl: string, option: string) {
+  return `${parentControl}__${option}__submenu`;
 }
 
 export function joinParts(parts: string[]): string {
   return parts.filter(Boolean).join(', ').replace(/\s+,/g, ',').replace(/,\s*,/g, ', ').trim().replace(/,$/, '');
 }
 
-export function meetsConditions(state: State, conditions?: Condition[]): boolean {
-  if (!conditions || conditions.length === 0) return false;
-  return conditions.some((condition) => {
-     return state.controls[condition.controlId]?.toggleOn ?? false;
+export function isDisabled(state: State, disabledBys?: DisabledOrHiddenBy[]): boolean {
+  if (!disabledBys || disabledBys.length === 0) return false;
+  return disabledBys.some((disabledBy) => {
+     return state.controls[disabledBy.controlText]?.toggledOn ?? false;
+  });
+}
+
+export function isHidden(state: State, hiddenBys?: DisabledOrHiddenBy[]): boolean {
+  if (!hiddenBys || hiddenBys.length === 0) return false;
+  return hiddenBys.some((hiddenBy) => {
+     return state.controls[hiddenBy.controlText]?.toggledOn ?? false;
   });
 }

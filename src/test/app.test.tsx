@@ -24,7 +24,9 @@ describe('PromptCrafter UI', () => {
     const user = userEvent.setup();
     render(<App schema={testSchema} />);
 
-    await user.click(screen.getAllByRole('button', { name: /manual/i })[0]);
+    const manualButtons = screen.getAllByRole('button', { name: /manual/i });
+    expect(manualButtons.length).toBeGreaterThan(0);
+    await user.click(manualButtons[0] as HTMLElement);
 
     const positive = screen.getByRole('textbox', { name: 'Positive prompt' });
     await user.clear(positive);

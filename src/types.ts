@@ -2,17 +2,21 @@
 
 export type State = {
   controls: Record<string, ControlState>;
-  sections: Record<string, { weight: number }>;
+  sections: Record<string, SectionState>;
   positiveText: string;
   negativeText: string;
   positiveMode: 'auto' | 'manual';
   negativeMode: 'auto' | 'manual';
 };
 
+export type SectionState = {
+  weight: number;
+}
+
 export type ControlState = {
-  selectedOptionId?: string;    // only relevant for 'or' types
-  checkedOptionIds: string[];   // only relevant for 'and' types
-  toggleOn: boolean;            // only relevant for 'toggle' types
+  selectedOption?: string;
+  checkedOptions?: string[];
+  toggledOn?: boolean;
   weight: number;
 };
 
@@ -31,7 +35,7 @@ export type Control = BaseItem & {
   kind: ControlKind;
   customText?: string;
   customPluralText?: string;
-  initiallySelected?: boolean;  // only relevant for toggle types
+  initiallySelected?: boolean;
   options?: Option[];
 };
 
@@ -50,8 +54,8 @@ export type Submenu = {
 export type BaseItem = {
   text: string;
   pluralText?: string;
-  hiddenBys?: Condition[];
-  disabledBys?: Condition[];
+  hiddenBys?: DisabledOrHiddenBy[];
+  disabledBys?: DisabledOrHiddenBy[];
 };
 
 export type PromptTarget = 'positive' | 'negative';
@@ -73,7 +77,7 @@ type SubmenuKind =
   | 'and-adv'
   | 'and-adj';
 
-export type Condition = {
-  controlId: string;
-  optionId?: string;
+export type DisabledOrHiddenBy = {
+  controlText?: string;
+  optionText?: string;
 };

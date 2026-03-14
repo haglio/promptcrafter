@@ -29,47 +29,47 @@ export default function App({schema}: {schema: Schema}) {
   }, [generated.negative, generated.positive]);
 
   const actions = {
-    setSectionWeight(sectionId: string, weight: number) {
-      setState((current) => ({ ...current, sections: { ...current.sections, [sectionId]: { weight } } }));
+    setSectionWeight(section: string, weight: number) {
+      setState((current) => ({ ...current, sections: { ...current.sections, [section]: { weight } } }));
     },
-    setControlWeight(controlId: string, weight: number) {
+    setControlWeight(controlText: string, weight: number) {
       setState((current) => {
-        const control = current.controls[controlId];
+        const control = current.controls[controlText];
         if (!control) return current;
-        return { ...current, controls: { ...current.controls, [controlId]: { selectedOptionId: control.selectedOptionId, checkedOptionIds: control.checkedOptionIds, toggleOn: control.toggleOn, weight } } };
+        return { ...current, controls: { ...current.controls, [controlText]: { selectedOption: control.selectedOption, checkedOptions: control.checkedOptions, toggledOn: control.toggledOn, weight } } };
       });
     },
-    setRadio(controlId: string, optionId: string) {
+    setRadio(controlText: string, optionText: string) {
       setState((current) => {
-        const control = current.controls[controlId];
+        const control = current.controls[controlText];
         if (!control) return current;
-        return { ...current, controls: { ...current.controls, [controlId]: { selectedOptionId: optionId, checkedOptionIds: control.checkedOptionIds, toggleOn: control.toggleOn, weight: control.weight } } };
+        return { ...current, controls: { ...current.controls, [controlText]: { selectedOption: optionText, checkedOptions: control.checkedOptions, toggledOn: control.toggledOn, weight: control.weight } } };
       });
     },
-    toggleCheck(controlId: string, optionId: string) {
+    toggleCheck(controlText: string, optionText: string) {
       setState((current) => {
-        const control = current.controls[controlId];
+        const control = current.controls[controlText];
         if (!control) return current;
-        const exists = control.checkedOptionIds.includes(optionId);
+        const exists = control.checkedOptions.includes(optionText);
         return {
           ...current,
           controls: {
             ...current.controls,
-            [controlId]: {
-              selectedOptionId: control.selectedOptionId,
-              checkedOptionIds: exists ? control.checkedOptionIds.filter((value) => value !== optionId) : [...control.checkedOptionIds, optionId],
-              toggleOn: control.toggleOn,
+            [controlText]: {
+              selectedOption: control.selectedOption,
+              checkedOptions: exists ? control.checkedOptions.filter((value) => value !== optionText) : [...control.checkedOptions, optionText],
+              toggledOn: control.toggledOn,
               weight: control.weight,
             },
           },
         };
       });
     },
-    setToggle(controlId: string, value: boolean) {
+    setToggle(controlText: string, value: boolean) {
       setState((current) => {
-        const control = current.controls[controlId];
+        const control = current.controls[controlText];
         if (!control) return current;
-        return { ...current, controls: { ...current.controls, [controlId]: { selectedOptionId: control.selectedOptionId, checkedOptionIds: control.checkedOptionIds, toggleOn: value, weight: control.weight } } };
+        return { ...current, controls: { ...current.controls, [controlText]: { selectedOption: control.selectedOption, checkedOptions: control.checkedOptions, toggledOn: value, weight: control.weight } } };
       });
     },
   };

@@ -63,6 +63,8 @@ textarea {
 
 .control { border-top: 1px solid #374151; padding-top: 12px; margin-top: 12px; }
 
+.control.no-top-border { border-top: none; }
+
 .option-group {
   display: flex;
   flex-wrap: wrap;

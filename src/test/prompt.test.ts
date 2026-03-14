@@ -8,31 +8,31 @@ describe('prompt building', () => {
     const state = createInitialState(testSchema);
 
     // 'or'
-    state.controls['alignment'].selectedOptionId = 'hero';
+    state.controls['alignment'].selectedOption = 'hero';
 
     // 'or-prefix'
-    state.controls['element prefix'].selectedOptionId = 'void';
+    state.controls['element prefix'].selectedOption = 'void';
 
     // 'or-adv', with custom text
-    state.controls['silhouette'].selectedOptionId = 'towering';
+    state.controls['silhouette'].selectedOption = 'towering';
 
     // 'or-adj'
-    state.controls['armor'].selectedOptionId = 'chrome';
+    state.controls['armor'].selectedOption = 'chrome';
 
     // TODO: 'or-adj', with custom text
 
     // 'and-commas', with submenu TODO: but this isn't good enough; we need to test all four different kinds of submenus
-    state.controls['appendages'].checkedOptionIds = ['wings', 'tail'];
-    state.controls['appendages__wings__submenu'].checkedOptionIds = ['mechanical'];
+    state.controls['appendages'].checkedOptions = ['wings', 'tail'];
+    state.controls['appendages__wings__submenu'].checkedOptions = ['mechanical'];
 
     // 'and-commas-adv'
-    state.controls['stance'].checkedOptionIds = ['lunging', 'three-quarter'];
+    state.controls['stance'].checkedOptions = ['lunging', 'three-quarter'];
 
     // 'and-commas-adv', with custom text
-    state.controls['sitting on'].checkedOptionIds = ['etchings', 'glow'];
+    state.controls['sitting on'].checkedOptions = ['etchings', 'glow'];
 
     // 'and-spaces-adj'
-    state.controls['render style'].checkedOptionIds = ['cinematic', 'volumetric'];
+    state.controls['render style'].checkedOptions = ['cinematic', 'volumetric'];
 
     // TODO: 'and-spaces-adj', with custom text
 
@@ -47,10 +47,10 @@ describe('prompt building', () => {
 
   it('parts of sections - weights override section weight', () => {
     const state = createInitialState(testSchema);
-    state.controls['alignment'].selectedOptionId = 'hero';
+    state.controls['alignment'].selectedOption = 'hero';
     state.sections['subject-core'].weight = 5;
     state.controls['alignment'].weight = 3;
-    state.controls['silhouette'].selectedOptionId = 'towering';
+    state.controls['silhouette'].selectedOption = 'towering';
 
     const prompt = buildPrompt(testSchema, state, 'positive');
     expect(prompt).toContain('(space robo dino demon monster:5.0), (hero:3.0), (outline towering:5.0)');
@@ -58,7 +58,7 @@ describe('prompt building', () => {
 
   it('builds the negative prompt independently', () => {
     const state = createInitialState(testSchema);
-    state.controls['neg-quality'].checkedOptionIds = ['blurry', 'extra limbs'];
+    state.controls['neg-quality'].checkedOptions = ['blurry', 'extra limbs'];
 
     expect(buildPrompt(testSchema, state, 'negative')).toBe('no clutter, blurry, extra limbs');
   });

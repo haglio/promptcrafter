@@ -2,19 +2,19 @@ import type { State, Control, ControlState, Schema, Section } from '../types';
 
 function createControlState(control: Control): ControlState {
   if (control.kind === 'toggle') {
-    return { checkedOptionIds: [], toggleOn: control.initiallySelected ?? false, weight: 1, selectedOptionId: undefined };
+    return { checkedOptions: [], toggledOn: control.initiallySelected ?? false, weight: 1, selectedOption: undefined };
   }
   if (control.kind === 'required') {
     const always = control.options?.find((option) => option.initiallySelected) ?? control.options?.[0];
-    return { checkedOptionIds: always ? [always.text] : [], toggleOn: false, weight: 1, selectedOptionId: always?.text };
+    return { checkedOptions: always ? [always.text] : [], toggledOn: false, weight: 1, selectedOption: always?.text };
   }
   const isRadio = control.kind.startsWith('or');
   const preselected = control.options?.find((option) => option.initiallySelected);
   return {
-    checkedOptionIds: isRadio ? [] : (control.options?.filter((option) => option.initiallySelected).map((option) => option.text) ?? []),
-    toggleOn: false,
+    checkedOptions: isRadio ? [] : (control.options?.filter((option) => option.initiallySelected).map((option) => option.text) ?? []),
+    toggledOn: false,
     weight: 1,
-    selectedOptionId: isRadio ? preselected?.text : undefined,
+    selectedOption: isRadio ? preselected?.text : undefined,
   };
 }
 
@@ -24,11 +24,11 @@ function walkControls(controls: Control[], bucket: Record<string, ControlState>)
     for (const option of control.options ?? []) {
       if (option.submenu) {
         bucket[`${control.text}__${option.text}__submenu`] = {
-          checkedOptionIds: option.submenu.options.filter((o) => o.initiallySelected).map((o) => o.text),
-          selectedOptionId: option.submenu.kind === 'or'
+          checkedOptions: option.submenu.options.filter((o) => o.initiallySelected).map((o) => o.text),
+          selectedOption: option.submenu.kind.startsWith('or')
             ? option.submenu.options.find((o) => o.initiallySelected)?.text
             : undefined,
-          toggleOn: false,
+          toggledOn: false,
           weight: 1,
         };
       }

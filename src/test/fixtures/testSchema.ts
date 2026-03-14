@@ -145,7 +145,7 @@ export const testSchema: Schema = {
         {
           text: 'camera angle',
           kind: 'or',
-          disabledBys: [{ controlId: 'is portrait' }],
+          disabledBys: [{ controlText: 'is portrait' }],
           options: [
             { text: 'low' },
             { text: 'overhead' },
@@ -155,7 +155,7 @@ export const testSchema: Schema = {
         {
           text: 'portrait focus',
           kind: 'and-commas',
-          hiddenBys: [{ controlId: 'is portrait' }],
+          hiddenBys: [{ controlText: 'is portrait' }],
           options: [
             { text: 'face' },
             { text: 'torso' }

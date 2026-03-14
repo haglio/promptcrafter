@@ -118,7 +118,7 @@ export const schema: Schema = {
         {
           text: 'camera angle',
           kind: 'and-commas',
-          disabledBys: [{ controlId: 'wakka' }],
+          disabledBys: [{ controlText: 'wakka' }],
           options: [
             { text: 'low' },
             { text: 'overhead' },
