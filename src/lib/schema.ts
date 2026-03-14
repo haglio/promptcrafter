@@ -1,22 +1,15 @@
-import type { Schema } from './types';
+import type { Schema } from '../types';
 
 export const schema: Schema = {
   sections: [
     {
-      id: 'subject-core',
-      defaultWeight: 1,
-      promptTarget: 'positive',
+      id: 'or types',
       controls: [
         {
-          id: 'subject-base',
-          kind: 'required',
-          options: [{ id: 'space robo dino demon monster', defaultSelected: true }],
-        },
-        {
           id: 'count',
-          kind: 'or-no-comma-prefix-of-next',
+          kind: 'or-prefix',
           options: [
-            { id: 'one' },
+            { id: 'or' },
             { 
               id: 'two', 
               submenu: {
@@ -37,28 +30,17 @@ export const schema: Schema = {
           ]
         },
         {
-          id: 'silhouette',
-          kind: 'or-leading-title-if-non-empty',
-          titleText: 'silhouette',
+          id: 'climbing',
+          kind: 'or-adv',
           options: [
-            { id: 'towering' },
-            { id: 'lanky' },
-            { id: 'hulking' }
-          ]
-        },
-        {
-          id: 'element prefix',
-          kind: 'or-no-comma-prefix-of-next',
-          options: [
-            { id: 'void' },
-            { id: 'plasma' },
-            { id: 'nebula' }
+            { id: 'funnily' },
+            { id: 'weirdly' },
+            { id: 'happily' }
           ]
         },
         {
           id: 'armor',
-          titleText: 'armor',
-          kind: 'or-trailing-title-if-non-empty',
+          kind: 'or-adj',
           options: [
             { id: 'chrome' },
             { id: 'obsidian' },
@@ -68,69 +50,48 @@ export const schema: Schema = {
       ]
     },
     {
-      id: 'details',
-      defaultWeight: 1,
-      promptTarget: 'positive',
+      id: 'and types',
       controls: [
         {
-          id: 'appendages',
-          kind: 'and-comma-separated',
+          id: 'reading',
+          kind: 'and-commas-adv',
           options: [
+            { id: 'books' },
+            { id: 'magazines' },
+            { id: 'blogs' }
+          ]
+        },
+        {
+          id: 'kicking',
+          kind: 'and-commas-adv',
+          options: [
+            { id: 'the bucket' },
             {
-              id: 'wings',
+              id: 'redacted',
               submenu: {
                 options: [
-                  { id: 'feathered' },
-                  { id: 'mechanical' }
+                  { id: 'big' },
+                  { id: 'small' }
                 ]
               }
             },
             { 
-              id: 'horns', 
+              id: 'pigeons', 
               submenu: {
-                selectionMode: 'one',
+                kind: 'or',
                 placement: 'after',
                 options: [
-                  { id: 'wishily' },
-                  { id: 'washily' }
+                  { id: 'in the park' },
+                  { id: 'with a vengeance' }
                 ]
               }
             },
-            { id: 'tail' }
           ]
         },
         {
-          id: 'sitting on',
-          kind: 'and-comma-leading-text',
-          leadingText: 'sitting on', 
-          options: [
-            { id: 'etchings' },
-            { id: 'scars' },
-            { id: 'glow' }
-          ]
-        },
-        {
-          id: 'surface borks',
-          kind: 'and-comma-leading-text',
-          options: [
-            { id: 'fetchings' },
-            { id: 'fscars' },
-            { id: 'fglow' }
-          ]
-        },
-        {
-          id: 'stance',
-          kind: 'and-space-separated',
-          options: [
-            { id: 'lunging' },
-            { id: 'roaring' },
-            { id: 'three-quarter' }
-          ]
-        },
-        {
-          id: 'render style',
-          kind: 'and-space-trailing-title-if-non-empty',
-          titleText: 'render',
+          id: 'render',
+          kind: 'and-spaces-adj',
+          customText: 'rendering',
           options: [
             { id: 'cinematic' },
             { id: 'hyperdetailed' },
@@ -140,62 +101,28 @@ export const schema: Schema = {
       ]
     },
     {
-      id: 'modes',
-      defaultWeight: 1,
-      promptTarget: 'positive',
+      id: 'negative prompt',
+      promptTarget: 'negative',
       controls: [
         {
-          id: 'is portrait',
+          id: 'stay safe',
+          kind: 'required',
+          options: [{ id: 'space robo dino demon monster', beginOn: true }],
+        },
+        {
+          id: 'wakka',
           kind: 'toggle',
-          defaultToggleOn: false,
-          options: [{ id: 'portrait' }]
+          beginOn: true,
+          options: [{ id: 'no clutter' }]
         },
         {
           id: 'camera angle',
-          kind: 'or',
-          disables: [{ type: 'toggle-on', controlId: 'is portrait' }],
+          kind: 'and-commas',
+          disables: [{ type: 'toggle-on', controlId: 'wakka' }],
           options: [
             { id: 'low' },
             { id: 'overhead' },
             { id: 'dutch' }
-          ]
-        },
-        {
-          id: 'portrait focus',
-          kind: 'and-comma-separated',
-          hides: [{ type: 'toggle-on', controlId: 'is portrait' }],
-          options: [
-            { id: 'face' },
-            { id: 'torso' }
-          ]
-        }
-      ]
-    },
-    {
-      id: 'negative modes',
-      defaultWeight: 1,
-      promptTarget: 'negative',
-      controls: [
-        {
-          id: 'negative-switch',
-          kind: 'toggle',
-          defaultToggleOn: true,
-          options: [{ id: 'no clutter' }]
-        }
-      ]
-    },
-    {
-      id: 'negative polish',
-      defaultWeight: 1,
-      promptTarget: 'negative',
-      controls: [
-        {
-          id: 'neg-quality',
-          kind: 'and-comma-separated',
-          options: [
-            { id: 'blurry' },
-            { id: 'muddy' },
-            { id: 'extra limbs' }
           ]
         }
       ]

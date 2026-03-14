@@ -1,4 +1,3 @@
-// src/test/app.test.tsx
 import { describe, expect, it } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -17,7 +16,7 @@ describe('PromptCrafter UI', () => {
 
     const positive = screen.getByRole('textbox', { name: 'Positive prompt' });
     expect(positive).toHaveValue(
-      'space robo dino demon monster, silhouette towering, bone armor, mechanical wings',
+      'space robo dino demon monster, outline towering, bone armor, mechanical wings',
     );
   });
 
@@ -25,7 +24,7 @@ describe('PromptCrafter UI', () => {
     const user = userEvent.setup();
     render(<App schema={testSchema} />);
 
-    await user.click(screen.getAllByRole('checkbox', { name: /Unbind/i })[0]);
+    await user.click(screen.getAllByRole('button', { name: /manual/i })[0]);
 
     const positive = screen.getByRole('textbox', { name: 'Positive prompt' });
     await user.clear(positive);
@@ -51,4 +50,8 @@ describe('PromptCrafter UI', () => {
     expect(within(modesSection!).queryByText('portrait focus')).not.toBeInTheDocument();
     expect(within(modesSection!).getByLabelText('low')).toBeDisabled();
   });
+
+  // TODO: test of how it shouldn't show the weight slider for sections if no thing has been chosen from that section, and weight slider tests in general
+
+  // TODO: tests of copy buttons
 });

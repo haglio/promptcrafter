@@ -26,16 +26,27 @@ button, input, textarea { font: inherit; }
   padding: 16px; 
 }
 
-.prompt-header, .section-header, .control-header { 
+.section-header, .control-header { 
   display: flex; 
   justify-content: space-between; 
   gap: 12px; 
   align-items: center; 
 }
 
-.prompt-label, .inline-control, .weight-slider { display: inline-flex; gap: 8px; align-items: center; }
+.prompt-header {
+  display: flex; 
+  justify-content: left; 
+  gap: 12px; 
+  align-items: center; 
+}
 
-textarea { 
+.prompt-label, .section-label, .inline-control, .weight { 
+  display: inline-flex; 
+  gap: 8px; 
+  align-items: center; 
+}
+
+textarea {
   width: 100%; 
   margin-top: 12px;
   resize: vertical; 
@@ -152,13 +163,13 @@ textarea {
   user-select: none;
 }
 
-.weight-slider {
+.weight {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.weight-slider input[type="range"] {
+.weight input[type="range"] {
   width: 120px;
 }
 
@@ -184,3 +195,52 @@ textarea {
 }
 
 .section-header-actions { display:flex; align-items:center; gap:8px; }
+
+.prompt-header button, .section-header button { margin-right: 8px; }
+.prompt-header h3, .section-header h3 { margin-top: 0px; margin-bottom: 0px; }
+
+.copy-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0;
+}
+
+.copy-button:hover {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+.copy-button:active {
+  background: #334155;
+}
+
+.bind-toggle {
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  text-transform: lowercase;
+}
+
+.bind-toggle.auto {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+.bind-toggle.manual {
+  background: #0f766e;
+  color: #f0fdfa;
+}
+
+textarea:disabled {
+  opacity: 0.7;
+  cursor: default;
+}

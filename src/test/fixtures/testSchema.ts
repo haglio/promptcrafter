@@ -1,22 +1,21 @@
-import { Schema } from "../../lib/types";
+import type { Schema } from "../../types";
 
 export const testSchema: Schema = {
   sections: [
     {
       id: 'subject-core',
-      defaultWeight: 1,
       promptTarget: 'positive',
       controls: [
         {
           id: 'subject-base',
           kind: 'required',
-          options: [{ id: 'space robo dino demon monster', defaultSelected: true }],
+          options: [{ id: 'space robo dino demon monster', beginOn: true }],
         },
         {
           id: 'count',
-          kind: 'or-no-comma-prefix-of-next',
+          kind: 'or-prefix',
           options: [
-            { id: 'one' },
+            { id: 'or' },
             { 
               id: 'two', 
               submenu: {
@@ -38,8 +37,8 @@ export const testSchema: Schema = {
         },
         {
           id: 'silhouette',
-          kind: 'or-leading-title-if-non-empty',
-          titleText: 'silhouette',
+          kind: 'or-adv',
+          customText: 'outline',
           options: [
             { id: 'towering' },
             { id: 'lanky' },
@@ -48,7 +47,7 @@ export const testSchema: Schema = {
         },
         {
           id: 'element prefix',
-          kind: 'or-no-comma-prefix-of-next',
+          kind: 'or-prefix',
           options: [
             { id: 'void' },
             { id: 'plasma' },
@@ -57,8 +56,7 @@ export const testSchema: Schema = {
         },
         {
           id: 'armor',
-          titleText: 'armor',
-          kind: 'or-trailing-title-if-non-empty',
+          kind: 'or-adj',
           options: [
             { id: 'chrome' },
             { id: 'obsidian' },
@@ -69,12 +67,11 @@ export const testSchema: Schema = {
     },
     {
       id: 'details',
-      defaultWeight: 1,
       promptTarget: 'positive',
       controls: [
         {
           id: 'appendages',
-          kind: 'and-comma-separated',
+          kind: 'and-commas',
           options: [
             {
               id: 'wings',
@@ -88,7 +85,7 @@ export const testSchema: Schema = {
             { 
               id: 'horns', 
               submenu: {
-                selectionMode: 'one',
+                kind: 'or',
                 placement: 'after',
                 options: [
                   { id: 'wishily' },
@@ -101,8 +98,8 @@ export const testSchema: Schema = {
         },
         {
           id: 'sitting on',
-          kind: 'and-comma-leading-text',
-          leadingText: 'sitting on', 
+          kind: 'and-commas-adv',
+          customText: 'alighting upon', 
           options: [
             { id: 'etchings' },
             { id: 'scars' },
@@ -111,7 +108,7 @@ export const testSchema: Schema = {
         },
         {
           id: 'surface borks',
-          kind: 'and-comma-leading-text',
+          kind: 'and-commas-adv',
           options: [
             { id: 'fetchings' },
             { id: 'fscars' },
@@ -120,7 +117,7 @@ export const testSchema: Schema = {
         },
         {
           id: 'stance',
-          kind: 'and-space-separated',
+          kind: 'and-commas-adv',
           options: [
             { id: 'lunging' },
             { id: 'roaring' },
@@ -129,8 +126,7 @@ export const testSchema: Schema = {
         },
         {
           id: 'render style',
-          kind: 'and-space-trailing-title-if-non-empty',
-          titleText: 'render',
+          kind: 'and-spaces-adj',
           options: [
             { id: 'cinematic' },
             { id: 'hyperdetailed' },
@@ -141,13 +137,12 @@ export const testSchema: Schema = {
     },
     {
       id: 'modes',
-      defaultWeight: 1,
       promptTarget: 'positive',
       controls: [
         {
           id: 'is portrait',
           kind: 'toggle',
-          defaultToggleOn: false,
+          beginOn: false,
           options: [{ id: 'portrait' }]
         },
         {
@@ -162,7 +157,7 @@ export const testSchema: Schema = {
         },
         {
           id: 'portrait focus',
-          kind: 'and-comma-separated',
+          kind: 'and-commas',
           hides: [{ type: 'toggle-on', controlId: 'is portrait' }],
           options: [
             { id: 'face' },
@@ -173,25 +168,23 @@ export const testSchema: Schema = {
     },
     {
       id: 'negative modes',
-      defaultWeight: 1,
       promptTarget: 'negative',
       controls: [
         {
           id: 'negative-switch',
           kind: 'toggle',
-          defaultToggleOn: true,
+          beginOn: true,
           options: [{ id: 'no clutter' }]
         }
       ]
     },
     {
       id: 'negative polish',
-      defaultWeight: 1,
       promptTarget: 'negative',
       controls: [
         {
           id: 'neg-quality',
-          kind: 'and-comma-separated',
+          kind: 'and-commas',
           options: [
             { id: 'blurry' },
             { id: 'muddy' },

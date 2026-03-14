@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { SectionView } from './components/ControlRenderer';
-import { PromptArea } from './components/PromptArea';
-import { buildPrompt } from './lib/promptBuilder';
-import { schema } from './lib/schema';
 import { createInitialState } from './lib/state';
-import type { BuilderState, Schema } from './lib/types';
+import type { State, Schema } from './types';
+import { buildPrompt } from './lib/prompt';
+import { Prompt } from './components/Prompt';
+import { Section } from './components/Section';
 
 export default function App({schema}: {schema: Schema}) {
-  const [state, setState] = useState<BuilderState>(() => {
+  const [state, setState] = useState<State>(() => {
     const initial = createInitialState(schema);
     return {
        ...initial, 
@@ -67,14 +66,14 @@ export default function App({schema}: {schema: Schema}) {
       </header>
 
       <div className="prompt-stack">
-        <PromptArea
+        <Prompt
           label="Positive prompt"
           value={state.positiveText}
           bound={state.positiveBound}
           onChange={(value) => setState((current) => ({ ...current, positiveText: value }))}
           onToggleBound={(bound) => setState((current) => ({ ...current, positiveBound: bound, positiveText: bound ? generated.positive : current.positiveText }))}
         />
-        <PromptArea
+        <Prompt
           label="Negative prompt"
           value={state.negativeText}
           bound={state.negativeBound}
@@ -84,7 +83,7 @@ export default function App({schema}: {schema: Schema}) {
       </div>
 
       <div className="sections">
-        {schema.sections.map((section) => <SectionView key={section.id} section={section} state={state} actions={actions} schema={schema} />)}
+        {schema.sections.map((section) => <Section key={section.id} section={section} state={state} actions={actions} schema={schema} />)}
       </div>
     </main>
   );
