@@ -1,4 +1,4 @@
-import { isHidden, isDisabled, isSubjectPlural, controlHasAtLeastOneSelectedOption, getOptionText } from '../lib/utlities';
+import { isHidden, isDisabled, isSubjectPlural, controlHasAtLeastOneSelectedOption, getOptionText, getItemText } from '../lib/utlities';
 import type { State, Control } from '../types';
 import { Actions } from './types';
 import { Weight } from './Weight';
@@ -15,10 +15,11 @@ function ControlHeader({
 }) {
   const controlState = state.controls[control.text];
   if (!controlState) return null;
+  const controlLabel = getItemText(control, isSubjectPlural(state));
 
   return (
     <div className="control-header">
-      <strong>{control.text}</strong>
+      <strong>{controlLabel}</strong>
       {controlHasAtLeastOneSelectedOption(control, state) && control.kind !== 'or-prefix' && (
         <Weight
           value={controlState.weight}

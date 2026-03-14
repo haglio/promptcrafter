@@ -1,59 +1,402 @@
-import { describe, expect, it } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../App';
 import { testSchema } from './fixtures/testSchema';
 
+function getSectionByHeading(headingText: string): HTMLElement {
+  const heading = screen.getByRole('heading', { name: headingText });
+  const section = heading.closest('section');
+  expect(section).not.toBeNull();
+  return section as HTMLElement;
+}
+
+function getSectionHeaderActions(section: HTMLElement): HTMLElement {
+  const headerActions = section.querySelector('.section-header-actions');
+  expect(headerActions).not.toBeNull();
+  return headerActions as HTMLElement;
+}
+
+function getControlByText(controlText: string): HTMLElement {
+  const control = screen.getByText(controlText).closest('.control');
+  expect(control).not.toBeNull();
+  return control as HTMLElement;
+}
+
 describe('PromptCrafter UI', () => {
-  it('updates the prompt panes when controls change', async () => {
-    const user = userEvent.setup();
-    render(<App schema={testSchema} />);
+  describe('updating prompts', () => {
+    it('updates the positive prompt pane when positive controls change', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
 
-    await user.click(screen.getByLabelText('bone'));
-    await user.click(screen.getByLabelText('towering'));
-    await user.click(screen.getByLabelText('wings'));
-    await user.click(screen.getByLabelText('mechanical'));
+      let positive = screen.getByRole('textbox', { name: 'Positive prompt' });
+      expect(positive).toHaveValue(
+        'space robo dino demon monster',
+      );
 
-    const positive = screen.getByRole('textbox', { name: 'Positive prompt' });
-    expect(positive).toHaveValue(
-      'space robo dino demon monster, outline towering, bone armor, mechanical wings',
-    );
+      await user.click(screen.getByLabelText('bone'));
+      await user.click(screen.getByLabelText('towering'));
+      await user.click(screen.getByLabelText('wings'));
+      await user.click(screen.getByLabelText('mechanical'));
+
+      positive = screen.getByRole('textbox', { name: 'Positive prompt' });
+      expect(positive).toHaveValue(
+        'space robo dino demon monster, outline towering, bone armor, mechanical wings',
+      );
+    });
+
+    it('updates the negative prompt pane when negative controls change', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      let negative = screen.getByRole('textbox', { name: 'Negative prompt' });
+      expect(negative).toHaveValue(
+        'no clutter, blurry',
+      );
+
+      await user.click(screen.getByLabelText('extra limbs'));
+
+      negative = screen.getByRole('textbox', { name: 'Negative prompt' });
+      expect(negative).toHaveValue(
+        'no clutter, blurry, extra limbs',
+      );
+    });
+
+    it('positive prompt auto mode rejects edits, manual mode accepts edits, and switching back restores auto output', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const positive = screen.getByRole('textbox', { name: 'Positive prompt' });
+      const initialAuto = 'space robo dino demon monster';
+      expect(positive).toHaveValue(initialAuto);
+      expect(positive).toBeDisabled();
+
+      await user.type(positive, 'attempted auto edit');
+      expect(positive).toHaveValue(initialAuto);
+
+      const positivePromptArea = positive.closest('section');
+      expect(positivePromptArea).not.toBeNull();
+
+      await user.click(within(positivePromptArea as HTMLElement).getByRole('button', { name: /manual/i }));
+      expect(positive).toBeEnabled();
+
+      await user.clear(positive);
+      await user.type(positive, 'manual prompt');
+      expect(positive).toHaveValue('manual prompt');
+
+      await user.click(within(positivePromptArea as HTMLElement).getByRole('button', { name: /auto/i }));
+
+      expect(positive).toBeDisabled();
+      expect(positive).toHaveValue(initialAuto);
+    });
+
+    it('negative prompt auto mode rejects edits, manual mode accepts edits, and switching back restores auto output', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const negative = screen.getByRole('textbox', { name: 'Negative prompt' });
+      const initialAuto = 'no clutter, blurry';
+      expect(negative).toHaveValue(initialAuto);
+      expect(negative).toBeDisabled();
+
+      await user.type(negative, 'attempted auto edit');
+      expect(negative).toHaveValue(initialAuto);
+
+      const negativePromptArea = negative.closest('section');
+      expect(negativePromptArea).not.toBeNull();
+
+      await user.click(within(negativePromptArea as HTMLElement).getByRole('button', { name: /manual/i }));
+      expect(negative).toBeEnabled();
+
+      await user.clear(negative);
+      await user.type(negative, 'manual negative prompt');
+      expect(negative).toHaveValue('manual negative prompt');
+
+      await user.click(within(negativePromptArea as HTMLElement).getByRole('button', { name: /auto/i }));
+
+      expect(negative).toBeDisabled();
+      expect(negative).toHaveValue(initialAuto);
+    });
   });
 
-  it('switches the positive prompt to manual mode so manual edits persist', async () => {
-    const user = userEvent.setup();
-    render(<App schema={testSchema} />);
+  describe('disabling and hiding', () => {
+    it('applies disabledBys at the section level', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
 
-    const manualButtons = screen.getAllByRole('button', { name: /manual/i });
-    expect(manualButtons.length).toBeGreaterThan(0);
-    await user.click(manualButtons[0] as HTMLElement);
+      const section = getSectionByHeading('section disabled target');
+      expect(section).not.toHaveClass('disabled');
 
-    const positive = screen.getByRole('textbox', { name: 'Positive prompt' });
-    await user.clear(positive);
-    await user.type(positive, 'manual prompt');
+      await user.click(screen.getByRole('checkbox', { name: 'is portrait' }));
 
-    await user.click(screen.getByLabelText('bone'));
+      expect(getSectionByHeading('section disabled target')).toHaveClass('disabled');
+    });
 
-    expect(positive).toHaveValue('manual prompt');
+    it('applies disabledBys at the control level', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const modes = getSectionByHeading('modes');
+      expect(within(modes).getByLabelText('low')).toBeEnabled();
+
+      await user.click(within(modes).getByRole('checkbox', { name: 'is portrait' }));
+
+      expect(within(getSectionByHeading('modes')).getByLabelText('low')).toBeDisabled();
+    });
+
+    it('applies disabledBys at the option level', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const modes = getSectionByHeading('modes');
+      expect(within(modes).getByLabelText('floating')).toBeEnabled();
+
+      await user.click(within(modes).getByRole('checkbox', { name: 'is portrait' }));
+
+      expect(within(getSectionByHeading('modes')).getByLabelText('floating')).toBeDisabled();
+    });
+
+    it('applies hiddenBys at the section level', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      expect(screen.getByRole('heading', { name: 'section hidden target' })).toBeInTheDocument();
+
+      await user.click(screen.getByRole('checkbox', { name: 'is portrait' }));
+
+      expect(screen.queryByRole('heading', { name: 'section hidden target' })).not.toBeInTheDocument();
+    });
+
+    it('applies hiddenBys at the control level', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const modes = getSectionByHeading('modes');
+      expect(within(modes).getByText('portrait focus')).toBeInTheDocument();
+
+      await user.click(within(modes).getByRole('checkbox', { name: 'is portrait' }));
+
+      expect(within(getSectionByHeading('modes')).queryByText('portrait focus')).not.toBeInTheDocument();
+    });
+
+    it('applies hiddenBys at the option level', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const modes = getSectionByHeading('modes');
+      expect(within(modes).getByLabelText('airborne')).toBeInTheDocument();
+
+      await user.click(within(modes).getByRole('checkbox', { name: 'is portrait' }));
+
+      expect(within(getSectionByHeading('modes')).queryByLabelText('airborne')).not.toBeInTheDocument();
+    });
   });
 
-  it('hides portrait-only controls and disables camera angle when portrait mode is on', async () => {
-    const user = userEvent.setup();
-    render(<App schema={testSchema} />);
+  describe('plurality in UI labels', () => {
+    it('shows plural section label when subject is plural', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
 
-    const modesSectionHeading = screen.getByRole('heading', { name: 'modes' });
-    const modesSection = modesSectionHeading.closest('section');
-    expect(modesSection).not.toBeNull();
+      expect(screen.getByRole('heading', { name: 'accent' })).toBeInTheDocument();
 
-    expect(within(modesSection!).getByText('portrait focus')).toBeInTheDocument();
+      await user.click(screen.getByLabelText('two'));
 
-    await user.click(within(modesSection!).getByRole('checkbox', { name: 'is portrait' }));
+      expect(screen.getByRole('heading', { name: 'accents' })).toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'accent' })).not.toBeInTheDocument();
+    });
 
-    expect(within(modesSection!).queryByText('portrait focus')).not.toBeInTheDocument();
-    expect(within(modesSection!).getByLabelText('low')).toBeDisabled();
+    it('shows plural control label when subject is plural', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      expect(screen.getByText('stance')).toBeInTheDocument();
+
+      await user.click(screen.getByLabelText('two'));
+
+      expect(screen.getByText('stances')).toBeInTheDocument();
+      expect(screen.queryByText('stance')).not.toBeInTheDocument();
+    });
+
+    it('shows plural option label when subject is plural', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      expect(screen.getByText('hero')).toBeInTheDocument();
+
+      await user.click(screen.getByLabelText('two'));
+
+      expect(screen.getByText('heroes')).toBeInTheDocument();
+      expect(screen.queryByText('hero')).not.toBeInTheDocument();
+    });
   });
 
-  // TODO: tests of weight sliders - how when you change it positive or negative it modifies the text in the prompt, and how it shouldn't show the weight slider for sections if no thing has been chosen from that section... and similarly that it doesn't appear for a control, and that in either case the reset button doesn't appear until it deviates from 1, and when you push the reset button it resets to 1
+  describe("weights", () => {
+    it('affecting the prompt by lowering weight below 1', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
 
-  // TODO: tests of copy buttons, if it's even possible to test the clipboard
+      await user.click(screen.getByLabelText('bone'));
+      const control = getControlByText('armor');
+      const weight = within(control).getByRole('slider');
+
+      fireEvent.change(weight, { target: { value: '0.6' } });
+      expect(screen.getByRole('textbox', { name: 'Positive prompt' })).toHaveValue(
+        'space robo dino demon monster, (bone armor:0.6)',
+      );
+    });
+
+    it('affecting the prompt by raising weight above 1', () => {
+      render(<App schema={testSchema} />);
+
+      const section = getSectionByHeading('negative modes');
+      const actions = getSectionHeaderActions(section);
+      const slider = within(actions).getByRole('slider');
+
+      fireEvent.change(slider, { target: { value: '2.5' } });
+      expect(screen.getByRole('textbox', { name: 'Negative prompt' })).toHaveValue('(no clutter:2.5), blurry');
+    });
+
+    it("shouldn't show the weight slider for a section if no option has been selected for any of its controls", () => {
+      render(<App schema={testSchema} />);
+
+      const section = getSectionByHeading('details');
+      const actions = getSectionHeaderActions(section);
+      expect(within(actions).queryByRole('slider')).not.toBeInTheDocument();
+    });
+
+    it("shouldn't show the weight slider for a control if no option has been selected for it", () => {
+      render(<App schema={testSchema} />);
+
+      const control = getControlByText('armor');
+      expect(within(control).queryByRole('slider')).not.toBeInTheDocument();
+    });
+
+    it("reset button doesn't appear until weight slider deviates from 1 for a section", () => {
+      render(<App schema={testSchema} />);
+
+      const section = getSectionByHeading('negative modes');
+      const actions = getSectionHeaderActions(section);
+      const slider = within(actions).getByRole('slider');
+
+      expect(within(section).queryByRole('button', { name: '↺' })).not.toBeInTheDocument();
+
+      fireEvent.change(slider, { target: { value: '2.5' } });
+      expect(within(section).getByRole('button', { name: '↺' })).toBeInTheDocument();
+    });
+
+    it("reset button doesn't appear until weight slider deviates from 1 for a control", async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      await user.click(screen.getByLabelText('bone'));
+      const control = getControlByText('armor');
+      const slider = within(control).getByRole('slider');
+
+      expect(within(control).queryByRole('button', { name: '↺' })).not.toBeInTheDocument();
+
+      fireEvent.change(slider, { target: { value: '2.0' } });
+      expect(within(control).getByRole('button', { name: '↺' })).toBeInTheDocument();
+    });
+
+    it("pushing reset causes the weight to return to 1, affecting the prompt and slider and re-hiding the reset button, for a section's weight slider reset button", async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const section = getSectionByHeading('negative modes');
+      const actions = getSectionHeaderActions(section);
+      const slider = within(actions).getByRole('slider');
+
+      fireEvent.change(slider, { target: { value: '2.5' } });
+      expect(screen.getByRole('textbox', { name: 'Negative prompt' })).toHaveValue('(no clutter:2.5), blurry');
+      expect(slider).toHaveValue('2.5');
+
+      await user.click(within(section).getByRole('button', { name: '↺' }));
+
+      expect(slider).toHaveValue('1');
+      expect(screen.getByRole('textbox', { name: 'Negative prompt' })).toHaveValue('no clutter, blurry');
+      expect(within(section).queryByRole('button', { name: '↺' })).not.toBeInTheDocument();
+    });
+
+    it("pushing reset causes the weight to return to 1, affecting the prompt and slider and re-hiding the reset button, for a control's weight slider reset button", async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      await user.click(screen.getByLabelText('bone'));
+      const control = getControlByText('armor');
+      const slider = within(control).getByRole('slider');
+
+      fireEvent.change(slider, { target: { value: '2.0' } });
+      expect(screen.getByRole('textbox', { name: 'Positive prompt' })).toHaveValue(
+        'space robo dino demon monster, (bone armor:2.0)',
+      );
+      expect(slider).toHaveValue('2');
+
+      await user.click(within(control).getByRole('button', { name: '↺' }));
+
+      expect(screen.getByRole('textbox', { name: 'Positive prompt' })).toHaveValue(
+        'space robo dino demon monster, bone armor',
+      );
+      expect(slider).toHaveValue('1');
+      expect(within(control).queryByRole('button', { name: '↺' })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('copy buttons', () => {
+    it('copies the positive prompt text', async () => {
+      const user = userEvent.setup();
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText },
+      });
+
+      render(<App schema={testSchema} />);
+
+      const positivePrompt = screen.getByRole('textbox', { name: 'Positive prompt' });
+      const positivePromptArea = positivePrompt.closest('section');
+      expect(positivePromptArea).not.toBeNull();
+
+      await user.click(within(positivePromptArea as HTMLElement).getByRole('button', { name: 'Copy prompt' }));
+
+      expect(writeText).toHaveBeenCalledTimes(1);
+      expect(writeText).toHaveBeenCalledWith('space robo dino demon monster');
+    });
+
+    it('copies the negative prompt text', async () => {
+      const user = userEvent.setup();
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText },
+      });
+
+      render(<App schema={testSchema} />);
+
+      const negativePrompt = screen.getByRole('textbox', { name: 'Negative prompt' });
+      const negativePromptArea = negativePrompt.closest('section');
+      expect(negativePromptArea).not.toBeNull();
+
+      await user.click(within(negativePromptArea as HTMLElement).getByRole('button', { name: 'Copy prompt' }));
+
+      expect(writeText).toHaveBeenCalledTimes(1);
+      expect(writeText).toHaveBeenCalledWith('no clutter, blurry');
+    });
+
+    it('copies a section prompt text', async () => {
+      const user = userEvent.setup();
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText },
+      });
+
+      render(<App schema={testSchema} />);
+
+      const section = getSectionByHeading('negative modes');
+      await user.click(within(section).getByRole('button', { name: 'Copy section' }));
+
+      expect(writeText).toHaveBeenCalledTimes(1);
+      expect(writeText).toHaveBeenCalledWith('no clutter');
+    });
+  });
 });

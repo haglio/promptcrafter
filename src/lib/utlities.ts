@@ -1,7 +1,11 @@
-import type { State, Control, Option, Section, DisabledOrHiddenBy } from '../types';
+import type { BaseItem, State, Control, Option, Section, DisabledOrHiddenBy } from '../types';
+
+export function getItemText(item: BaseItem, isPlural: boolean): string {
+  return isPlural && item.pluralText ? item.pluralText : item.text;
+}
 
 export function getOptionText(option: Option, isPlural: boolean): string {
-  return isPlural && option.pluralText ? option.pluralText : option.text
+  return getItemText(option, isPlural)
 }
 
 export function isSubjectPlural(state: State): boolean {

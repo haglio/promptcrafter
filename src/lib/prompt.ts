@@ -1,4 +1,4 @@
-import type { DisabledOrHiddenBy, Control, Option, PromptTarget, Schema, Section, State } from "../types";
+import type { Control, Option, PromptTarget, Schema, Section, State } from "../types";
 import { getOptionText, isSubjectPlural, joinParts, submenuStateKey, isHidden, isDisabled } from "./utlities";
 import type { Segment } from "./types";
 
@@ -46,8 +46,13 @@ function renderOptionWithModifiers(parentControlText: string, option: Option, st
     `${modifierText} ${optionText}`;
 }
 
-function getControlText(control: Control): string {
-  return control.customText ?? control.text
+function getControlText(control: Control, state: State): string {
+  const isPlural = isSubjectPlural(state);
+  if (isPlural && control.customPluralText) return control.customPluralText;
+  if (control.customText) return control.customText;
+  if (isPlural && control.pluralText) return control.pluralText;
+
+  return control.text;
 }
 
 function firstRenderedPart(control: Control, state: State): Segment | undefined {
@@ -101,8 +106,8 @@ function renderControl(control: Control, state: State): Segment[] {
     const option = optionById(control, disabled ? undefined : controlState.selectedOptions as string);
     if (!option || isHidden(state, option.hiddenBys) || isDisabled(state, option.disabledBys)) return [];
     let text = renderOptionWithModifiers(control.text, option, state);
-    if (control.kind === 'or-adv') text = `${getControlText(control)} ${text}`;
-    if (control.kind === 'or-adj') text = `${text} ${getControlText(control)}`;
+    if (control.kind === 'or-adv') text = `${getControlText(control, state)} ${text}`;
+    if (control.kind === 'or-adj') text = `${text} ${getControlText(control, state)}`;
     return text ? [{ text, weight: ownWeight }] : [];
   }
 
@@ -120,10 +125,10 @@ function renderControl(control: Control, state: State): Segment[] {
       combined = optionValues.join(', ');
       break;
     case 'and-commas-adv':
-      combined = optionValues.map((value) => `${getControlText(control)} ${value}`).join(', ');
+      combined = optionValues.map((value) => `${getControlText(control, state)} ${value}`).join(', ');
       break;
     case 'and-spaces-adj':
-      combined = `${optionValues.join(' ')} ${getControlText(control)}`;
+      combined = `${optionValues.join(' ')} ${getControlText(control, state)}`;
       break;
     default:
       combined = optionValues.join(', ');

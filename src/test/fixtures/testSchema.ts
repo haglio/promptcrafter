@@ -46,6 +46,14 @@ export const testSchema: Schema = {
           ]
         },
         {
+          text: 'movement',
+          kind: 'or-adv',
+          options: [
+            { text: 'swiftly' },
+            { text: 'heavily' }
+          ]
+        },
+        {
           text: 'element prefix',
           kind: 'or-prefix',
           options: [
@@ -61,6 +69,15 @@ export const testSchema: Schema = {
             { text: 'chrome' },
             { text: 'obsidian' },
             { text: 'bone' }
+          ]
+        },
+        {
+          text: 'surface treatment',
+          kind: 'or-adj',
+          customText: 'plating',
+          options: [
+            { text: 'runed' },
+            { text: 'etched' }
           ]
         }
       ]
@@ -92,7 +109,26 @@ export const testSchema: Schema = {
                 ]
               }
             },
-            { text: 'tail' }
+            {
+              text: 'tail',
+              submenu: {
+                kind: 'and-adj',
+                options: [
+                  { text: 'barbed' },
+                  { text: 'segmented' }
+                ]
+              }
+            },
+            {
+              text: 'antennae',
+              submenu: {
+                kind: 'and-adv',
+                options: [
+                  { text: 'arched' },
+                  { text: 'flared' }
+                ]
+              }
+            }
           ]
         },
         {
@@ -117,6 +153,7 @@ export const testSchema: Schema = {
         {
           text: 'stance',
           kind: 'and-commas-adv',
+          pluralText: 'stances',
           options: [
             { text: 'lunging' },
             { text: 'roaring' },
@@ -130,6 +167,29 @@ export const testSchema: Schema = {
             { text: 'cinematic' },
             { text: 'hyperdetailed' },
             { text: 'volumetric' }
+          ]
+        },
+        {
+          text: 'finish profile',
+          kind: 'and-spaces-adj',
+          customText: 'finish',
+          customPluralText: 'finishes',
+          options: [
+            { text: 'matte' },
+            { text: 'pearlescent' }
+          ]
+        }
+      ]
+    },
+    {
+      text: 'accent',
+      pluralText: 'accents',
+      controls: [
+        {
+          text: 'accent',
+          kind: 'and-commas-adv',
+          options: [
+            { text: 'striped' }
           ]
         }
       ]
@@ -160,6 +220,41 @@ export const testSchema: Schema = {
             { text: 'face' },
             { text: 'torso' }
           ]
+        },
+        {
+          text: 'pose',
+          kind: 'or',
+          options: [
+            { text: 'grounded' },
+            { text: 'floating', disabledBys: [{ controlText: 'is portrait' }] },
+            { text: 'airborne', hiddenBys: [{ controlText: 'is portrait' }] }
+          ]
+        }
+      ]
+    },
+    {
+      text: 'section disabled target',
+      disabledBys: [{ controlText: 'is portrait' }],
+      controls: [
+        {
+          text: 'section disabled sample',
+          kind: 'and-commas',
+          options: [
+            { text: 'locked out while portrait' }
+          ]
+        }
+      ]
+    },
+    {
+      text: 'section hidden target',
+      hiddenBys: [{ controlText: 'is portrait' }],
+      controls: [
+        {
+          text: 'section hidden sample',
+          kind: 'and-commas',
+          options: [
+            { text: 'gone while portrait' }
+          ]
         }
       ]
     },
@@ -182,6 +277,7 @@ export const testSchema: Schema = {
         {
           text: 'neg-quality',
           kind: 'and-commas',
+          initiallySelectedOptions: ['blurry'],
           options: [
             { text: 'blurry' },
             { text: 'muddy' },
