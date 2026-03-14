@@ -21,7 +21,7 @@ function renderSubmenu(parentControlText: string, option: Option, state: State):
 
   const checked = option.submenu.options.filter(
     (child) =>
-      submenuState.checkedOptions.includes(child.text) &&
+      (submenuState.selectedOptions as string[]).includes(child.text) &&
       !isHidden(state, child.hiddenBys) &&
       !isDisabled(state, child.disabledBys),
   );
@@ -29,7 +29,7 @@ function renderSubmenu(parentControlText: string, option: Option, state: State):
 
   const selected = option.submenu.options.find(
     (child) =>
-      child.text === submenuState.selectedOption &&
+      child.text === (submenuState.selectedOptions as string) &&
       !isHidden(state, child.hiddenBys) &&
       !isDisabled(state, child.disabledBys),
   );
@@ -80,7 +80,7 @@ function renderControl(control: Control, state: State): Segment[] {
   const ownWeight = controlState.weight;
 
   if (control.kind === 'toggle') {
-    if (!controlState.toggledOn || disabled) return [];
+    if (!(controlState.selectedOptions as boolean) || disabled) return [];
     const base = control.options?.[0]?.text ?? control.text;
     return [{ text: base, weight: ownWeight }];
   }
@@ -98,7 +98,7 @@ function renderControl(control: Control, state: State): Segment[] {
   ]);
 
   if (radioKinds.has(control.kind)) {
-    const option = optionById(control, disabled ? undefined : controlState.selectedOption);
+    const option = optionById(control, disabled ? undefined : controlState.selectedOptions as string);
     if (!option || isHidden(state, option.hiddenBys) || isDisabled(state, option.disabledBys)) return [];
     let text = renderOptionWithModifiers(control.text, option, state);
     if (control.kind === 'or-adv') text = `${getControlText(control)} ${text}`;
@@ -108,7 +108,7 @@ function renderControl(control: Control, state: State): Segment[] {
 
   const selectedOptions = (control.options ?? []).filter((option) => {
     if (isHidden(state, option.hiddenBys) || isDisabled(state, option.disabledBys) || disabled) return false;
-    return controlState.checkedOptions.includes(option.text);
+    return (controlState.selectedOptions as string[]).includes(option.text);
   });
   if (selectedOptions.length === 0) return [];
 

@@ -1,4 +1,4 @@
-import { isHidden, isDisabled, sectionHasAtLeastOneSelection } from "../lib/utlities";
+import { isHidden, isDisabled, sectionHasAtLeastOneSelectedOption } from "../lib/utlities";
 import { buildSectionPrompt } from "../lib/prompt";
 import type { State, Schema, Section } from "../types";
 import { Control } from "./Control";
@@ -50,7 +50,7 @@ function SectionHeader({
         <label className="section-label"><h3>{section.text}</h3></label>
       </div>
       <div className="section-header-actions">
-        {sectionHasAtLeastOneSelection(section, state) && (
+        {sectionHasAtLeastOneSelectedOption(section, state) && (
           <Weight
             value={sectionWeight}
             disabled={false}

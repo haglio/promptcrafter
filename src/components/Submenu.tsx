@@ -27,7 +27,7 @@ function SubmenuRadio({
           if (hidden) return null;
 
           const disabled = isDisabled(state, child.disabledBys);
-          const checked = submenuState.selectedOption === child.text;
+          const checked = submenuState.selectedOptions === child.text;
           return (
             <label key={child.text} className="inline-control">
               <input
@@ -72,7 +72,7 @@ function SubmenuCheckbox({
           if (hidden) return null;
 
           const disabled = isDisabled(state, child.disabledBys);
-          const checked = submenuState.checkedOptions.includes(child.text);
+          const checked = (submenuState.selectedOptions as string[]).includes(child.text);
           return (
             <label key={child.text} className="inline-control">
               <input

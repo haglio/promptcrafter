@@ -2,20 +2,17 @@ import type { State, Control, ControlState, Schema, Section } from '../types';
 
 function createControlState(control: Control): ControlState {
   if (control.kind === 'toggle') {
-    return { checkedOptions: [], toggledOn: control.initiallySelected ?? false, weight: 1, selectedOption: undefined };
+    return { selectedOptions: control.initiallySelectedOptions as boolean ?? false, weight: 1 };
   }
   if (control.kind === 'required') {
-    const always = control.options?.find((option) => option.initiallySelected) ?? control.options?.[0];
-    return { checkedOptions: always ? [always.text] : [], toggledOn: false, weight: 1, selectedOption: always?.text };
+    return { selectedOptions: control.initiallySelectedOptions as string[] ?? [], weight: 1 };
   }
   const isRadio = control.kind.startsWith('or');
-  const preselected = control.options?.find((option) => option.initiallySelected);
-  return {
-    checkedOptions: isRadio ? [] : (control.options?.filter((option) => option.initiallySelected).map((option) => option.text) ?? []),
-    toggledOn: false,
-    weight: 1,
-    selectedOption: isRadio ? preselected?.text : undefined,
-  };
+  if (isRadio) {
+    return { selectedOptions: control.initiallySelectedOptions as string ?? '', weight: 1 };
+  } else {
+    return { selectedOptions: control.initiallySelectedOptions as string[] ?? [], weight: 1 };
+  }
 }
 
 function walkControls(controls: Control[], bucket: Record<string, ControlState>) {
@@ -23,14 +20,19 @@ function walkControls(controls: Control[], bucket: Record<string, ControlState>)
     bucket[control.text] = createControlState(control);
     for (const option of control.options ?? []) {
       if (option.submenu) {
-        bucket[`${control.text}__${option.text}__submenu`] = {
-          checkedOptions: option.submenu.options.filter((o) => o.initiallySelected).map((o) => o.text),
-          selectedOption: option.submenu.kind.startsWith('or')
-            ? option.submenu.options.find((o) => o.initiallySelected)?.text
-            : undefined,
-          toggledOn: false,
-          weight: 1,
-        };
+        const submenu = option.submenu;
+        const isRadio = submenu.kind.startsWith('or');
+        if (isRadio) {
+          bucket[`${control.text}__${option.text}__submenu`] = {
+            selectedOptions: '',
+            weight: 1,
+          };
+        } else {
+          bucket[`${control.text}__${option.text}__submenu`] = {
+            selectedOptions: [],
+            weight: 1,
+          };
+        }
       }
     }
   }

@@ -36,29 +36,28 @@ export default function App({schema}: {schema: Schema}) {
       setState((current) => {
         const control = current.controls[controlText];
         if (!control) return current;
-        return { ...current, controls: { ...current.controls, [controlText]: { selectedOption: control.selectedOption, checkedOptions: control.checkedOptions, toggledOn: control.toggledOn, weight } } };
+        return { ...current, controls: { ...current.controls, [controlText]: { selectedOptions: control.selectedOptions, weight } } };
       });
     },
     setRadio(controlText: string, optionText: string) {
       setState((current) => {
         const control = current.controls[controlText];
         if (!control) return current;
-        return { ...current, controls: { ...current.controls, [controlText]: { selectedOption: optionText, checkedOptions: control.checkedOptions, toggledOn: control.toggledOn, weight: control.weight } } };
+        return { ...current, controls: { ...current.controls, [controlText]: { selectedOptions: optionText, weight: control.weight } } };
       });
     },
     toggleCheck(controlText: string, optionText: string) {
       setState((current) => {
         const control = current.controls[controlText];
         if (!control) return current;
-        const exists = control.checkedOptions.includes(optionText);
+        const selectedOptions = control.selectedOptions as string[];
+        const exists = selectedOptions.includes(optionText);
         return {
           ...current,
           controls: {
             ...current.controls,
             [controlText]: {
-              selectedOption: control.selectedOption,
-              checkedOptions: exists ? control.checkedOptions.filter((value) => value !== optionText) : [...control.checkedOptions, optionText],
-              toggledOn: control.toggledOn,
+              selectedOptions: exists ? selectedOptions.filter((value) => value !== optionText) : [...selectedOptions, optionText],
               weight: control.weight,
             },
           },
@@ -69,7 +68,7 @@ export default function App({schema}: {schema: Schema}) {
       setState((current) => {
         const control = current.controls[controlText];
         if (!control) return current;
-        return { ...current, controls: { ...current.controls, [controlText]: { selectedOption: control.selectedOption, checkedOptions: control.checkedOptions, toggledOn: value, weight: control.weight } } };
+        return { ...current, controls: { ...current.controls, [controlText]: { selectedOptions: value, weight: control.weight } } };
       });
     },
   };

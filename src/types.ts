@@ -14,9 +14,7 @@ export type SectionState = {
 }
 
 export type ControlState = {
-  selectedOption?: string;
-  checkedOptions?: string[];
-  toggledOn?: boolean;
+  selectedOptions: boolean | string | string[];
   weight: number;
 };
 
@@ -35,13 +33,12 @@ export type Control = BaseItem & {
   kind: ControlKind;
   customText?: string;
   customPluralText?: string;
-  initiallySelected?: boolean;
+  initiallySelectedOptions?: boolean | string | string[];
   options?: Option[];
 };
 
 export type Option = BaseItem & {
   submenu?: Submenu;
-  initiallySelected?: boolean;
 };
 
 export type Submenu = {

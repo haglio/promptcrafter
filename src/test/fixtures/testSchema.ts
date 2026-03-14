@@ -8,7 +8,8 @@ export const testSchema: Schema = {
         {
           text: 'subject-base',
           kind: 'required',
-          options: [{ text: 'space robo dino demon monster', initiallySelected: true }],
+          initiallySelectedOptions: ['space robo dino demon monster'],
+          options: [{ text: 'space robo dino demon monster' }],
         },
         {
           text: 'count',
@@ -139,7 +140,6 @@ export const testSchema: Schema = {
         {
           text: 'is portrait',
           kind: 'toggle',
-          initiallySelected: false,
           options: [{ text: 'portrait' }]
         },
         {
@@ -170,7 +170,7 @@ export const testSchema: Schema = {
         {
           text: 'negative-switch',
           kind: 'toggle',
-          initiallySelected: true,
+          initiallySelectedOptions: true,
           options: [{ text: 'no clutter' }]
         }
       ]

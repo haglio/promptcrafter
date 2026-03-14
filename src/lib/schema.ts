@@ -107,12 +107,13 @@ export const schema: Schema = {
         {
           text: 'stay safe',
           kind: 'required',
-          options: [{ text: 'space robo dino demon monster', initiallySelected: true }],
+          initiallySelectedOptions: ['space robo dino demon monster'],
+          options: [{ text: 'space robo dino demon monster' }],
         },
         {
           text: 'wakka',
           kind: 'toggle',
-          initiallySelected: true,
+          initiallySelectedOptions: true,
           options: [{ text: 'no clutter' }]
         },
         {

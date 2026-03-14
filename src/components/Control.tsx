@@ -1,4 +1,4 @@
-import { isHidden, isDisabled, isSubjectPlural, controlHasAtLeastOneSelection, getOptionText } from '../lib/utlities';
+import { isHidden, isDisabled, isSubjectPlural, controlHasAtLeastOneSelectedOption, getOptionText } from '../lib/utlities';
 import type { State, Control } from '../types';
 import { Actions } from './types';
 import { Weight } from './Weight';
@@ -19,7 +19,7 @@ function ControlHeader({
   return (
     <div className="control-header">
       <strong>{control.text}</strong>
-      {controlHasAtLeastOneSelection(control, state) && control.kind !== 'or-prefix' && (
+      {controlHasAtLeastOneSelectedOption(control, state) && control.kind !== 'or-prefix' && (
         <Weight
           value={controlState.weight}
           disabled={false}
@@ -50,7 +50,7 @@ function ToggleControl({
         <input
           type="checkbox"
           aria-label={control.text}
-          checked={controlState.toggledOn}
+          checked={controlState.selectedOptions as boolean}
           disabled={disabled}
           onChange={(event) => actions.setToggle(control.text, event.target.checked)}
         />
@@ -80,7 +80,7 @@ function RadioControl({
       {(control.options ?? []).map((option) => {
         if (isHidden(state, option.hiddenBys)) return null;
         const optionDisabled = disabled || isDisabled(state, option.disabledBys);
-        const checked = controlState.selectedOption === option.text;
+        const checked = controlState.selectedOptions === option.text;
         return (
           <div key={option.text} className="option-stack">
             <label className="inline-control">
@@ -136,7 +136,7 @@ function CheckboxControl({
           disabled ||
           control.kind === 'required' ||
           isDisabled(state, option.disabledBys);
-        const checked = controlState.checkedOptions.includes(option.text);
+        const checked = (controlState.selectedOptions as string[]).includes(option.text);
 
         return (
           <div key={option.text} className="option-stack">
