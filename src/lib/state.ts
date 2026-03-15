@@ -17,18 +17,18 @@ function createControlState(control: Control): ControlState {
 
 function walkControls(controls: Control[], bucket: Record<string, ControlState>) {
   for (const control of controls) {
-    bucket[control.text] = createControlState(control);
+    bucket[control.id] = createControlState(control);
     for (const option of control.options ?? []) {
       if (option.submenu) {
         const submenu = option.submenu;
         const isRadio = submenu.kind.startsWith('or');
         if (isRadio) {
-          bucket[`${control.text}__${option.text}__submenu`] = {
+          bucket[`${control.id}__${option.id}__submenu`] = {
             selectedOptions: '',
             weight: 1,
           };
         } else {
-          bucket[`${control.text}__${option.text}__submenu`] = {
+          bucket[`${control.id}__${option.id}__submenu`] = {
             selectedOptions: [],
             weight: 1,
           };
@@ -39,7 +39,7 @@ function walkControls(controls: Control[], bucket: Record<string, ControlState>)
 }
 
 function createSectionState(sections: Section[]) {
-  return Object.fromEntries(sections.map((section) => [section.text, { weight: 1 }]));
+  return Object.fromEntries(sections.map((section) => [section.id, { weight: 1 }]));
 }
 
 export function createInitialState(schema: Schema): State {

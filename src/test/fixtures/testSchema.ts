@@ -3,218 +3,241 @@ import type { Schema } from "../../types";
 export const testSchema: Schema = {
   sections: [
     {
+      id: 'subject-core',
       text: 'subject-core',
       controls: [
         {
+          id: 'subject-base',
           text: 'subject-base',
           kind: 'required',
           initiallySelectedOptions: ['space robo dino demon monster'],
-          options: [{ text: 'space robo dino demon monster' }],
+          options: [{ id: 'space robo dino demon monster', text: 'space robo dino demon monster' }],
         },
         {
+          id: 'count',
           text: 'count',
           kind: 'or-prefix',
           options: [
-            { text: 'or' },
-            { 
-              text: 'two', 
+            { id: 'or', text: 'or' },
+            {
+              id: 'two',
+              text: 'two',
               submenu: {
                 kind: 'and-adv',
                 options: [
-                  { text: 'different' },
+                  { id: 'different', text: 'different' },
                 ]
               }
             }
           ]
         },
         {
+          id: 'alignment',
           text: 'alignment',
           kind: 'or',
           options: [
-            { text: 'hero', pluralText: 'heroes' },
-            { text: 'villain', pluralText: 'villains' }
+            { id: 'hero', text: { singular: 'hero', plural: 'heroes' } },
+            { id: 'villain', text: { singular: 'villain', plural: 'villains' } }
           ]
         },
         {
+          id: 'silhouette',
           text: 'silhouette',
           kind: 'or-adv',
           customText: 'outline',
           options: [
-            { text: 'towering' },
-            { text: 'lanky', customControlText: 'frame' },
-            { text: 'hulking' }
+            { id: 'towering', text: 'towering' },
+            { id: 'lanky', text: 'lanky', customControlText: 'frame' },
+            { id: 'hulking', text: 'hulking' }
           ]
         },
         {
+          id: 'movement',
           text: 'movement',
           kind: 'or-adv',
           options: [
-            { text: 'swiftly' },
-            { text: 'heavily' }
+            { id: 'swiftly', text: 'swiftly' },
+            { id: 'heavily', text: 'heavily' }
           ]
         },
         {
+          id: 'element prefix',
           text: 'element prefix',
           kind: 'or-prefix',
           options: [
-            { text: 'void' },
-            { text: 'plasma' },
-            { text: 'nebula' }
+            { id: 'void', text: 'void' },
+            { id: 'plasma', text: 'plasma' },
+            { id: 'nebula', text: 'nebula' }
           ]
         },
         {
+          id: 'armor',
           text: 'armor',
           kind: 'or-adj',
           supplementedBys: [
             {
-              controlText: 'element prefix',
+              controlId: 'element prefix',
               supplementalText: 'elemental'
             }
           ],
           options: [
-            { text: 'chrome' },
-            { text: 'obsidian' },
-            { text: 'bone' }
+            { id: 'chrome', text: 'chrome' },
+            { id: 'obsidian', text: 'obsidian' },
+            { id: 'bone', text: 'bone' }
           ]
         },
         {
+          id: 'surface treatment',
           text: 'surface treatment',
           kind: 'or-adj',
           customText: 'plating',
           supplementedBys: [
             {
-              optionText: 'nebula',
+              optionId: 'nebula',
               supplementalText: 'within nebula'
             }
           ],
           options: [
-            { text: 'runed' },
-            { text: 'etched' }
+            { id: 'runed', text: 'runed' },
+            { id: 'etched', text: 'etched' }
           ]
         }
       ]
     },
     {
+      id: 'details',
       text: 'details',
       controls: [
         {
+          id: 'appendages',
           text: 'appendages',
           kind: 'and-commas',
           options: [
             {
+              id: 'wings',
               text: 'wings',
               submenu: {
                 kind: 'or-adj',
                 options: [
-                  { text: 'feathered' },
-                  { text: 'mechanical' }
-                ]
-              }
-            },
-            { 
-              text: 'horns', 
-              submenu: {
-                kind: 'or-adv',
-                options: [
-                  { text: 'wishily' },
-                  { text: 'washily' }
+                  { id: 'feathered', text: 'feathered' },
+                  { id: 'mechanical', text: 'mechanical' }
                 ]
               }
             },
             {
+              id: 'horns',
+              text: 'horns',
+              submenu: {
+                kind: 'or-adv',
+                options: [
+                  { id: 'wishily', text: 'wishily' },
+                  { id: 'washily', text: 'washily' }
+                ]
+              }
+            },
+            {
+              id: 'tail',
               text: 'tail',
               submenu: {
                 kind: 'and-adj',
                 options: [
-                  { text: 'barbed' },
-                  { text: 'segmented' }
+                  { id: 'barbed', text: 'barbed' },
+                  { id: 'segmented', text: 'segmented' }
                 ]
               }
             },
             {
+              id: 'antennae',
               text: 'antennae',
               submenu: {
                 kind: 'and-adv',
                 options: [
-                  { text: 'arched' },
-                  { text: 'flared' }
+                  { id: 'arched', text: 'arched' },
+                  { id: 'flared', text: 'flared' }
                 ]
               }
             }
           ]
         },
         {
+          id: 'sitting on',
           text: 'sitting on',
           kind: 'and-commas-adv',
-          customText: 'alighting upon', 
+          customText: 'alighting upon',
           options: [
-            { text: 'etchings' },
-            { text: 'scars' },
-            { text: 'glow' }
+            { id: 'etchings', text: 'etchings' },
+            { id: 'scars', text: 'scars' },
+            { id: 'glow', text: 'glow' }
           ]
         },
         {
+          id: 'surface borks',
           text: 'surface borks',
           kind: 'and-commas-adv',
           options: [
-            { text: 'fetchings' },
-            { text: 'fscars' },
-            { text: 'fglow' }
+            { id: 'fetchings', text: 'fetchings' },
+            { id: 'fscars', text: 'fscars' },
+            { id: 'fglow', text: 'fglow' }
           ]
         },
         {
-          text: 'stance',
+          id: 'stance',
+          text: { singular: 'stance', plural: 'stances' },
           kind: 'and-commas-adv',
-          pluralText: 'stances',
           options: [
-            { text: 'lunging' },
-            { text: 'roaring' },
-            { text: 'three-quarter' }
+            { id: 'lunging', text: 'lunging' },
+            { id: 'roaring', text: 'roaring' },
+            { id: 'three-quarter', text: 'three-quarter' }
           ]
         },
         {
+          id: 'render style',
           text: 'render style',
           kind: 'and-spaces-adj',
           options: [
-            { text: 'cinematic' },
-            { text: 'hyperdetailed' },
-            { text: 'volumetric' }
+            { id: 'cinematic', text: 'cinematic' },
+            { id: 'hyperdetailed', text: 'hyperdetailed' },
+            { id: 'volumetric', text: 'volumetric' }
           ]
         },
         {
+          id: 'finish profile',
           text: 'finish profile',
           kind: 'and-spaces-adj',
-          customText: 'finish',
-          customPluralText: 'finishes',
+          customText: { singular: 'finish', plural: 'finishes' },
           options: [
-            { text: 'matte' },
-            { text: 'pearlescent' }
+            { id: 'matte', text: 'matte' },
+            { id: 'pearlescent', text: 'pearlescent' }
           ]
         }
       ]
     },
     {
-      text: 'accent',
-      pluralText: 'accents',
+      id: 'accent',
+      text: { singular: 'accent', plural: 'accents' },
       controls: [
         {
+          id: 'accent',
           text: 'accent',
           kind: 'and-commas-adv',
           options: [
-            { text: 'striped' }
+            { id: 'striped', text: 'striped' }
           ]
         }
       ]
     },
     {
+      id: 'modes',
       text: 'modes',
       controls: [
         {
+          id: 'is portrait',
           text: 'is portrait',
           kind: 'toggle',
-          options: [{ text: 'portrait' }]
+          options: [{ id: 'portrait', text: 'portrait' }]
         },
         {
+          id: 'thorax mode',
           text: 'thorax mode',
           kind: 'toggle',
           globalSubstitutions: [
@@ -225,103 +248,116 @@ export const testSchema: Schema = {
               toPlural: 'thoraces'
             }
           ],
-          options: [{ text: 'replace torso terminology' }]
+          options: [{ id: 'replace torso terminology', text: 'replace torso terminology' }]
         },
         {
+          id: 'camera angle',
           text: 'camera angle',
           kind: 'or',
-          disabledBys: [{ controlText: 'is portrait' }],
+          disabledBys: [{ controlId: 'is portrait' }],
           options: [
-            { text: 'low' },
-            { text: 'overhead' },
-            { text: 'dutch' }
+            { id: 'low', text: 'low' },
+            { id: 'overhead', text: 'overhead' },
+            { id: 'dutch', text: 'dutch' }
           ]
         },
         {
+          id: 'portrait focus',
           text: 'portrait focus',
           kind: 'and-commas',
-          hiddenBys: [{ controlText: 'is portrait' }],
+          hiddenBys: [{ controlId: 'is portrait' }],
           options: [
-            { text: 'face' },
-            { text: 'torso' },
-            { text: 'torso side profile' },
-            { text: 'torsos' }
+            { id: 'face', text: 'face' },
+            { id: 'torso', text: 'torso' },
+            { id: 'torso side profile', text: 'torso side profile' },
+            { id: 'torsos', text: 'torsos' }
           ]
         },
         {
+          id: 'pose',
           text: 'pose',
           kind: 'or',
           options: [
-            { text: 'grounded' },
-            { text: 'floating', disabledBys: [{ controlText: 'is portrait' }] },
-            { text: 'airborne', hiddenBys: [{ controlText: 'is portrait' }] }
+            { id: 'grounded', text: 'grounded' },
+            { id: 'floating', text: 'floating', disabledBys: [{ controlId: 'is portrait' }] },
+            { id: 'airborne', text: 'airborne', hiddenBys: [{ controlId: 'is portrait' }] }
           ]
         }
       ]
     },
     {
+      id: 'torso references',
       text: 'torso references',
       controls: [
         {
+          id: 'torso mentions',
           text: 'torso mentions',
           kind: 'and-commas',
           options: [
-            { text: 'torso badge' },
-            { text: 'torsos' }
+            { id: 'torso badge', text: 'torso badge' },
+            { id: 'torsos', text: 'torsos' }
           ]
         }
       ]
     },
     {
+      id: 'section disabled target',
       text: 'section disabled target',
-      disabledBys: [{ controlText: 'is portrait' }],
+      disabledBys: [{ controlId: 'is portrait' }],
       controls: [
         {
+          id: 'section disabled sample',
           text: 'section disabled sample',
           kind: 'and-commas',
           options: [
-            { text: 'locked out while portrait' }
+            { id: 'locked out while portrait', text: 'locked out while portrait' }
           ]
         }
       ]
     },
     {
+      id: 'section hidden target',
       text: 'section hidden target',
-      hiddenBys: [{ controlText: 'is portrait' }],
+      hiddenBys: [{ controlId: 'is portrait' }],
       controls: [
         {
+          id: 'section hidden sample',
           text: 'section hidden sample',
           kind: 'and-commas',
           options: [
-            { text: 'gone while portrait' }
+            { id: 'gone while portrait', text: 'gone while portrait' }
           ]
         }
       ]
     },
     {
+      id: 'negative modes',
       text: 'negative modes',
       promptTarget: 'negative',
       controls: [
         {
+          id: 'negative-switch',
           text: 'negative-switch',
           kind: 'toggle',
           initiallySelectedOptions: true,
-          options: [{ text: 'no clutter' }]
+          options: [{ id: 'no clutter', text: 'no clutter' }]
         }
       ]
     },
     {
+      id: 'negative polish',
       text: 'negative polish',
       promptTarget: 'negative',
       controls: [
         {
+          id: 'neg-quality',
           text: 'neg-quality',
           kind: 'and-commas',
           initiallySelectedOptions: ['blurry'],
           options: [
-            { text: 'blurry' },
-            { text: 'muddy' },
-            { text: 'extra limbs' }
+            { id: 'blurry', text: 'blurry' },
+            { id: 'muddy', text: 'muddy' },
+            { id: 'extra limbs', text: 'extra limbs' }
           ]
         }
       ]

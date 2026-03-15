@@ -1,5 +1,5 @@
 import type { Control, Option, PromptTarget, Schema, Section, State } from "../types";
-import { applySubstitutions, getActiveSubstitutions, getOptionText, isSubjectPlural, joinParts, submenuStateKey, isHidden, isDisabled, getSupplementalTexts } from "./utlities";
+import { applySubstitutions, getActiveSubstitutions, getOptionText, getTextValue, isSubjectPlural, joinParts, submenuStateKey, isHidden, isDisabled, getSupplementalTexts } from "./utlities";
 import type { Segment } from "./types";
 
 function applyWeight(text: string, weight: number): string {
@@ -9,35 +9,36 @@ function applyWeight(text: string, weight: number): string {
 }
 
 function optionById(control: Control, id?: string): Option | undefined {
-  return control.options?.find((option) => option.text === id);
+  return control.options?.find((option) => option.id === id);
 }
 
-function renderSubmenu(parentControlText: string, option: Option, state: State): string {
+function renderSubmenu(parentControlId: string, option: Option, state: State): string {
   if (!option.submenu) return '';
 
-  const key = submenuStateKey(parentControlText, option.text);
+  const key = submenuStateKey(parentControlId, option.id);
   const submenuState = state.controls[key];
   if (!submenuState) return '';
+  const isPlural = isSubjectPlural(state);
 
   const checked = option.submenu.options.filter(
     (child) =>
-      (submenuState.selectedOptions as string[]).includes(child.text) &&
+      (submenuState.selectedOptions as string[]).includes(child.id) &&
       !isHidden(state, child.hiddenBys) &&
       !isDisabled(state, child.disabledBys),
   );
-  if (checked.length > 0) return checked.map((child) => child.text).join(' ');
+  if (checked.length > 0) return checked.map((child) => getOptionText(child, isPlural)).join(' ');
 
   const selected = option.submenu.options.find(
     (child) =>
-      child.text === (submenuState.selectedOptions as string) &&
+      child.id === (submenuState.selectedOptions as string) &&
       !isHidden(state, child.hiddenBys) &&
       !isDisabled(state, child.disabledBys),
   );
-  return selected?.text ?? '';
+  return selected ? getOptionText(selected, isPlural) : '';
 }
 
-function renderOptionWithModifiers(parentControlText: string, option: Option, state: State): string {
-  const modifierText = renderSubmenu(parentControlText, option, state);
+function renderOptionWithModifiers(parentControlId: string, option: Option, state: State): string {
+  const modifierText = renderSubmenu(parentControlId, option, state);
   const isPlural = isSubjectPlural(state)
   const optionText = getOptionText(option, isPlural)
   if (!modifierText) return optionText;
@@ -55,13 +56,10 @@ function appendSupplements(baseText: string, state: State, control: Control): st
 
 function getControlText(control: Control, state: State, option?: Option): string {
   const isPlural = isSubjectPlural(state);
-  if (isPlural && option?.customControlPluralText) return option.customControlPluralText;
-  if (option?.customControlText) return option.customControlText;
-  if (isPlural && control.customPluralText) return control.customPluralText;
-  if (control.customText) return control.customText;
-  if (isPlural && control.pluralText) return control.pluralText;
+  if (option?.customControlText) return getTextValue(option.customControlText, isPlural);
+  if (control.customText) return getTextValue(control.customText, isPlural);
 
-  return control.text;
+  return getTextValue(control.text, isPlural);
 }
 
 function firstRenderedPart(control: Control, state: State): Segment | undefined {
@@ -88,19 +86,20 @@ function effectiveWeight(sectionWeight: number, controlWeight: number): number {
 
 function renderControl(control: Control, state: State): Segment[] {
   if (isHidden(state, control.hiddenBys)) return [];
-  const controlState = state.controls[control.text];
+  const controlState = state.controls[control.id];
   if (!controlState) return [];
   const disabled = isDisabled(state, control.disabledBys);
   const ownWeight = controlState.weight;
+  const isPlural = isSubjectPlural(state);
 
   if (control.kind === 'toggle') {
     if (!(controlState.selectedOptions as boolean) || disabled) return [];
-    const base = control.options?.[0]?.text ?? control.text;
+    const base = control.options?.[0] ? getOptionText(control.options[0], isPlural) : getTextValue(control.text, isPlural);
     return [{ text: appendSupplements(base, state, control), weight: ownWeight }];
   }
 
   if (control.kind === 'required') {
-    const base = control.options?.[0]?.text ?? control.text;
+    const base = control.options?.[0] ? getOptionText(control.options[0], isPlural) : getTextValue(control.text, isPlural);
     return [{ text: appendSupplements(base, state, control), weight: ownWeight }];
   }
 
@@ -114,7 +113,7 @@ function renderControl(control: Control, state: State): Segment[] {
   if (radioKinds.has(control.kind)) {
     const option = optionById(control, disabled ? undefined : controlState.selectedOptions as string);
     if (!option || isHidden(state, option.hiddenBys) || isDisabled(state, option.disabledBys)) return [];
-    let text = renderOptionWithModifiers(control.text, option, state);
+    let text = renderOptionWithModifiers(control.id, option, state);
     if (control.kind === 'or-adv') text = `${getControlText(control, state, option)} ${text}`;
     if (control.kind === 'or-adj') text = `${text} ${getControlText(control, state, option)}`;
     text = appendSupplements(text, state, control);
@@ -123,11 +122,11 @@ function renderControl(control: Control, state: State): Segment[] {
 
   const selectedOptions = (control.options ?? []).filter((option) => {
     if (isHidden(state, option.hiddenBys) || isDisabled(state, option.disabledBys) || disabled) return false;
-    return (controlState.selectedOptions as string[]).includes(option.text);
+    return (controlState.selectedOptions as string[]).includes(option.id);
   });
   if (selectedOptions.length === 0) return [];
 
-  const optionValues = selectedOptions.map((option) => renderOptionWithModifiers(control.text, option, state));
+  const optionValues = selectedOptions.map((option) => renderOptionWithModifiers(control.id, option, state));
 
   let combined = '';
   switch (control.kind) {
@@ -153,7 +152,7 @@ export function renderSection(section: Section, state: State, target: PromptTarg
   if ((section.promptTarget ?? 'positive') !== target) return [];
   if (isHidden(state, section.hiddenBys)) return [];
 
-  const sectionWeight = state.sections[section.text]?.weight ?? 1;
+  const sectionWeight = state.sections[section.id]?.weight ?? 1;
   const parts: Segment[] = [];
 
   for (let i = 0; i < section.controls.length; i += 1) {
@@ -227,7 +226,7 @@ export function buildSectionPrompt(
   target: PromptTarget,
   sectionId: string,
 ): string {
-  const section = schema.sections.find((s) => s.text === sectionId);
+  const section = schema.sections.find((s) => s.id === sectionId);
   if (!section) return '';
   return applySubstitutions(
     joinParts(renderSection(section, state, target)),

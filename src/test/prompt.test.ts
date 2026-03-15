@@ -3,19 +3,27 @@ import { createInitialState } from '../lib/state';
 import { testSchema } from './fixtures/testSchema';
 import { buildPrompt } from '../lib/prompt';
 
+function controlState(state: ReturnType<typeof createInitialState>, controlId: string) {
+  return state.controls[controlId]!;
+}
+
+function sectionState(state: ReturnType<typeof createInitialState>, sectionId: string) {
+  return state.sections[sectionId]!;
+}
+
 describe('prompt building', () => {
   describe('control kinds', () => {
     it("renders the 'or' control kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['alignment'].selectedOptions = 'hero';
+      controlState(state, 'alignment').selectedOptions = 'hero';
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, hero');
     });
 
     it("renders the 'or-prefix' control kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['element prefix'].selectedOptions = 'void';
-      state.controls['armor'].selectedOptions = 'chrome';
+      controlState(state, 'element prefix').selectedOptions = 'void';
+      controlState(state, 'armor').selectedOptions = 'chrome';
 
       const prompt = buildPrompt(testSchema, state, 'positive');
       expect(prompt).toContain('void chrome armor');
@@ -24,21 +32,21 @@ describe('prompt building', () => {
 
     it("renders the 'or-adv' control kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['movement'].selectedOptions = 'swiftly';
+      controlState(state, 'movement').selectedOptions = 'swiftly';
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, movement swiftly');
     });
 
     it("renders the 'or-adj' control kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['armor'].selectedOptions = 'chrome';
+      controlState(state, 'armor').selectedOptions = 'chrome';
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, chrome armor');
     });
 
     it("renders the 'and-commas' control kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['appendages'].selectedOptions = ['wings', 'horns'];
+      controlState(state, 'appendages').selectedOptions = ['wings', 'horns'];
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe(
         'space robo dino demon monster, wings, horns',
@@ -47,7 +55,7 @@ describe('prompt building', () => {
 
     it("renders the 'and-commas-adv' control kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['stance'].selectedOptions = ['lunging', 'three-quarter'];
+      controlState(state, 'stance').selectedOptions = ['lunging', 'three-quarter'];
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe(
         'space robo dino demon monster, stance lunging, stance three-quarter',
@@ -56,7 +64,7 @@ describe('prompt building', () => {
 
     it("renders the 'and-spaces-adj' control kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['render style'].selectedOptions = ['cinematic', 'volumetric'];
+      controlState(state, 'render style').selectedOptions = ['cinematic', 'volumetric'];
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe(
         'space robo dino demon monster, cinematic volumetric render style',
@@ -67,21 +75,21 @@ describe('prompt building', () => {
   describe('control custom text', () => {
     it("renders custom text for the 'or-adv' control kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['silhouette'].selectedOptions = 'towering';
+      controlState(state, 'silhouette').selectedOptions = 'towering';
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, outline towering');
     });
 
     it("renders custom text for the 'or-adj' control kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['surface treatment'].selectedOptions = 'runed';
+      controlState(state, 'surface treatment').selectedOptions = 'runed';
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, runed plating');
     });
 
     it("renders custom text for the 'and-commas-adv' control kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['sitting on'].selectedOptions = ['etchings', 'glow'];
+      controlState(state, 'sitting on').selectedOptions = ['etchings', 'glow'];
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe(
         'space robo dino demon monster, alighting upon etchings, alighting upon glow',
@@ -90,7 +98,7 @@ describe('prompt building', () => {
 
     it("renders custom text for the 'and-spaces-adj' control kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['finish profile'].selectedOptions = ['matte', 'pearlescent'];
+      controlState(state, 'finish profile').selectedOptions = ['matte', 'pearlescent'];
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, matte pearlescent finish');
     });
@@ -98,7 +106,7 @@ describe('prompt building', () => {
 
   it('options can override the text of their control', () => {
     const state = createInitialState(testSchema);
-    state.controls['silhouette'].selectedOptions = 'lanky';
+    controlState(state, 'silhouette').selectedOptions = 'lanky';
 
     expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, frame lanky');
   });
@@ -106,16 +114,16 @@ describe('prompt building', () => {
   describe('supplements', () => {
     it('options can supplement the text of other controls', () => {
       const state = createInitialState(testSchema);
-      state.controls['element prefix'].selectedOptions = 'nebula';
-      state.controls['surface treatment'].selectedOptions = 'runed';
+      controlState(state, 'element prefix').selectedOptions = 'nebula';
+      controlState(state, 'surface treatment').selectedOptions = 'runed';
 
       expect(buildPrompt(testSchema, state, 'positive')).toContain('runed plating within nebula');
     });
 
     it('controls can supplement the text of other controls', () => {
       const state = createInitialState(testSchema);
-      state.controls['element prefix'].selectedOptions = 'nebula';
-      state.controls['armor'].selectedOptions = 'chrome';
+      controlState(state, 'element prefix').selectedOptions = 'nebula';
+      controlState(state, 'armor').selectedOptions = 'chrome';
 
       expect(buildPrompt(testSchema, state, 'positive')).toContain('chrome armor elemental');
     });
@@ -124,32 +132,32 @@ describe('prompt building', () => {
   describe('submenu kinds', () => {
     it("renders the 'or-adj' submenu kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['appendages'].selectedOptions = ['wings'];
-      state.controls['appendages__wings__submenu'].selectedOptions = 'mechanical';
+      controlState(state, 'appendages').selectedOptions = ['wings'];
+      controlState(state, 'appendages__wings__submenu').selectedOptions = 'mechanical';
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, mechanical wings');
     });
 
     it("renders the 'or-adv' submenu kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['appendages'].selectedOptions = ['horns'];
-      state.controls['appendages__horns__submenu'].selectedOptions = 'wishily';
+      controlState(state, 'appendages').selectedOptions = ['horns'];
+      controlState(state, 'appendages__horns__submenu').selectedOptions = 'wishily';
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, horns wishily');
     });
 
     it("renders the 'and-adj' submenu kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['appendages'].selectedOptions = ['tail'];
-      state.controls['appendages__tail__submenu'].selectedOptions = ['barbed', 'segmented'];
+      controlState(state, 'appendages').selectedOptions = ['tail'];
+      controlState(state, 'appendages__tail__submenu').selectedOptions = ['barbed', 'segmented'];
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, barbed segmented tail');
     });
 
     it("renders the 'and-adv' submenu kind", () => {
       const state = createInitialState(testSchema);
-      state.controls['appendages'].selectedOptions = ['antennae'];
-      state.controls['appendages__antennae__submenu'].selectedOptions = ['arched', 'flared'];
+      controlState(state, 'appendages').selectedOptions = ['antennae'];
+      controlState(state, 'appendages__antennae__submenu').selectedOptions = ['arched', 'flared'];
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, antennae arched flared');
     });
@@ -158,26 +166,26 @@ describe('prompt building', () => {
   describe('weights', () => {
     it('applies control weight', () => {
       const state = createInitialState(testSchema);
-      state.controls['alignment'].selectedOptions = 'hero';
-      state.controls['alignment'].weight = 3;
+      controlState(state, 'alignment').selectedOptions = 'hero';
+      controlState(state, 'alignment').weight = 3;
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster, (hero:3.0)');
     });
 
     it('applies section weight', () => {
       const state = createInitialState(testSchema);
-      state.controls['alignment'].selectedOptions = 'hero';
-      state.sections['subject-core'].weight = 5;
+      controlState(state, 'alignment').selectedOptions = 'hero';
+      sectionState(state, 'subject-core').weight = 5;
 
       expect(buildPrompt(testSchema, state, 'positive')).toContain('(space robo dino demon monster, hero:5.0)');
     });
 
     it('control weight overrides section weight for that control', () => {
       const state = createInitialState(testSchema);
-      state.controls['alignment'].selectedOptions = 'hero';
-      state.sections['subject-core'].weight = 5;
-      state.controls['alignment'].weight = 3;
-      state.controls['silhouette'].selectedOptions = 'towering';
+      controlState(state, 'alignment').selectedOptions = 'hero';
+      sectionState(state, 'subject-core').weight = 5;
+      controlState(state, 'alignment').weight = 3;
+      controlState(state, 'silhouette').selectedOptions = 'towering';
 
       const prompt = buildPrompt(testSchema, state, 'positive');
       expect(prompt).toContain('(space robo dino demon monster:5.0), (hero:3.0), (outline towering:5.0)');
@@ -186,7 +194,7 @@ describe('prompt building', () => {
 
   it('builds the negative prompt independently', () => {
     const state = createInitialState(testSchema);
-    state.controls['neg-quality'].selectedOptions = ['blurry', 'extra limbs'];
+    controlState(state, 'neg-quality').selectedOptions = ['blurry', 'extra limbs'];
 
     expect(buildPrompt(testSchema, state, 'negative')).toBe('no clutter, blurry, extra limbs');
   });
@@ -194,8 +202,8 @@ describe('prompt building', () => {
   describe('plurality', () => {
     it('uses pluralText at the control level', () => {
       const state = createInitialState(testSchema);
-      state.controls['count'].selectedOptions = 'two';
-      state.controls['stance'].selectedOptions = ['lunging'];
+      controlState(state, 'count').selectedOptions = 'two';
+      controlState(state, 'stance').selectedOptions = ['lunging'];
 
       expect(buildPrompt(testSchema, state, 'positive')).toContain('stances lunging');
       expect(buildPrompt(testSchema, state, 'positive')).not.toContain('stance lunging');
@@ -203,8 +211,8 @@ describe('prompt building', () => {
 
     it('uses pluralText at the option level', () => {
       const state = createInitialState(testSchema);
-      state.controls['count'].selectedOptions = 'two';
-      state.controls['alignment'].selectedOptions = 'hero';
+      controlState(state, 'count').selectedOptions = 'two';
+      controlState(state, 'alignment').selectedOptions = 'hero';
 
       expect(buildPrompt(testSchema, state, 'positive')).toContain('heroes');
       expect(buildPrompt(testSchema, state, 'positive')).not.toContain('hero,');
@@ -212,16 +220,16 @@ describe('prompt building', () => {
 
     it('uses customPluralText at the control level', () => {
       const state = createInitialState(testSchema);
-      state.controls['count'].selectedOptions = 'two';
-      state.controls['finish profile'].selectedOptions = ['matte', 'pearlescent'];
+      controlState(state, 'count').selectedOptions = 'two';
+      controlState(state, 'finish profile').selectedOptions = ['matte', 'pearlescent'];
 
       expect(buildPrompt(testSchema, state, 'positive')).toContain('matte pearlescent finishes');
     });
 
     it('applies global substitutions for singular and plural terms when substitution toggle is enabled', () => {
       const state = createInitialState(testSchema);
-      state.controls['portrait focus'].selectedOptions = ['torso', 'torso side profile', 'torsos'];
-      state.controls['thorax mode'].selectedOptions = true;
+      controlState(state, 'portrait focus').selectedOptions = ['torso', 'torso side profile', 'torsos'];
+      controlState(state, 'thorax mode').selectedOptions = true;
 
       const prompt = buildPrompt(testSchema, state, 'positive');
       expect(prompt).toContain('thorax, thorax side profile, thoraces');

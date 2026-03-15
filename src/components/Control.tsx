@@ -15,7 +15,7 @@ function ControlHeader({
   actions: Actions;
   schema: Schema;
 }) {
-  const controlState = state.controls[control.text];
+  const controlState = state.controls[control.id];
   if (!controlState) return null;
   const controlLabel = getDisplayItemText(control, isSubjectPlural(state), schema, state);
 
@@ -26,7 +26,7 @@ function ControlHeader({
         <Weight
           value={controlState.weight}
           disabled={false}
-          onChange={(value) => actions.setControlWeight(control.text, value)}
+          onChange={(value) => actions.setControlWeight(control.id, value)}
         />
       )}
     </div>
@@ -46,7 +46,7 @@ function ToggleControl({
   disabled: boolean;
   schema: Schema;
 }) {
-  const controlState = state.controls[control.text];
+  const controlState = state.controls[control.id];
   if (!controlState) return null;
   const controlLabel = getDisplayItemText(control, isSubjectPlural(state), schema, state);
 
@@ -58,7 +58,7 @@ function ToggleControl({
           aria-label={controlLabel}
           checked={controlState.selectedOptions as boolean}
           disabled={disabled}
-          onChange={(event) => actions.setToggle(control.text, event.target.checked)}
+          onChange={(event) => actions.setToggle(control.id, event.target.checked)}
         />
         <span className="toggle-track" />
       </label>
@@ -79,7 +79,7 @@ function RadioControl({
   disabled: boolean;
   schema: Schema;
 }) {
-  const controlState = state.controls[control.text];
+  const controlState = state.controls[control.id];
   if (!controlState) return null;
   const isPlural = isSubjectPlural(state);
 
@@ -88,20 +88,20 @@ function RadioControl({
       {(control.options ?? []).map((option) => {
         if (isHidden(state, option.hiddenBys)) return null;
         const optionDisabled = disabled || isDisabled(state, option.disabledBys);
-        const checked = controlState.selectedOptions === option.text;
+        const checked = controlState.selectedOptions === option.id;
         return (
-          <div key={option.text} className="option-stack">
+          <div key={option.id} className="option-stack">
             <label className="inline-control">
               <input
                 type="radio"
-                name={control.text}
+                name={control.id}
                 checked={checked}
                 disabled={optionDisabled}
                 onClick={() => {
                   if (checked) {
-                    actions.setRadio(control.text, '');
+                    actions.setRadio(control.id, '');
                   } else {
-                    actions.setRadio(control.text, option.text);
+                    actions.setRadio(control.id, option.id);
                   }
                 }}
                 readOnly
@@ -109,7 +109,7 @@ function RadioControl({
               <span>{getDisplayOptionText(option, isPlural, schema, state)}</span>
             </label>
             {checked && <Submenu
-              parentControlText={control.text}
+              parentControlId={control.id}
               option={option}
               state={state}
               actions={actions}
@@ -135,7 +135,7 @@ function CheckboxControl({
   disabled: boolean;
   schema: Schema;
 }) {
-  const controlState = state.controls[control.text];
+  const controlState = state.controls[control.id];
   if (!controlState) return null;
   const isPlural = isSubjectPlural(state);
 
@@ -147,22 +147,22 @@ function CheckboxControl({
           disabled ||
           control.kind === 'required' ||
           isDisabled(state, option.disabledBys);
-        const checked = (controlState.selectedOptions as string[]).includes(option.text);
+        const checked = (controlState.selectedOptions as string[]).includes(option.id);
 
         return (
-          <div key={option.text} className="option-stack">
+          <div key={option.id} className="option-stack">
             <label className="inline-control">
               <input
                 type="checkbox"
                 checked={checked}
                 disabled={optionDisabled}
-                onChange={() => actions.toggleCheck(control.text, option.text)}
+                onChange={() => actions.toggleCheck(control.id, option.id)}
               />
               <span>{getDisplayOptionText(option, isPlural, schema, state)}</span>
             </label>
             {checked && (
               <Submenu
-                parentControlText={control.text}
+                parentControlId={control.id}
                 option={option}
                 state={state}
                 actions={actions}
@@ -192,7 +192,7 @@ export function Control({
   const hidden = isHidden(state, control.hiddenBys);
   if (hidden) return null;
 
-  const controlState = state.controls[control.text];
+  const controlState = state.controls[control.id];
   if (!controlState) return null;
 
   const disabled = isDisabled(state, control.disabledBys);

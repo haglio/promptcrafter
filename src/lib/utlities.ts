@@ -1,7 +1,12 @@
-import type { BaseItem, State, Control, Option, Section, DisabledOrHiddenBy, SupplementedBy, GlobalSubstitution, Schema } from '../types';
+import type { BaseItem, State, Control, Option, Section, DisabledOrHiddenBy, SupplementedBy, GlobalSubstitution, Schema, TextValue } from '../types';
+
+export function getTextValue(text: TextValue, isPlural: boolean): string {
+  if (typeof text === 'string') return text;
+  return isPlural ? text.plural : text.singular;
+}
 
 export function getItemText(item: BaseItem, isPlural: boolean): string {
-  return isPlural && item.pluralText ? item.pluralText : item.text;
+  return getTextValue(item.text, isPlural);
 }
 
 export function getOptionText(option: Option, isPlural: boolean): string {
@@ -39,7 +44,7 @@ export function getActiveSubstitutions(schema: Schema, state: State): GlobalSubs
       if (control.kind !== 'toggle') continue;
       if (isHidden(state, control.hiddenBys) || isDisabled(state, control.disabledBys)) continue;
 
-      const isEnabled = state.controls[control.text]?.selectedOptions as boolean | undefined;
+      const isEnabled = state.controls[control.id]?.selectedOptions as boolean | undefined;
       if (!isEnabled) continue;
 
       substitutions.push(...(control.globalSubstitutions ?? []));
@@ -66,7 +71,8 @@ export function sectionHasAtLeastOneSelectedOption(section: Section, state: Stat
 }
 
 export function controlHasAtLeastOneSelectedOption(control: Control, state: State) {
-  const s = state.controls[control.text];
+  const s = state.controls[control.id];
+  if (!s) return false;
 
   if (control.kind === 'required') return true;
   if (control.kind === 'toggle') return s.selectedOptions as boolean;
@@ -78,8 +84,8 @@ export function controlHasAtLeastOneSelectedOption(control: Control, state: Stat
   return (s.selectedOptions as string[]).length > 0;
 }
 
-export function submenuStateKey(parentControl: string, option: string) {
-  return `${parentControl}__${option}__submenu`;
+export function submenuStateKey(parentControlId: string, optionId: string) {
+  return `${parentControlId}__${optionId}__submenu`;
 }
 
 export function joinParts(parts: string[]): string {
@@ -92,26 +98,26 @@ function hasAnySelection(selectedOptions: boolean | string | string[]): boolean 
   return selectedOptions.length > 0;
 }
 
-function isOptionTextSelected(state: State, optionText: string): boolean {
+function isOptionIdSelected(state: State, optionId: string): boolean {
   return Object.values(state.controls).some(({ selectedOptions }) => {
-    if (typeof selectedOptions === 'string') return selectedOptions === optionText;
-    if (Array.isArray(selectedOptions)) return selectedOptions.includes(optionText);
+    if (typeof selectedOptions === 'string') return selectedOptions === optionId;
+    if (Array.isArray(selectedOptions)) return selectedOptions.includes(optionId);
     return false;
   });
 }
 
 function isByConditionMatched(state: State, by: DisabledOrHiddenBy): boolean {
-  if (!by.controlText) return false;
+  if (!by.controlId) return false;
 
-  const controlState = state.controls[by.controlText];
+  const controlState = state.controls[by.controlId];
   if (!controlState) return false;
 
   const { selectedOptions } = controlState;
 
-  if (!by.optionText) return hasAnySelection(selectedOptions);
+  if (!by.optionId) return hasAnySelection(selectedOptions);
 
-  if (typeof selectedOptions === 'string') return selectedOptions === by.optionText;
-  if (Array.isArray(selectedOptions)) return selectedOptions.includes(by.optionText);
+  if (typeof selectedOptions === 'string') return selectedOptions === by.optionId;
+  if (Array.isArray(selectedOptions)) return selectedOptions.includes(by.optionId);
   return false;
 }
 
@@ -129,16 +135,16 @@ export function getSupplementalTexts(state: State, supplementedBys?: Supplemente
   if (!supplementedBys || supplementedBys.length === 0) return [];
   return supplementedBys
     .filter((supplementedBy) => {
-      const hasControlText = Boolean(supplementedBy.controlText);
-      const hasOptionText = Boolean(supplementedBy.optionText);
+      const hasControlId = Boolean(supplementedBy.controlId);
+      const hasOptionId = Boolean(supplementedBy.optionId);
 
-      if (hasControlText === hasOptionText) return false;
+      if (hasControlId === hasOptionId) return false;
 
-      if (supplementedBy.controlText) {
-        return isByConditionMatched(state, { controlText: supplementedBy.controlText });
+      if (supplementedBy.controlId) {
+        return isByConditionMatched(state, { controlId: supplementedBy.controlId });
       }
 
-      return isOptionTextSelected(state, supplementedBy.optionText as string);
+      return isOptionIdSelected(state, supplementedBy.optionId as string);
     })
     .map((supplementedBy) => supplementedBy.supplementalText.trim())
     .filter(Boolean);

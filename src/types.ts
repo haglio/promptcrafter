@@ -31,16 +31,14 @@ export type Section = BaseItem & {
 
 export type Control = BaseItem & {
   kind: ControlKind;
-  customText?: string;
-  customPluralText?: string;
+  customText?: TextValue;
   initiallySelectedOptions?: boolean | string | string[];
   globalSubstitutions?: GlobalSubstitution[];
   options?: Option[];
 };
 
 export type Option = BaseItem & {
-  customControlText?: string;
-  customControlPluralText?: string;
+  customControlText?: TextValue;
   submenu?: Submenu;
 };
 
@@ -52,12 +50,19 @@ export type Submenu = {
 // other
 
 export type BaseItem = {
-  text: string;
-  pluralText?: string;
+  id: string;
+  text: TextValue;
   hiddenBys?: DisabledOrHiddenBy[];
   disabledBys?: DisabledOrHiddenBy[];
   supplementedBys?: SupplementedBy[];
 };
+
+export type TextValue =
+  | string
+  | {
+      singular: string;
+      plural: string;
+    };
 
 export type PromptTarget = 'positive' | 'negative';
 
@@ -79,19 +84,19 @@ type SubmenuKind =
   | 'and-adj';
 
 export type DisabledOrHiddenBy = {
-  controlText?: string;
-  optionText?: string;
+  controlId?: string;
+  optionId?: string;
 };
 
 export type SupplementedBy =
   | {
-      controlText: string;
-      optionText?: never;
+      controlId: string;
+      optionId?: never;
       supplementalText: string;
     }
   | {
-      controlText?: never;
-      optionText: string;
+      controlId?: never;
+      optionId: string;
       supplementalText: string;
     };
 

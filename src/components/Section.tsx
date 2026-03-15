@@ -37,8 +37,8 @@ function SectionHeader({
   actions: Actions;
   schema: Schema;
 }) {
-  const sectionWeight = state.sections[section.text]?.weight ?? 1;
-  const sectionPrompt = buildSectionPrompt(schema, state, section.promptTarget ?? 'positive', section.text);
+  const sectionWeight = state.sections[section.id]?.weight ?? 1;
+  const sectionPrompt = buildSectionPrompt(schema, state, section.promptTarget ?? 'positive', section.id);
   const sectionLabel = getDisplayItemText(section, isSubjectPlural(state), schema, state);
 
   return (
@@ -55,7 +55,7 @@ function SectionHeader({
           <Weight
             value={sectionWeight}
             disabled={false}
-            onChange={(value) => actions.setSectionWeight(section.text, value)}
+            onChange={(value) => actions.setSectionWeight(section.id, value)}
           />
         )}
       </div>
@@ -82,7 +82,7 @@ export function Section({
       <SectionHeader section={section} state={state} actions={actions} schema={schema} />
       {section.controls.map((control, index) => (
         <Control
-          key={control.text}
+          key={control.id}
           control={control}
           state={state}
           actions={actions}

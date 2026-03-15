@@ -29,46 +29,46 @@ export default function App({schema}: {schema: Schema}) {
   }, [generated.negative, generated.positive]);
 
   const actions = {
-    setSectionWeight(section: string, weight: number) {
-      setState((current) => ({ ...current, sections: { ...current.sections, [section]: { weight } } }));
+    setSectionWeight(sectionId: string, weight: number) {
+      setState((current) => ({ ...current, sections: { ...current.sections, [sectionId]: { weight } } }));
     },
-    setControlWeight(controlText: string, weight: number) {
+    setControlWeight(controlId: string, weight: number) {
       setState((current) => {
-        const control = current.controls[controlText];
+        const control = current.controls[controlId];
         if (!control) return current;
-        return { ...current, controls: { ...current.controls, [controlText]: { selectedOptions: control.selectedOptions, weight } } };
+        return { ...current, controls: { ...current.controls, [controlId]: { selectedOptions: control.selectedOptions, weight } } };
       });
     },
-    setRadio(controlText: string, optionText: string) {
+    setRadio(controlId: string, optionId: string) {
       setState((current) => {
-        const control = current.controls[controlText];
+        const control = current.controls[controlId];
         if (!control) return current;
-        return { ...current, controls: { ...current.controls, [controlText]: { selectedOptions: optionText, weight: control.weight } } };
+        return { ...current, controls: { ...current.controls, [controlId]: { selectedOptions: optionId, weight: control.weight } } };
       });
     },
-    toggleCheck(controlText: string, optionText: string) {
+    toggleCheck(controlId: string, optionId: string) {
       setState((current) => {
-        const control = current.controls[controlText];
+        const control = current.controls[controlId];
         if (!control) return current;
         const selectedOptions = control.selectedOptions as string[];
-        const exists = selectedOptions.includes(optionText);
+        const exists = selectedOptions.includes(optionId);
         return {
           ...current,
           controls: {
             ...current.controls,
-            [controlText]: {
-              selectedOptions: exists ? selectedOptions.filter((value) => value !== optionText) : [...selectedOptions, optionText],
+            [controlId]: {
+              selectedOptions: exists ? selectedOptions.filter((value) => value !== optionId) : [...selectedOptions, optionId],
               weight: control.weight,
             },
           },
         };
       });
     },
-    setToggle(controlText: string, value: boolean) {
+    setToggle(controlId: string, value: boolean) {
       setState((current) => {
-        const control = current.controls[controlText];
+        const control = current.controls[controlId];
         if (!control) return current;
-        return { ...current, controls: { ...current.controls, [controlText]: { selectedOptions: value, weight: control.weight } } };
+        return { ...current, controls: { ...current.controls, [controlId]: { selectedOptions: value, weight: control.weight } } };
       });
     },
   };
@@ -97,7 +97,7 @@ export default function App({schema}: {schema: Schema}) {
       </div>
 
       <div className="sections">
-        {schema.sections.map((section) => <Section key={section.text} section={section} state={state} actions={actions} schema={schema} />)}
+        {schema.sections.map((section) => <Section key={section.id} section={section} state={state} actions={actions} schema={schema} />)}
       </div>
     </main>
   );
