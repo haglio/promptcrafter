@@ -215,6 +215,19 @@ export const testSchema: Schema = {
           options: [{ text: 'portrait' }]
         },
         {
+          text: 'thorax mode',
+          kind: 'toggle',
+          globalSubstitutions: [
+            {
+              from: 'torso',
+              to: 'thorax',
+              fromPlural: 'torsos',
+              toPlural: 'thoraces'
+            }
+          ],
+          options: [{ text: 'replace torso terminology' }]
+        },
+        {
           text: 'camera angle',
           kind: 'or',
           disabledBys: [{ controlText: 'is portrait' }],
@@ -230,7 +243,9 @@ export const testSchema: Schema = {
           hiddenBys: [{ controlText: 'is portrait' }],
           options: [
             { text: 'face' },
-            { text: 'torso' }
+            { text: 'torso' },
+            { text: 'torso side profile' },
+            { text: 'torsos' }
           ]
         },
         {
@@ -240,6 +255,19 @@ export const testSchema: Schema = {
             { text: 'grounded' },
             { text: 'floating', disabledBys: [{ controlText: 'is portrait' }] },
             { text: 'airborne', hiddenBys: [{ controlText: 'is portrait' }] }
+          ]
+        }
+      ]
+    },
+    {
+      text: 'torso references',
+      controls: [
+        {
+          text: 'torso mentions',
+          kind: 'and-commas',
+          options: [
+            { text: 'torso badge' },
+            { text: 'torsos' }
           ]
         }
       ]

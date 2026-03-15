@@ -1,5 +1,5 @@
-import { isHidden, isDisabled, getOptionText, isSubjectPlural, submenuStateKey } from '../lib/utlities';
-import type { State, Option } from '../types';
+import { isHidden, isDisabled, getDisplayOptionText, isSubjectPlural, submenuStateKey } from '../lib/utlities';
+import type { State, Option, Schema } from '../types';
 import type { Actions } from './types';
 
 function SubmenuRadio({
@@ -7,11 +7,13 @@ function SubmenuRadio({
   option,
   state,
   actions,
+  schema,
 }: {
   parentControlText: string;
   option: Option;
   state: State;
   actions: Actions;
+  schema: Schema;
 }) {
   if (!option.submenu) return null;
   const key = submenuStateKey(parentControlText, option.text);
@@ -38,7 +40,7 @@ function SubmenuRadio({
                 onClick={() => actions.setRadio(key, checked ? '' : child.text)}
                 readOnly
               />
-              <span>{getOptionText(child, isPlural)}</span>
+              <span>{getDisplayOptionText(child, isPlural, schema, state)}</span>
             </label>
           );
         })}
@@ -52,11 +54,13 @@ function SubmenuCheckbox({
   option,
   state,
   actions,
+  schema,
 }: {
   parentControlText: string;
   option: Option;
   state: State;
   actions: Actions;
+  schema: Schema;
 }) {
   if (!option.submenu) return null;
   const key = submenuStateKey(parentControlText, option.text);
@@ -81,7 +85,7 @@ function SubmenuCheckbox({
                 disabled={disabled}
                 onChange={() => actions.toggleCheck(key, child.text)}
               />
-              <span>{getOptionText(child, isPlural)}</span>
+              <span>{getDisplayOptionText(child, isPlural, schema, state)}</span>
             </label>
           );
         })}
@@ -95,11 +99,13 @@ export function Submenu({
   option,
   state,
   actions,
+  schema,
 }: {
   parentControlText: string;
   option: Option;
   state: State;
   actions: Actions;
+  schema: Schema;
 }) {
   if (!option.submenu) return null;
   const kind = option.submenu.kind;
@@ -108,8 +114,8 @@ export function Submenu({
 
   switch (discriminant) {
     case 'radio':
-      return <SubmenuRadio parentControlText={parentControlText} option={option} state={state} actions={actions} />;
+      return <SubmenuRadio parentControlText={parentControlText} option={option} state={state} actions={actions} schema={schema} />;
     case 'checkbox':
-      return <SubmenuCheckbox parentControlText={parentControlText} option={option} state={state} actions={actions} />;
+      return <SubmenuCheckbox parentControlText={parentControlText} option={option} state={state} actions={actions} schema={schema} />;
   }
 }

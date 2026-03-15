@@ -1,5 +1,5 @@
-import { isHidden, isDisabled, isSubjectPlural, controlHasAtLeastOneSelectedOption, getOptionText, getItemText } from '../lib/utlities';
-import type { State, Control } from '../types';
+import { isHidden, isDisabled, isSubjectPlural, controlHasAtLeastOneSelectedOption, getDisplayOptionText, getDisplayItemText } from '../lib/utlities';
+import type { State, Control, Schema } from '../types';
 import { Actions } from './types';
 import { Weight } from './Weight';
 import { Submenu } from './Submenu';
@@ -8,14 +8,16 @@ function ControlHeader({
   control,
   state,
   actions,
+  schema,
 }: {
   control: Control;
   state: State;
   actions: Actions;
+  schema: Schema;
 }) {
   const controlState = state.controls[control.text];
   if (!controlState) return null;
-  const controlLabel = getItemText(control, isSubjectPlural(state));
+  const controlLabel = getDisplayItemText(control, isSubjectPlural(state), schema, state);
 
   return (
     <div className="control-header">
@@ -36,21 +38,24 @@ function ToggleControl({
   state,
   actions,
   disabled,
+  schema,
 }: {
   control: Control;
   state: State;
   actions: Actions;
   disabled: boolean;
+  schema: Schema;
 }) {
   const controlState = state.controls[control.text];
   if (!controlState) return null;
+  const controlLabel = getDisplayItemText(control, isSubjectPlural(state), schema, state);
 
   return (
     <div className="option-group">
       <label className="inline-control toggle-switch">
         <input
           type="checkbox"
-          aria-label={control.text}
+          aria-label={controlLabel}
           checked={controlState.selectedOptions as boolean}
           disabled={disabled}
           onChange={(event) => actions.setToggle(control.text, event.target.checked)}
@@ -66,11 +71,13 @@ function RadioControl({
   state,
   actions,
   disabled,
+  schema,
 }: {
   control: Control;
   state: State;
   actions: Actions;
   disabled: boolean;
+  schema: Schema;
 }) {
   const controlState = state.controls[control.text];
   if (!controlState) return null;
@@ -99,13 +106,14 @@ function RadioControl({
                 }}
                 readOnly
               />
-              <span>{getOptionText(option, isPlural)}</span>
+              <span>{getDisplayOptionText(option, isPlural, schema, state)}</span>
             </label>
             {checked && <Submenu
               parentControlText={control.text}
               option={option}
               state={state}
               actions={actions}
+              schema={schema}
             />}
           </div>
         );
@@ -119,11 +127,13 @@ function CheckboxControl({
   state,
   actions,
   disabled,
+  schema,
 }: {
   control: Control;
   state: State;
   actions: Actions;
   disabled: boolean;
+  schema: Schema;
 }) {
   const controlState = state.controls[control.text];
   if (!controlState) return null;
@@ -148,7 +158,7 @@ function CheckboxControl({
                 disabled={optionDisabled}
                 onChange={() => actions.toggleCheck(control.text, option.text)}
               />
-              <span>{getOptionText(option, isPlural)}</span>
+              <span>{getDisplayOptionText(option, isPlural, schema, state)}</span>
             </label>
             {checked && (
               <Submenu
@@ -156,6 +166,7 @@ function CheckboxControl({
                 option={option}
                 state={state}
                 actions={actions}
+                schema={schema}
               />
             )}
           </div>
@@ -169,11 +180,13 @@ export function Control({
   control,
   state,
   actions,
+  schema,
   noTopBorder = false
 }: {
   control: Control;
   state: State;
   actions: Actions;
+  schema: Schema;
   noTopBorder?: boolean;
 }) {
   const hidden = isHidden(state, control.hiddenBys);
@@ -189,19 +202,19 @@ export function Control({
   let controlComponent: JSX.Element | null = null;
   switch (controlComponentKind) {
     case 'toggle':
-      controlComponent = <ToggleControl control={control} state={state} actions={actions} disabled={disabled} />;
+      controlComponent = <ToggleControl control={control} state={state} actions={actions} disabled={disabled} schema={schema} />;
       break;
     case 'radio':
-      controlComponent = <RadioControl control={control} state={state} actions={actions} disabled={disabled} />;
+      controlComponent = <RadioControl control={control} state={state} actions={actions} disabled={disabled} schema={schema} />;
       break;
     case 'checkbox':
-      controlComponent = <CheckboxControl control={control} state={state} actions={actions} disabled={disabled} />;
+      controlComponent = <CheckboxControl control={control} state={state} actions={actions} disabled={disabled} schema={schema} />;
       break;
   }
 
   return (
     <div className={`control ${disabled ? 'disabled' : ''} ${noTopBorder ? 'no-top-border' : ''}`}>
-      <ControlHeader control={control} state={state} actions={actions} />
+      <ControlHeader control={control} state={state} actions={actions} schema={schema} />
       {controlComponent}
     </div>
   );

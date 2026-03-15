@@ -1,4 +1,4 @@
-import type { BaseItem, State, Control, Option, Section, DisabledOrHiddenBy, SupplementedBy } from '../types';
+import type { BaseItem, State, Control, Option, Section, DisabledOrHiddenBy, SupplementedBy, GlobalSubstitution, Schema } from '../types';
 
 export function getItemText(item: BaseItem, isPlural: boolean): string {
   return isPlural && item.pluralText ? item.pluralText : item.text;
@@ -6,6 +6,55 @@ export function getItemText(item: BaseItem, isPlural: boolean): string {
 
 export function getOptionText(option: Option, isPlural: boolean): string {
   return getItemText(option, isPlural)
+}
+
+function escapeRegex(source: string): string {
+  return source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function replaceWholeWord(input: string, from: string, to: string): string {
+  const trimmedFrom = from.trim();
+  if (!trimmedFrom) return input;
+  return input.replace(new RegExp(`\\b${escapeRegex(trimmedFrom)}\\b`, 'gi'), to);
+}
+
+export function applySubstitutions(text: string, substitutions: GlobalSubstitution[]): string {
+  let next = text;
+  for (const substitution of substitutions) {
+    if (substitution.fromPlural && substitution.toPlural) {
+      next = replaceWholeWord(next, substitution.fromPlural, substitution.toPlural);
+    }
+    next = replaceWholeWord(next, substitution.from, substitution.to);
+  }
+  return next;
+}
+
+export function getActiveSubstitutions(schema: Schema, state: State): GlobalSubstitution[] {
+  const substitutions: GlobalSubstitution[] = [];
+
+  for (const section of schema.sections) {
+    if (isHidden(state, section.hiddenBys) || isDisabled(state, section.disabledBys)) continue;
+
+    for (const control of section.controls) {
+      if (control.kind !== 'toggle') continue;
+      if (isHidden(state, control.hiddenBys) || isDisabled(state, control.disabledBys)) continue;
+
+      const isEnabled = state.controls[control.text]?.selectedOptions as boolean | undefined;
+      if (!isEnabled) continue;
+
+      substitutions.push(...(control.globalSubstitutions ?? []));
+    }
+  }
+
+  return substitutions;
+}
+
+export function getDisplayItemText(item: BaseItem, isPlural: boolean, schema: Schema, state: State): string {
+  return applySubstitutions(getItemText(item, isPlural), getActiveSubstitutions(schema, state));
+}
+
+export function getDisplayOptionText(option: Option, isPlural: boolean, schema: Schema, state: State): string {
+  return applySubstitutions(getOptionText(option, isPlural), getActiveSubstitutions(schema, state));
 }
 
 export function isSubjectPlural(state: State): boolean {

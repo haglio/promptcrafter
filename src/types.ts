@@ -34,6 +34,7 @@ export type Control = BaseItem & {
   customText?: string;
   customPluralText?: string;
   initiallySelectedOptions?: boolean | string | string[];
+  globalSubstitutions?: GlobalSubstitution[];
   options?: Option[];
 };
 
@@ -93,3 +94,10 @@ export type SupplementedBy =
       optionText: string;
       supplementalText: string;
     };
+
+export type GlobalSubstitution = {
+  from: string;
+  to: string;
+  fromPlural?: string;
+  toPlural?: string;
+};

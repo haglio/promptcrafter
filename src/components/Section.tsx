@@ -1,4 +1,4 @@
-import { isHidden, isDisabled, sectionHasAtLeastOneSelectedOption, isSubjectPlural, getItemText } from "../lib/utlities";
+import { isHidden, isDisabled, sectionHasAtLeastOneSelectedOption, isSubjectPlural, getDisplayItemText } from "../lib/utlities";
 import { buildSectionPrompt } from "../lib/prompt";
 import type { State, Schema, Section } from "../types";
 import { Control } from "./Control";
@@ -39,7 +39,7 @@ function SectionHeader({
 }) {
   const sectionWeight = state.sections[section.text]?.weight ?? 1;
   const sectionPrompt = buildSectionPrompt(schema, state, section.promptTarget ?? 'positive', section.text);
-  const sectionLabel = getItemText(section, isSubjectPlural(state));
+  const sectionLabel = getDisplayItemText(section, isSubjectPlural(state), schema, state);
 
   return (
     <div className="section-header">

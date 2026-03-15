@@ -217,5 +217,16 @@ describe('prompt building', () => {
 
       expect(buildPrompt(testSchema, state, 'positive')).toContain('matte pearlescent finishes');
     });
+
+    it('applies global substitutions for singular and plural terms when substitution toggle is enabled', () => {
+      const state = createInitialState(testSchema);
+      state.controls['portrait focus'].selectedOptions = ['torso', 'torso side profile', 'torsos'];
+      state.controls['thorax mode'].selectedOptions = true;
+
+      const prompt = buildPrompt(testSchema, state, 'positive');
+      expect(prompt).toContain('thorax, thorax side profile, thoraces');
+      expect(prompt).not.toContain('torso');
+      expect(prompt).not.toContain('torsos');
+    });
   });
 });

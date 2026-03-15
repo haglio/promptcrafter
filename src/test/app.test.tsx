@@ -228,6 +228,31 @@ describe('PromptCrafter UI', () => {
       expect(screen.getByText('heroes')).toBeInTheDocument();
       expect(screen.queryByText('hero')).not.toBeInTheDocument();
     });
+
+    it('applies toggle-driven global substitutions to section, control, option labels, and prompt text', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const torsoSection = getSectionByHeading('torso references');
+      expect(within(torsoSection).getByText('torso mentions')).toBeInTheDocument();
+      expect(within(torsoSection).getByLabelText('torso badge')).toBeInTheDocument();
+      expect(within(torsoSection).getByLabelText('torsos')).toBeInTheDocument();
+
+      await user.click(screen.getByRole('checkbox', { name: 'thorax mode' }));
+
+      const thoraxSection = getSectionByHeading('thorax references');
+      expect(screen.queryByRole('heading', { name: 'torso references' })).not.toBeInTheDocument();
+      expect(within(thoraxSection).getByText('thorax mentions')).toBeInTheDocument();
+      expect(within(thoraxSection).getByLabelText('thorax badge')).toBeInTheDocument();
+      expect(within(thoraxSection).getByLabelText('thoraces')).toBeInTheDocument();
+
+      await user.click(within(thoraxSection).getByLabelText('thorax badge'));
+      await user.click(within(thoraxSection).getByLabelText('thoraces'));
+
+      expect(screen.getByRole('textbox', { name: 'Positive prompt' })).toHaveValue(
+        'space robo dino demon monster, replace thorax terminology, thorax badge, thoraces',
+      );
+    });
   });
 
   describe("weights", () => {

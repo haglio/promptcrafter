@@ -1,5 +1,5 @@
 import type { Control, Option, PromptTarget, Schema, Section, State } from "../types";
-import { getOptionText, isSubjectPlural, joinParts, submenuStateKey, isHidden, isDisabled, getSupplementalTexts } from "./utlities";
+import { applySubstitutions, getActiveSubstitutions, getOptionText, isSubjectPlural, joinParts, submenuStateKey, isHidden, isDisabled, getSupplementalTexts } from "./utlities";
 import type { Segment } from "./types";
 
 function applyWeight(text: string, weight: number): string {
@@ -229,9 +229,15 @@ export function buildSectionPrompt(
 ): string {
   const section = schema.sections.find((s) => s.text === sectionId);
   if (!section) return '';
-  return joinParts(renderSection(section, state, target));
+  return applySubstitutions(
+    joinParts(renderSection(section, state, target)),
+    getActiveSubstitutions(schema, state),
+  );
 }
 
 export function buildPrompt(schema: Schema, state: State, target: PromptTarget): string {
-  return joinParts(schema.sections.flatMap((section) => renderSection(section, state, target)));
+  return applySubstitutions(
+    joinParts(schema.sections.flatMap((section) => renderSection(section, state, target))),
+    getActiveSubstitutions(schema, state),
+  );
 }
