@@ -89,16 +89,25 @@ export type DisabledOrHiddenBy = {
   optionId?: string;
 };
 
+export type SupplementalSide = 'adv' | 'adj';
+
+export type SupplementalText = {
+  text: string;
+  side: SupplementalSide;
+};
+
 export type SupplementedBy =
   | {
       controlId: string;
       optionId?: never;
       supplementalText: string;
+      side?: SupplementalSide;
     }
   | {
       controlId?: never;
       optionId: string;
       supplementalText: string;
+      side?: SupplementalSide;
     };
 
 export type GlobalSubstitution = {

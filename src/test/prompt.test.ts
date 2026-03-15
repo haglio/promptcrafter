@@ -125,7 +125,7 @@ describe('prompt building', () => {
   });
 
   describe('supplements', () => {
-    it('options can supplement the text of other controls', () => {
+    it('options can apply adv supplements to other controls', () => {
       const state = createInitialState(testSchema);
       controlState(state, 'element prefix').selectedOptions = 'nebula';
       controlState(state, 'surface treatment').selectedOptions = 'runed';
@@ -133,12 +133,28 @@ describe('prompt building', () => {
       expect(buildPrompt(testSchema, state, 'positive')).toContain('runed plating within nebula');
     });
 
-    it('controls can supplement the text of other controls', () => {
+    it('controls can apply adv supplements to other controls', () => {
       const state = createInitialState(testSchema);
       controlState(state, 'element prefix').selectedOptions = 'nebula';
       controlState(state, 'armor').selectedOptions = 'chrome';
 
       expect(buildPrompt(testSchema, state, 'positive')).toContain('chrome armor elemental');
+    });
+
+    it('options can apply adj supplements to other controls', () => {
+      const state = createInitialState(testSchema);
+      controlState(state, 'element prefix').selectedOptions = 'plasma';
+      controlState(state, 'surface treatment').selectedOptions = 'runed';
+
+      expect(buildPrompt(testSchema, state, 'positive')).toContain('plasma runed plating');
+    });
+
+    it('controls can apply adj supplements to other controls', () => {
+      const state = createInitialState(testSchema);
+      controlState(state, 'movement').selectedOptions = 'heavily';
+      controlState(state, 'armor').selectedOptions = 'chrome';
+
+      expect(buildPrompt(testSchema, state, 'positive')).toContain('moving chrome armor');
     });
   });
 

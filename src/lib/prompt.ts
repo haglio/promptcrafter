@@ -51,7 +51,15 @@ function appendSupplements(baseText: string, state: State, control: Control): st
   if (!baseText.trim()) return '';
   const supplementalTexts = getSupplementalTexts(state, control.supplementedBys);
   if (supplementalTexts.length === 0) return baseText;
-  return `${baseText} ${supplementalTexts.join(' ')}`;
+
+  const prependTexts = supplementalTexts
+    .filter((supplementalText) => supplementalText.side === 'adj')
+    .map((supplementalText) => supplementalText.text);
+  const appendTexts = supplementalTexts
+    .filter((supplementalText) => supplementalText.side === 'adv')
+    .map((supplementalText) => supplementalText.text);
+
+  return [...prependTexts, baseText, ...appendTexts].join(' ');
 }
 
 function getControlText(control: Control, state: State, option?: Option): string {
@@ -161,6 +169,7 @@ export function renderSection(section: Section, state: State, target: PromptTarg
 
   for (let i = 0; i < section.controls.length; i += 1) {
     const control = section.controls[i];
+    if (!control) continue;
 
     if (control.kind === 'or-prefix') {
       const prefix = firstRenderedPart(control, state);

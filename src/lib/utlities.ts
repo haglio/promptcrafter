@@ -1,4 +1,4 @@
-import type { BaseItem, State, Control, Option, Section, DisabledOrHiddenBy, SupplementedBy, GlobalSubstitution, Schema, TextValue } from '../types';
+import type { BaseItem, State, Control, Option, Section, DisabledOrHiddenBy, SupplementedBy, GlobalSubstitution, Schema, TextValue, SupplementalText } from '../types';
 
 export function getTextValue(text: TextValue, isPlural: boolean): string {
   if (typeof text === 'string') return text;
@@ -132,7 +132,7 @@ export function isHidden(state: State, hiddenBys?: DisabledOrHiddenBy[]): boolea
   return hiddenBys.some((hiddenBy) => isByConditionMatched(state, hiddenBy));
 }
 
-export function getSupplementalTexts(state: State, supplementedBys?: SupplementedBy[]): string[] {
+export function getSupplementalTexts(state: State, supplementedBys?: SupplementedBy[]): SupplementalText[] {
   if (!supplementedBys || supplementedBys.length === 0) return [];
   return supplementedBys
     .filter((supplementedBy) => {
@@ -147,6 +147,9 @@ export function getSupplementalTexts(state: State, supplementedBys?: Supplemente
 
       return isOptionIdSelected(state, supplementedBy.optionId as string);
     })
-    .map((supplementedBy) => supplementedBy.supplementalText.trim())
-    .filter(Boolean);
+    .map((supplementedBy) => ({
+      text: supplementedBy.supplementalText.trim(),
+      side: supplementedBy.side ?? 'adv',
+    }))
+    .filter((supplementedBy) => Boolean(supplementedBy.text));
 }

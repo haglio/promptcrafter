@@ -77,7 +77,13 @@ export const testSchema: Schema = {
           supplementedBys: [
             {
               controlId: 'element prefix',
-              supplementalText: 'elemental'
+              supplementalText: 'elemental',
+              side: 'adv'
+            },
+            {
+              controlId: 'movement',
+              supplementalText: 'moving',
+              side: 'adj'
             }
           ],
           options: [
@@ -94,7 +100,13 @@ export const testSchema: Schema = {
           supplementedBys: [
             {
               optionId: 'nebula',
-              supplementalText: 'within nebula'
+              supplementalText: 'within nebula',
+              side: 'adv'
+            },
+            {
+              optionId: 'plasma',
+              supplementalText: 'plasma',
+              side: 'adj'
             }
           ],
           options: [
