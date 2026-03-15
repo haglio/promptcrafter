@@ -4,6 +4,16 @@ import userEvent from '@testing-library/user-event';
 import App from '../App';
 import { testSchema } from './fixtures/testSchema';
 
+const globalSelectorControlLabel = 'colorize';
+const globalSelectorOptionOneLabel = 'green';
+const globalSelectorOptionTwoLabel = 'black';
+const matchedRadioControlLabel = 'eye color';
+const matchedRadioOptionOneLabel = 'green';
+const matchedRadioOptionTwoLabel = 'black';
+const matchedCheckboxControlLabel = 'render style';
+const matchedCheckboxOptionOneLabel = 'green tinted';
+const matchedCheckboxOptionTwoLabel = 'black and white';
+
 function getSectionByHeading(headingText: string): HTMLElement {
   const heading = screen.getByRole('heading', { name: headingText });
   const section = heading.closest('section');
@@ -18,7 +28,10 @@ function getSectionHeaderActions(section: HTMLElement): HTMLElement {
 }
 
 function getControlByText(controlText: string): HTMLElement {
-  const control = screen.getByText(controlText).closest('.control');
+  const control = screen
+    .getAllByText(controlText)
+    .map((element) => element.closest('.control'))
+    .find((element) => element !== null);
   expect(control).not.toBeNull();
   return control as HTMLElement;
 }
@@ -116,6 +129,110 @@ describe('PromptCrafter UI', () => {
 
       expect(negative).toBeDisabled();
       expect(negative).toHaveValue(initialAuto);
+    });
+  });
+
+  describe('global selector controls', () => {
+    it('hides global selector options while the control is off', () => {
+      render(<App schema={testSchema} />);
+
+      const globalSelectorControl = getControlByText(globalSelectorControlLabel);
+      expect(within(globalSelectorControl).getByRole('checkbox', { name: globalSelectorControlLabel })).not.toBeChecked();
+      expect(within(globalSelectorControl).queryByRole('radio', { name: globalSelectorOptionOneLabel })).not.toBeInTheDocument();
+      expect(within(globalSelectorControl).queryByRole('radio', { name: globalSelectorOptionTwoLabel })).not.toBeInTheDocument();
+    });
+
+    it('shows global selector options while the control is on', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const globalSelectorControl = getControlByText(globalSelectorControlLabel);
+      await user.click(within(globalSelectorControl).getByRole('checkbox', { name: globalSelectorControlLabel }));
+
+      expect(within(globalSelectorControl).getByRole('checkbox', { name: globalSelectorControlLabel })).toBeChecked();
+      expect(within(globalSelectorControl).getByRole('radio', { name: globalSelectorOptionOneLabel })).toBeInTheDocument();
+      expect(within(globalSelectorControl).getByRole('radio', { name: globalSelectorOptionTwoLabel })).toBeInTheDocument();
+    });
+
+    it('hides global selector options again when the control is turned off', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const globalSelectorControl = getControlByText(globalSelectorControlLabel);
+      await user.click(within(globalSelectorControl).getByRole('checkbox', { name: globalSelectorControlLabel }));
+      await user.click(within(globalSelectorControl).getByRole('checkbox', { name: globalSelectorControlLabel }));
+
+      expect(within(globalSelectorControl).queryByRole('radio', { name: globalSelectorOptionOneLabel })).not.toBeInTheDocument();
+    });
+
+    it('selecting global selector option 1 selects matching options in single-select controls', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const globalSelectorControl = getControlByText(globalSelectorControlLabel);
+      await user.click(within(globalSelectorControl).getByRole('checkbox', { name: globalSelectorControlLabel }));
+      await user.click(within(globalSelectorControl).getByRole('radio', { name: globalSelectorOptionOneLabel }));
+
+      const matchedRadioControl = getControlByText(matchedRadioControlLabel);
+      expect(within(matchedRadioControl).getByRole('radio', { name: matchedRadioOptionOneLabel })).toBeChecked();
+      expect(within(matchedRadioControl).getByRole('radio', { name: matchedRadioOptionTwoLabel })).not.toBeChecked();
+    });
+
+    it('selecting global selector option 2 selects matching options in single-select controls', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const globalSelectorControl = getControlByText(globalSelectorControlLabel);
+      await user.click(within(globalSelectorControl).getByRole('checkbox', { name: globalSelectorControlLabel }));
+      await user.click(within(globalSelectorControl).getByRole('radio', { name: globalSelectorOptionTwoLabel }));
+
+      const matchedRadioControl = getControlByText(matchedRadioControlLabel);
+      expect(within(matchedRadioControl).getByRole('radio', { name: matchedRadioOptionTwoLabel })).toBeChecked();
+      expect(within(matchedRadioControl).getByRole('radio', { name: matchedRadioOptionOneLabel })).not.toBeChecked();
+    });
+
+    it('selecting global selector option 1 selects matching options in multi-select controls', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const globalSelectorControl = getControlByText(globalSelectorControlLabel);
+      await user.click(within(globalSelectorControl).getByRole('checkbox', { name: globalSelectorControlLabel }));
+      await user.click(within(globalSelectorControl).getByRole('radio', { name: globalSelectorOptionOneLabel }));
+
+      const matchedCheckboxControl = getControlByText(matchedCheckboxControlLabel);
+      expect(within(matchedCheckboxControl).getByRole('checkbox', { name: matchedCheckboxOptionOneLabel })).toBeChecked();
+      expect(within(matchedCheckboxControl).getByRole('checkbox', { name: matchedCheckboxOptionTwoLabel })).not.toBeChecked();
+    });
+
+    it('selecting global selector option 2 selects matching options in multi-select controls', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const globalSelectorControl = getControlByText(globalSelectorControlLabel);
+      await user.click(within(globalSelectorControl).getByRole('checkbox', { name: globalSelectorControlLabel }));
+      await user.click(within(globalSelectorControl).getByRole('radio', { name: globalSelectorOptionTwoLabel }));
+
+      const matchedCheckboxControl = getControlByText(matchedCheckboxControlLabel);
+      expect(within(matchedCheckboxControl).getByRole('checkbox', { name: matchedCheckboxOptionTwoLabel })).toBeChecked();
+      expect(within(matchedCheckboxControl).getByRole('checkbox', { name: matchedCheckboxOptionOneLabel })).not.toBeChecked();
+    });
+
+    it('switching between global selector options replaces prior matching selections', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const globalSelectorControl = getControlByText(globalSelectorControlLabel);
+      await user.click(within(globalSelectorControl).getByRole('checkbox', { name: globalSelectorControlLabel }));
+      await user.click(within(globalSelectorControl).getByRole('radio', { name: globalSelectorOptionOneLabel }));
+      await user.click(within(globalSelectorControl).getByRole('radio', { name: globalSelectorOptionTwoLabel }));
+
+      const matchedRadioControl = getControlByText(matchedRadioControlLabel);
+      expect(within(matchedRadioControl).getByRole('radio', { name: matchedRadioOptionTwoLabel })).toBeChecked();
+      expect(within(matchedRadioControl).getByRole('radio', { name: matchedRadioOptionOneLabel })).not.toBeChecked();
+
+      const matchedCheckboxControl = getControlByText(matchedCheckboxControlLabel);
+      expect(within(matchedCheckboxControl).getByRole('checkbox', { name: matchedCheckboxOptionTwoLabel })).toBeChecked();
+      expect(within(matchedCheckboxControl).getByRole('checkbox', { name: matchedCheckboxOptionOneLabel })).not.toBeChecked();
     });
   });
 

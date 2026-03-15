@@ -75,7 +75,8 @@ type ControlKind =
   | 'and-commas-adv'
   | 'and-spaces-adj'
   | 'required'
-  | 'toggle';
+  | 'toggle'
+  | 'global-selector';
 
 type SubmenuKind =
   | 'or-adv'

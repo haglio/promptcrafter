@@ -4,6 +4,13 @@ function createControlState(control: Control): ControlState {
   if (control.kind === 'toggle') {
     return { selectedOptions: control.initiallySelectedOptions as boolean ?? false, weight: 1 };
   }
+  if (control.kind === 'global-selector') {
+    // false = off, string = on (with selected option id, or '' if none chosen)
+    const initial = control.initiallySelectedOptions;
+    if (initial === true) return { selectedOptions: '', weight: 1 };
+    if (typeof initial === 'string') return { selectedOptions: initial, weight: 1 };
+    return { selectedOptions: false, weight: 1 };
+  }
   if (control.kind === 'required') {
     return { selectedOptions: control.initiallySelectedOptions as string[] ?? [], weight: 1 };
   }

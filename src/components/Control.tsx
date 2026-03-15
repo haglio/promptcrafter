@@ -122,6 +122,71 @@ function RadioControl({
   );
 }
 
+function GlobalSelectorControl({
+  control,
+  state,
+  actions,
+  disabled,
+  schema,
+}: {
+  control: Control;
+  state: State;
+  actions: Actions;
+  disabled: boolean;
+  schema: Schema;
+}) {
+  const controlState = state.controls[control.id];
+  if (!controlState) return null;
+  const controlLabel = getDisplayItemText(control, isSubjectPlural(state), schema, state);
+  const isOn = controlState.selectedOptions !== false;
+  const selectedOption = isOn ? (controlState.selectedOptions as string) : '';
+  const isPlural = isSubjectPlural(state);
+
+  return (
+    <div className="option-group">
+      <label className="inline-control toggle-switch">
+        <input
+          type="checkbox"
+          aria-label={controlLabel}
+          checked={isOn}
+          disabled={disabled}
+          onChange={(event) => actions.setGlobalSelector(control.id, event.target.checked, selectedOption)}
+        />
+        <span className="toggle-track" />
+      </label>
+      {isOn && (
+        <div className="global-selector-options">
+          {(control.options ?? []).map((option) => {
+            if (isHidden(state, option.hiddenBys)) return null;
+            const optionDisabled = disabled || isDisabled(state, option.disabledBys);
+            const checked = selectedOption === option.id;
+            return (
+              <label key={option.id} className="inline-control">
+                <input
+                  type="radio"
+                  name={control.id}
+                  aria-label={getDisplayOptionText(option, isPlural, schema, state)}
+                  checked={checked}
+                  disabled={optionDisabled}
+                  onClick={() => {
+                    if (checked) {
+                      actions.setGlobalSelector(control.id, true, '');
+                    } else {
+                      actions.setGlobalSelector(control.id, true, option.id);
+                    }
+                  }}
+                  readOnly
+                />
+                <span>{getDisplayOptionText(option, isPlural, schema, state)}</span>
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CheckboxControl({
   control,
   state,
@@ -197,12 +262,15 @@ export function Control({
 
   const disabled = isDisabled(state, control.disabledBys);
 
-  const controlComponentKind = control.kind === 'toggle' ? 'toggle' : control.kind.startsWith('or') ? 'radio' : 'checkbox';
+  const controlComponentKind = control.kind === 'toggle' ? 'toggle' : control.kind === 'global-selector' ? 'global-selector' : control.kind.startsWith('or') ? 'radio' : 'checkbox';
 
   let controlComponent: JSX.Element | null = null;
   switch (controlComponentKind) {
     case 'toggle':
       controlComponent = <ToggleControl control={control} state={state} actions={actions} disabled={disabled} schema={schema} />;
+      break;
+    case 'global-selector':
+      controlComponent = <GlobalSelectorControl control={control} state={state} actions={actions} disabled={disabled} schema={schema} />;
       break;
     case 'radio':
       controlComponent = <RadioControl control={control} state={state} actions={actions} disabled={disabled} schema={schema} />;

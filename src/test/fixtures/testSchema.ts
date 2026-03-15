@@ -160,6 +160,16 @@ export const testSchema: Schema = {
           ]
         },
         {
+          id: 'eye color',
+          text: 'eye color',
+          kind: 'or',
+          options: [
+            { id: 'green', text: 'green' },
+            { id: 'black', text: 'black' },
+            { id: 'red', text: 'red' }
+          ]
+        },
+        {
           id: 'sitting on',
           text: 'sitting on',
           kind: 'and-commas-adv',
@@ -197,7 +207,9 @@ export const testSchema: Schema = {
           options: [
             { id: 'cinematic', text: 'cinematic' },
             { id: 'hyperdetailed', text: 'hyperdetailed' },
-            { id: 'volumetric', text: 'volumetric' }
+            { id: 'volumetric', text: 'volumetric' },
+            { id: 'green tinted', text: 'green tinted' },
+            { id: 'black and white', text: 'black and white' }
           ]
         },
         {
@@ -222,6 +234,21 @@ export const testSchema: Schema = {
           kind: 'and-commas-adv',
           options: [
             { id: 'striped', text: 'striped' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'colorize',
+      text: 'colorize',
+      controls: [
+        {
+          id: 'colorize',
+          text: 'colorize',
+          kind: 'global-selector',
+          options: [
+            { id: 'green', text: 'green' },
+            { id: 'black', text: 'black' }
           ]
         }
       ]

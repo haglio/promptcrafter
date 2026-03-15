@@ -71,6 +71,65 @@ export default function App({schema}: {schema: Schema}) {
         return { ...current, controls: { ...current.controls, [controlId]: { selectedOptions: value, weight: control.weight } } };
       });
     },
+    setGlobalSelector(controlId: string, toggleOn: boolean, optionId: string) {
+      setState((current) => {
+        const control = current.controls[controlId];
+        if (!control) return current;
+        const previousOptionId = typeof control.selectedOptions === 'string' ? control.selectedOptions : '';
+        const newSelectedOptions: string | false = toggleOn ? optionId : false;
+        const updatedControls: typeof current.controls = {
+          ...current.controls,
+          [controlId]: { selectedOptions: newSelectedOptions, weight: control.weight },
+        };
+        const allSchemaControls = schema.sections.flatMap((s) => s.controls);
+
+        const shouldClearPrevious = Boolean(previousOptionId) && (!toggleOn || previousOptionId !== optionId);
+        if (shouldClearPrevious) {
+          for (const schemaCtrl of allSchemaControls) {
+            if (schemaCtrl.id === controlId) continue;
+            const ctrlState = updatedControls[schemaCtrl.id];
+            if (!ctrlState) continue;
+
+            if (typeof ctrlState.selectedOptions === 'string') {
+              const selected = ctrlState.selectedOptions;
+              if (selected && (selected === previousOptionId || selected.includes(previousOptionId))) {
+                updatedControls[schemaCtrl.id] = { ...ctrlState, selectedOptions: '' };
+              }
+            } else if (Array.isArray(ctrlState.selectedOptions)) {
+              const filtered = ctrlState.selectedOptions.filter(
+                (selected) => selected !== previousOptionId && !selected.includes(previousOptionId),
+              );
+              if (filtered.length !== ctrlState.selectedOptions.length) {
+                updatedControls[schemaCtrl.id] = { ...ctrlState, selectedOptions: filtered };
+              }
+            }
+          }
+        }
+
+        if (toggleOn && optionId) {
+          for (const schemaCtrl of allSchemaControls) {
+            if (schemaCtrl.id === controlId) continue;
+            const ctrlState = updatedControls[schemaCtrl.id];
+            if (!ctrlState) continue;
+            if (typeof ctrlState.selectedOptions === 'string') {
+              const match = (schemaCtrl.options ?? []).find((o) => o.id === optionId || o.id.includes(optionId));
+              if (match) {
+                updatedControls[schemaCtrl.id] = { ...ctrlState, selectedOptions: match.id };
+              }
+            } else if (Array.isArray(ctrlState.selectedOptions)) {
+              const matchingOpts = (schemaCtrl.options ?? [])
+                .filter((o) => o.id === optionId || o.id.includes(optionId))
+                .map((o) => o.id);
+              if (matchingOpts.length > 0) {
+                const merged = Array.from(new Set([...ctrlState.selectedOptions, ...matchingOpts]));
+                updatedControls[schemaCtrl.id] = { ...ctrlState, selectedOptions: merged };
+              }
+            }
+          }
+        }
+        return { ...current, controls: updatedControls };
+      });
+    },
   };
 
   return (

@@ -76,6 +76,7 @@ export function controlHasAtLeastOneSelectedOption(control: Control, state: Stat
 
   if (control.kind === 'required') return true;
   if (control.kind === 'toggle') return s.selectedOptions as boolean;
+  if (control.kind === 'global-selector') return s.selectedOptions !== false;
 
   if (control.kind.startsWith('or')) {
     return Boolean(s.selectedOptions as string);

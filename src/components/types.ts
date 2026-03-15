@@ -4,4 +4,5 @@ export type Actions = {
   setRadio: (controlId: string, optionId: string) => void;
   toggleCheck: (controlId: string, optionId: string) => void;
   setToggle: (controlId: string, value: boolean) => void;
+  setGlobalSelector: (controlId: string, toggleOn: boolean, optionId: string) => void;
 };

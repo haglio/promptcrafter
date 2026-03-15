@@ -70,6 +70,19 @@ describe('prompt building', () => {
         'space robo dino demon monster, cinematic volumetric render style',
       );
     });
+
+    it("renders the 'global-selector' control kind", () => {
+      const state = createInitialState(testSchema);
+      controlState(state, 'colorize').selectedOptions = 'green';
+
+      expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster');
+    });
+
+    it("initializes the 'global-selector' control kind as off", () => {
+      const state = createInitialState(testSchema);
+
+      expect(controlState(state, 'colorize').selectedOptions).toBe(false);
+    });
   });
 
   describe('control custom text', () => {

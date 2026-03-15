@@ -98,6 +98,10 @@ function renderControl(control: Control, state: State): Segment[] {
     return [{ text: appendSupplements(base, state, control), weight: ownWeight }];
   }
 
+  if (control.kind === 'global-selector') {
+    return [];
+  }
+
   if (control.kind === 'required') {
     const base = control.options?.[0] ? getOptionText(control.options[0], isPlural) : getTextValue(control.text, isPlural);
     return [{ text: appendSupplements(base, state, control), weight: ownWeight }];
