@@ -549,4 +549,37 @@ describe('PromptCrafter UI', () => {
       expect(writeText).toHaveBeenCalledWith('no clutter');
     });
   });
+
+  describe('export button', () => {
+    it('opens the export dialog and saves the current prompt combo through the desktop bridge', async () => {
+      const user = userEvent.setup();
+      const exportPromptCombo = vi.fn().mockResolvedValue({
+        fileName: 'my-combo.json',
+        filePath: 'C:\\repo\\output\\my-combo.json',
+      });
+
+      window.promptCrafterDesktop = {
+        copyText: vi.fn().mockResolvedValue(true),
+        exportPromptCombo,
+      };
+
+      render(<App schema={testSchema} />);
+
+      await user.click(screen.getByRole('button', { name: 'Export JSON' }));
+
+      expect(screen.getByRole('dialog', { name: 'Export prompt combo' })).toBeInTheDocument();
+
+      const nameInput = screen.getByLabelText('File name');
+      await user.clear(nameInput);
+      await user.type(nameInput, 'my-combo');
+      await user.click(screen.getByRole('button', { name: 'Save export' }));
+
+      expect(exportPromptCombo).toHaveBeenCalledTimes(1);
+      expect(exportPromptCombo).toHaveBeenCalledWith('my-combo', {
+        positive: 'space robo dino demon monster',
+        negative: 'no clutter, blurry',
+      });
+      expect(screen.getByRole('status')).toHaveTextContent('Saved my-combo.json');
+    });
+  });
 });

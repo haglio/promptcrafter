@@ -1,24 +1,94 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createInitialState } from './lib/state';
-import type { State, Schema } from './types';
-import { buildPrompt } from './lib/prompt';
 import { Prompt } from './components/Prompt';
 import { Section } from './components/Section';
+import { exportPromptCombo } from './lib/export';
+import { buildPrompt } from './lib/prompt';
+import { createInitialState } from './lib/state';
+import type { Schema, State } from './types';
 
-export default function App({schema}: {schema: Schema}) {
+function ExportDialog({
+  initialName,
+  onCancel,
+  onSave,
+  pending,
+  error,
+}: {
+  initialName: string;
+  onCancel: () => void;
+  onSave: (name: string) => Promise<void>;
+  pending: boolean;
+  error: string;
+}) {
+  const [name, setName] = useState(initialName);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await onSave(name);
+  }
+
+  return (
+    <div className="dialog-backdrop" role="presentation">
+      <div className="dialog-card" role="dialog" aria-modal="true" aria-labelledby="export-dialog-title">
+        <form onSubmit={handleSubmit}>
+          <h2 id="export-dialog-title">Export prompt combo</h2>
+          <p className="dialog-copy">Choose the JSON filename for the current positive and negative prompts.</p>
+          <label className="dialog-field">
+            <span>File name</span>
+            <input
+              autoFocus
+              type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="my prompt combo"
+              disabled={pending}
+            />
+          </label>
+          {error ? <p className="dialog-error" role="alert">{error}</p> : null}
+          <div className="dialog-actions">
+            <button type="button" className="secondary-button" onClick={onCancel} disabled={pending}>
+              Cancel
+            </button>
+            <button type="submit" className="primary-button" disabled={pending || !name.trim()}>
+              {pending ? 'Saving...' : 'Save export'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function App({ schema }: {schema: Schema}) {
   const [state, setState] = useState<State>(() => {
     const initial = createInitialState(schema);
     return {
-       ...initial, 
-       positiveText: buildPrompt(schema, initial, 'positive'), 
-       negativeText: buildPrompt(schema, initial, 'negative') 
+      ...initial,
+      positiveText: buildPrompt(schema, initial, 'positive'),
+      negativeText: buildPrompt(schema, initial, 'negative'),
     };
   });
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [exportPending, setExportPending] = useState(false);
+  const [exportError, setExportError] = useState('');
+  const [exportMessage, setExportMessage] = useState('');
 
   const generated = useMemo(() => ({
     positive: buildPrompt(schema, state, 'positive'),
     negative: buildPrompt(schema, state, 'negative'),
-  }), [state]);
+  }), [schema, state]);
+
+  const defaultExportName = useMemo(() => {
+    const source = `${state.positiveText} ${state.negativeText}`.trim();
+    if (!source) return 'prompt-combo';
+
+    const compact = source
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 48);
+
+    return compact || 'prompt-combo';
+  }, [state.negativeText, state.positiveText]);
 
   useEffect(() => {
     setState((current) => {
@@ -39,6 +109,25 @@ export default function App({schema}: {schema: Schema}) {
       };
     });
   }, [generated.negative, generated.positive]);
+
+  async function handleExportSave(name: string) {
+    try {
+      setExportPending(true);
+      setExportError('');
+
+      const result = await exportPromptCombo(name, {
+        positive: state.positiveText,
+        negative: state.negativeText,
+      });
+
+      setExportMessage(`Saved ${result.fileName}`);
+      setIsExportDialogOpen(false);
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : 'Export failed.');
+    } finally {
+      setExportPending(false);
+    }
+  }
 
   const actions = {
     setSectionWeight(sectionId: string, weight: number) {
@@ -146,8 +235,22 @@ export default function App({schema}: {schema: Schema}) {
 
   return (
     <main className="app-shell">
-      <header>
+      <header className="app-header">
         <h1>PromptCrafter</h1>
+        <div className="app-header-actions">
+          {exportMessage ? <p className="export-message" role="status">{exportMessage}</p> : null}
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => {
+              setExportMessage('');
+              setExportError('');
+              setIsExportDialogOpen(true);
+            }}
+          >
+            Export JSON
+          </button>
+        </div>
       </header>
 
       <div className="prompt-stack">
@@ -170,6 +273,20 @@ export default function App({schema}: {schema: Schema}) {
       <div className="sections">
         {schema.sections.map((section) => <Section key={section.id} section={section} state={state} actions={actions} schema={schema} />)}
       </div>
+
+      {isExportDialogOpen ? (
+        <ExportDialog
+          initialName={defaultExportName}
+          onCancel={() => {
+            if (exportPending) return;
+            setExportError('');
+            setIsExportDialogOpen(false);
+          }}
+          onSave={handleExportSave}
+          pending={exportPending}
+          error={exportError}
+        />
+      ) : null}
     </main>
   );
 }

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { copyTextToClipboard } from '../lib/clipboard';
 
@@ -6,11 +7,13 @@ function PromptHeader({
   value,
   mode,
   onToggleMode,
+  extraActions,
 }: {
   label: string;
   value: string;
   mode: 'auto' | 'manual';
   onToggleMode: () => void;
+  extraActions?: ReactNode;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -46,17 +49,19 @@ function PromptHeader({
       >
         {mode === 'auto' ? 'manual' : 'auto'}
       </button>
+      {extraActions}
       <label className="prompt-label"><h3>{label}</h3></label>
     </div>
   );
 }
 
-export function Prompt({ label, value, mode, onChange, onToggleMode }: {
+export function Prompt({ label, value, mode, onChange, onToggleMode, extraActions }: {
   label: string;
   value: string;
   mode: 'auto' | 'manual';
   onChange: (value: string) => void;
   onToggleMode: (mode: 'auto' | 'manual') => void;
+  extraActions?: ReactNode;
 }) {
   return (
     <section className="prompt-area">
@@ -65,6 +70,7 @@ export function Prompt({ label, value, mode, onChange, onToggleMode }: {
         value={value}
         mode={mode}
         onToggleMode={() => onToggleMode(mode === 'auto' ? 'manual' : 'auto')}
+        extraActions={extraActions}
       />
       <textarea
         aria-label={label}

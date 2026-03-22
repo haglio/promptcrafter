@@ -13,6 +13,7 @@ const APP_NAME = 'PromptCrafter';
 const START_TIMEOUT_MS = 30000;
 const DEV_SERVER_URL = process.env.PROMPTCRAFTER_DEV_SERVER_URL || '';
 const DEFAULT_DEV_URL = 'http://127.0.0.1:5173/';
+const EXPORTS_DIR = path.join(getRepoRoot(), 'output');
 
 function getRepoRoot() {
   return path.resolve(__dirname, '..');
@@ -36,6 +37,21 @@ function isDevMode() {
 
 function getLogPath(name) {
   return path.join(getRuntimeRoot(), name);
+}
+
+function sanitizeExportName(name) {
+  const trimmed = String(name ?? '').trim();
+  const sanitized = trimmed
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '-')
+    .replace(/\s+/g, ' ')
+    .replace(/\.+$/g, '')
+    .trim();
+
+  if (!sanitized) {
+    throw new Error('Please enter a file name for the export.');
+  }
+
+  return sanitized;
 }
 
 const LOG_PATH = getLogPath('promptcrafter-launcher.log');
@@ -330,6 +346,24 @@ async function main() {
   ipcMain.handle('promptcrafter:copy-text', async (_event, text) => {
     clipboard.writeText(text);
     return true;
+  });
+
+  ipcMain.handle('promptcrafter:export-prompt-combo', async (_event, data) => {
+    const fileBaseName = sanitizeExportName(data?.name);
+    const payload = data?.payload ?? {};
+    const exportPayload = {
+      positive: String(payload.positive ?? ''),
+      negative: String(payload.negative ?? ''),
+    };
+
+    fs.mkdirSync(EXPORTS_DIR, { recursive: true });
+
+    const fileName = `${fileBaseName}.json`;
+    const filePath = path.join(EXPORTS_DIR, fileName);
+    fs.writeFileSync(filePath, JSON.stringify(exportPayload, null, 2), 'utf8');
+    appendLog(`[Export] Saved prompt combo to ${filePath}`);
+
+    return { filePath, fileName };
   });
 
   mainWindow.webContents.once('did-finish-load', () => {

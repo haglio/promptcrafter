@@ -15,9 +15,36 @@ body { margin: 0; background: #111827; }
 * { box-sizing: border-box; }
 
 button, input, textarea { font: inherit; }
+input {
+  background: #0f172a;
+  color: #f8fafc;
+  border: 1px solid #475569;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
 
 .app-shell { max-width: 1100px; margin: 0 auto; padding: 24px; }
 .app-error-shell { padding-top: 48px; }
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.app-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.export-message {
+  margin: 0;
+  color: #86efac;
+  font-size: 14px;
+}
 
 .prompt-stack { 
   display: grid; 
@@ -250,4 +277,82 @@ textarea {
 textarea:disabled {
   opacity: 0.7;
   cursor: default;
+}
+
+.primary-button,
+.secondary-button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.primary-button {
+  background: #2563eb;
+  color: #eff6ff;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.secondary-button {
+  background: #334155;
+  color: #e2e8f0;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: #475569;
+}
+
+.primary-button:disabled,
+.secondary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 400;
+}
+
+.dialog-card {
+  width: min(100%, 460px);
+  background: #1f2937;
+  border: 1px solid #475569;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.dialog-card h2 {
+  margin: 0 0 8px;
+}
+
+.dialog-copy {
+  margin: 0 0 16px;
+  color: #cbd5e1;
+}
+
+.dialog-field {
+  display: grid;
+  gap: 8px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.dialog-error {
+  margin: 12px 0 0;
+  color: #fca5a5;
 }
