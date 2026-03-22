@@ -75,6 +75,18 @@ describe('PromptCrafter UI', () => {
       );
     });
 
+    it('updates the negative prompt pane when a hidden-opposite source option is selected', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      expect(screen.getByRole('textbox', { name: 'Negative prompt' })).toHaveValue('no clutter, blurry');
+
+      await user.click(screen.getByLabelText('hot'));
+
+      expect(screen.getByRole('textbox', { name: 'Negative prompt' })).toHaveValue('no clutter, blurry, cold');
+      expect(screen.queryByText('neg-temperature-opposite')).not.toBeInTheDocument();
+    });
+
     it('positive prompt auto mode rejects edits, manual mode accepts edits, and switching back restores auto output', async () => {
       const user = userEvent.setup();
       render(<App schema={testSchema} />);

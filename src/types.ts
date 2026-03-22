@@ -34,6 +34,7 @@ export type Control = BaseItem & {
   customText?: TextValue;
   initiallySelectedOptions?: boolean | string | string[];
   globalSubstitutions?: GlobalSubstitution[];
+  hiddenOppositeBys?: DisabledOrHiddenBy[];
   options?: Option[];
 };
 
@@ -75,6 +76,7 @@ type ControlKind =
   | 'and-commas-adv'
   | 'and-spaces-adj'
   | 'required'
+  | 'hidden-opposite'
   | 'toggle'
   | 'global-selector';
 

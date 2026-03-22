@@ -108,7 +108,9 @@ function isOptionIdSelected(state: State, optionId: string): boolean {
 }
 
 function isByConditionMatched(state: State, by: DisabledOrHiddenBy): boolean {
-  if (!by.controlId) return false;
+  if (!by.controlId) {
+    return by.optionId ? isOptionIdSelected(state, by.optionId) : false;
+  }
 
   const controlState = state.controls[by.controlId];
   if (!controlState) return false;
@@ -122,14 +124,17 @@ function isByConditionMatched(state: State, by: DisabledOrHiddenBy): boolean {
   return false;
 }
 
+export function isTriggeredBy(state: State, conditions?: DisabledOrHiddenBy[]): boolean {
+  if (!conditions || conditions.length === 0) return false;
+  return conditions.some((condition) => isByConditionMatched(state, condition));
+}
+
 export function isDisabled(state: State, disabledBys?: DisabledOrHiddenBy[]): boolean {
-  if (!disabledBys || disabledBys.length === 0) return false;
-  return disabledBys.some((disabledBy) => isByConditionMatched(state, disabledBy));
+  return isTriggeredBy(state, disabledBys);
 }
 
 export function isHidden(state: State, hiddenBys?: DisabledOrHiddenBy[]): boolean {
-  if (!hiddenBys || hiddenBys.length === 0) return false;
-  return hiddenBys.some((hiddenBy) => isByConditionMatched(state, hiddenBy));
+  return isTriggeredBy(state, hiddenBys);
 }
 
 export function getSupplementalTexts(state: State, supplementedBys?: SupplementedBy[]): SupplementalText[] {

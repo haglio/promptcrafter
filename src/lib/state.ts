@@ -14,6 +14,9 @@ function createControlState(control: Control): ControlState {
   if (control.kind === 'required') {
     return { selectedOptions: control.initiallySelectedOptions as string[] ?? [], weight: 1 };
   }
+  if (control.kind === 'hidden-opposite') {
+    return { selectedOptions: control.initiallySelectedOptions as string[] ?? [], weight: 1 };
+  }
   const isRadio = control.kind.startsWith('or');
   if (isRadio) {
     return { selectedOptions: control.initiallySelectedOptions as string ?? '', weight: 1 };

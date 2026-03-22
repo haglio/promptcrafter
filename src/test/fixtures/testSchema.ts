@@ -182,6 +182,15 @@ export const testSchema: Schema = {
           ]
         },
         {
+          id: 'temperature',
+          text: 'temperature',
+          kind: 'or',
+          options: [
+            { id: 'hot', text: 'hot' },
+            { id: 'cold-positive', text: 'cold' }
+          ]
+        },
+        {
           id: 'sitting on',
           text: 'sitting on',
           kind: 'and-commas-adv',
@@ -397,6 +406,16 @@ export const testSchema: Schema = {
             { id: 'blurry', text: 'blurry' },
             { id: 'muddy', text: 'muddy' },
             { id: 'extra limbs', text: 'extra limbs' }
+          ]
+        },
+        {
+          id: 'neg-temperature-opposite',
+          text: 'neg-temperature-opposite',
+          kind: 'hidden-opposite',
+          hiddenOppositeBys: [{ optionId: 'hot' }],
+          initiallySelectedOptions: ['cold-negative'],
+          options: [
+            { id: 'cold-negative', text: 'cold' }
           ]
         }
       ]

@@ -255,7 +255,7 @@ export function Control({
   schema: Schema;
   noTopBorder?: boolean;
 }) {
-  const hidden = isHidden(state, control.hiddenBys);
+  const hidden = control.kind === 'hidden-opposite' || isHidden(state, control.hiddenBys);
   if (hidden) return null;
 
   const controlState = state.controls[control.id];

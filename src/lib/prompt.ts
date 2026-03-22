@@ -1,5 +1,5 @@
 import type { Control, Option, PromptTarget, Schema, Section, State } from "../types";
-import { applySubstitutions, getActiveSubstitutions, getOptionText, getTextValue, isSubjectPlural, joinParts, submenuStateKey, isHidden, isDisabled, getSupplementalTexts } from "./utlities";
+import { applySubstitutions, getActiveSubstitutions, getOptionText, getTextValue, isSubjectPlural, joinParts, submenuStateKey, isHidden, isDisabled, getSupplementalTexts, isTriggeredBy } from "./utlities";
 import type { Segment } from "./types";
 
 function applyWeight(text: string, weight: number): string {
@@ -113,6 +113,24 @@ function renderControl(control: Control, state: State): Segment[] {
   if (control.kind === 'required') {
     const base = control.options?.[0] ? getOptionText(control.options[0], isPlural) : getTextValue(control.text, isPlural);
     return [{ text: appendSupplements(base, state, control), weight: ownWeight }];
+  }
+
+  if (control.kind === 'hidden-opposite') {
+    if (!isTriggeredBy(state, control.hiddenOppositeBys) || disabled) return [];
+
+    const selectedOptions = (control.options ?? []).filter((option) => {
+      if (isHidden(state, option.hiddenBys) || isDisabled(state, option.disabledBys)) return false;
+      return (controlState.selectedOptions as string[]).includes(option.id);
+    });
+    if (selectedOptions.length === 0) return [];
+
+    const text = appendSupplements(
+      selectedOptions.map((option) => renderOptionWithModifiers(control.id, option, state)).join(', ').trim(),
+      state,
+      control,
+    );
+
+    return text ? [{ text, weight: ownWeight }] : [];
   }
 
   const radioKinds = new Set([

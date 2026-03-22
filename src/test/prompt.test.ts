@@ -83,6 +83,13 @@ describe('prompt building', () => {
 
       expect(controlState(state, 'colorize').selectedOptions).toBe(false);
     });
+
+    it("renders the 'hidden-opposite' control kind when its linked option is active", () => {
+      const state = createInitialState(testSchema);
+      controlState(state, 'temperature').selectedOptions = 'hot';
+
+      expect(buildPrompt(testSchema, state, 'negative')).toBe('no clutter, blurry, cold');
+    });
   });
 
   describe('control custom text', () => {
@@ -226,6 +233,12 @@ describe('prompt building', () => {
     controlState(state, 'neg-quality').selectedOptions = ['blurry', 'extra limbs'];
 
     expect(buildPrompt(testSchema, state, 'negative')).toBe('no clutter, blurry, extra limbs');
+  });
+
+  it('does not render hidden-opposite text when its linked option is inactive', () => {
+    const state = createInitialState(testSchema);
+
+    expect(buildPrompt(testSchema, state, 'negative')).toBe('no clutter, blurry');
   });
 
   describe('plurality', () => {
