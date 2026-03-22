@@ -7,8 +7,6 @@ __pycache__/
 *.pid
 *.tsbuildinfo
 PromptCrafter.lnk
-PromptCrafter-runtime/
-build/electron/
 vite.config.js
 vite.config.d.ts
 promptcrafter-window.png
@@ -16,3 +14,4 @@ promptcrafter-window.png
 probe-result.txt
 tmp-electron-probe/
 scripts/_electron_*
+browser-data/
