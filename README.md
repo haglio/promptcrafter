@@ -22,7 +22,7 @@ That command is the normal browser dev server with hot reload.
 PromptCrafter can also run as a desktop app from this repo root:
 
 - `PromptCrafter.lnk` - shortcut to pin to Taskbar
-- `scripts/` - Electron host, build, icon, and shortcut scripts
+- `scripts/` - Electron host, icon, and shortcut scripts
 - `promptcrafter-launcher.log` - launcher-level startup log
 - `promptcrafter-stdout.log` - captured build/runtime stdout
 - `promptcrafter-stderr.log` - captured build/runtime stderr
@@ -40,10 +40,10 @@ Frontend bootstrap errors inside the embedded window are echoed back into `promp
 
 The main PromptCrafter shortcut is intentionally the live-reload desktop app. If Vite is not already running, the Electron host starts it automatically and reuses it on later launches.
 
-## Rebuild The Icon
+## Refresh The Icon
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Build-PromptCrafterExecutable.ps1"
+py -3 ".\scripts\Generate-PromptCrafterIcon.py"
 ```
 
 ## Rebuild The Shortcut
@@ -71,3 +71,9 @@ npm run desktop:dev
 ```
 
 `npm run desktop:dev` is the same live-reload desktop workflow used by the Taskbar shortcut. It opens Electron against the managed Vite server and keeps schema/UI edits live inside the desktop window.
+
+## Repo Notes
+
+- There is no separate nested source repo here. PromptCrafter is this repo.
+- The pinned Taskbar shortcut is the development desktop app, not a packaged production build.
+- If Git still surfaces old `CRLF` warnings for files you edited before the policy changed, restaging after that file is rewritten will clear them.

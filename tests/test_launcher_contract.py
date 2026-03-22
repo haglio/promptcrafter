@@ -11,7 +11,6 @@ class PromptCrafterLauncherContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.package_json = json.loads((REPO_ROOT / "package.json").read_text(encoding="utf-8"))
-        cls.build_script = (SCRIPTS_DIR / "Build-PromptCrafterExecutable.ps1").read_text(encoding="utf-8")
         cls.shortcut_script = (SCRIPTS_DIR / "Update-PromptCrafterShortcut.ps1").read_text(encoding="utf-8")
         cls.electron_main = (SCRIPTS_DIR / "electron-main.mjs").read_text(encoding="utf-8")
         cls.electron_preload = (SCRIPTS_DIR / "electron-preload.cjs").read_text(encoding="utf-8")
@@ -24,12 +23,7 @@ class PromptCrafterLauncherContractTests(unittest.TestCase):
         self.assertEqual(self.package_json["main"], "scripts/electron-main.mjs")
         self.assertEqual(self.package_json["scripts"]["desktop:dev"], "node ./scripts/desktop-dev.mjs")
         self.assertIn("electron", self.package_json["devDependencies"])
-        self.assertIn("@electron/packager", self.package_json["devDependencies"])
-
-    def test_build_script_packages_electron_runtime(self):
-        self.assertIn("Generate-PromptCrafterIcon.py", self.build_script)
-        self.assertIn("npm.cmd", self.build_script)
-        self.assertIn("run build", self.build_script)
+        self.assertNotIn("@electron/packager", self.package_json["devDependencies"])
 
     def test_shortcut_points_at_electron_dev_shell(self):
         self.assertIn("node_modules\\electron\\dist\\electron.exe", self.shortcut_script)
@@ -60,6 +54,7 @@ class PromptCrafterLauncherContractTests(unittest.TestCase):
         self.assertIn("does not open a browser tab", self.readme_text)
         self.assertIn("live-reload desktop app", self.readme_text)
         self.assertIn("hot reload", self.readme_text)
+        self.assertIn("There is no separate nested source repo here", self.readme_text)
 
     def test_repo_has_line_ending_policy(self):
         self.assertIn("* text=auto eol=lf", self.attributes_text)
