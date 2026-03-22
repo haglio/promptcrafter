@@ -327,6 +327,41 @@ describe('PromptCrafter UI', () => {
 
       expect(within(getSectionByHeading('modes')).queryByLabelText('airborne')).not.toBeInTheDocument();
     });
+
+    it('applies revealedBys at the section level', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      expect(screen.queryByRole('heading', { name: 'portrait extras' })).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('checkbox', { name: 'is portrait' }));
+
+      expect(screen.getByRole('heading', { name: 'portrait extras' })).toBeInTheDocument();
+    });
+
+    it('applies revealedBys at the control level', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const modes = getSectionByHeading('modes');
+      expect(within(modes).queryByText('portrait pose')).not.toBeInTheDocument();
+
+      await user.click(within(modes).getByRole('checkbox', { name: 'is portrait' }));
+
+      expect(within(getSectionByHeading('modes')).getByText('portrait pose')).toBeInTheDocument();
+    });
+
+    it('applies revealedBys at the option level', async () => {
+      const user = userEvent.setup();
+      render(<App schema={testSchema} />);
+
+      const modes = getSectionByHeading('modes');
+      expect(within(modes).queryByLabelText('close crop')).not.toBeInTheDocument();
+
+      await user.click(within(modes).getByRole('checkbox', { name: 'is portrait' }));
+
+      expect(within(getSectionByHeading('modes')).getByLabelText('close crop')).toBeInTheDocument();
+    });
   });
 
   describe('plurality in UI labels', () => {

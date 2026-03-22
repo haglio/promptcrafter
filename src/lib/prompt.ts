@@ -23,7 +23,7 @@ function renderSubmenu(parentControlId: string, option: Option, state: State): s
   const checked = option.submenu.options.filter(
     (child) =>
       (submenuState.selectedOptions as string[]).includes(child.id) &&
-      !isHidden(state, child.hiddenBys) &&
+      !isHidden(state, child.hiddenBys, child.revealedBys) &&
       !isDisabled(state, child.disabledBys),
   );
   if (checked.length > 0) return checked.map((child) => getOptionText(child, isPlural)).join(' ');
@@ -31,7 +31,7 @@ function renderSubmenu(parentControlId: string, option: Option, state: State): s
   const selected = option.submenu.options.find(
     (child) =>
       child.id === (submenuState.selectedOptions as string) &&
-      !isHidden(state, child.hiddenBys) &&
+      !isHidden(state, child.hiddenBys, child.revealedBys) &&
       !isDisabled(state, child.disabledBys),
   );
   return selected ? getOptionText(selected, isPlural) : '';
@@ -93,7 +93,7 @@ function effectiveWeight(sectionWeight: number, controlWeight: number): number {
 }
 
 function renderControl(control: Control, state: State): Segment[] {
-  if (isHidden(state, control.hiddenBys)) return [];
+  if (isHidden(state, control.hiddenBys, control.revealedBys)) return [];
   const controlState = state.controls[control.id];
   if (!controlState) return [];
   const disabled = isDisabled(state, control.disabledBys);
@@ -119,7 +119,7 @@ function renderControl(control: Control, state: State): Segment[] {
     if (!isTriggeredBy(state, control.hiddenOppositeBys) || disabled) return [];
 
     const selectedOptions = (control.options ?? []).filter((option) => {
-      if (isHidden(state, option.hiddenBys) || isDisabled(state, option.disabledBys)) return false;
+      if (isHidden(state, option.hiddenBys, option.revealedBys) || isDisabled(state, option.disabledBys)) return false;
       return (controlState.selectedOptions as string[]).includes(option.id);
     });
     if (selectedOptions.length === 0) return [];
@@ -142,7 +142,7 @@ function renderControl(control: Control, state: State): Segment[] {
 
   if (radioKinds.has(control.kind)) {
     const option = optionById(control, disabled ? undefined : controlState.selectedOptions as string);
-    if (!option || isHidden(state, option.hiddenBys) || isDisabled(state, option.disabledBys)) return [];
+    if (!option || isHidden(state, option.hiddenBys, option.revealedBys) || isDisabled(state, option.disabledBys)) return [];
     let text = renderOptionWithModifiers(control.id, option, state);
     if (control.kind === 'or-adv') text = `${getControlText(control, state, option)} ${text}`;
     if (control.kind === 'or-adj') text = `${text} ${getControlText(control, state, option)}`;
@@ -151,7 +151,7 @@ function renderControl(control: Control, state: State): Segment[] {
   }
 
   const selectedOptions = (control.options ?? []).filter((option) => {
-    if (isHidden(state, option.hiddenBys) || isDisabled(state, option.disabledBys) || disabled) return false;
+    if (isHidden(state, option.hiddenBys, option.revealedBys) || isDisabled(state, option.disabledBys) || disabled) return false;
     return (controlState.selectedOptions as string[]).includes(option.id);
   });
   if (selectedOptions.length === 0) return [];
@@ -180,7 +180,7 @@ function renderControl(control: Control, state: State): Segment[] {
 
 export function renderSection(section: Section, state: State, target: PromptTarget): string[] {
   if ((section.promptTarget ?? 'positive') !== target) return [];
-  if (isHidden(state, section.hiddenBys)) return [];
+  if (isHidden(state, section.hiddenBys, section.revealedBys)) return [];
 
   const sectionWeight = state.sections[section.id]?.weight ?? 1;
   const parts: Segment[] = [];

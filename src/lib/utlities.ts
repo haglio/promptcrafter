@@ -38,11 +38,11 @@ export function getActiveSubstitutions(schema: Schema, state: State): GlobalSubs
   const substitutions: GlobalSubstitution[] = [];
 
   for (const section of schema.sections) {
-    if (isHidden(state, section.hiddenBys) || isDisabled(state, section.disabledBys)) continue;
+    if (isHidden(state, section.hiddenBys, section.revealedBys) || isDisabled(state, section.disabledBys)) continue;
 
     for (const control of section.controls) {
       if (control.kind !== 'toggle') continue;
-      if (isHidden(state, control.hiddenBys) || isDisabled(state, control.disabledBys)) continue;
+      if (isHidden(state, control.hiddenBys, control.revealedBys) || isDisabled(state, control.disabledBys)) continue;
 
       const isEnabled = state.controls[control.id]?.selectedOptions as boolean | undefined;
       if (!isEnabled) continue;
@@ -133,8 +133,14 @@ export function isDisabled(state: State, disabledBys?: DisabledOrHiddenBy[]): bo
   return isTriggeredBy(state, disabledBys);
 }
 
-export function isHidden(state: State, hiddenBys?: DisabledOrHiddenBy[]): boolean {
-  return isTriggeredBy(state, hiddenBys);
+export function isHidden(
+  state: State,
+  hiddenBys?: DisabledOrHiddenBy[],
+  revealedBys?: DisabledOrHiddenBy[],
+): boolean {
+  if (isTriggeredBy(state, hiddenBys)) return true;
+  if (!revealedBys || revealedBys.length === 0) return false;
+  return !isTriggeredBy(state, revealedBys);
 }
 
 export function getSupplementalTexts(state: State, supplementedBys?: SupplementedBy[]): SupplementalText[] {

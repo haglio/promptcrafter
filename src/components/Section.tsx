@@ -75,7 +75,7 @@ export function Section({
   actions: Actions;
   schema: Schema;
 }) {
-  if (isHidden(state, section.hiddenBys)) return null;
+  if (isHidden(state, section.hiddenBys, section.revealedBys)) return null;
   const disabled = isDisabled(state, section.disabledBys);
 
   return (

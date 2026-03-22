@@ -330,6 +330,16 @@ export const testSchema: Schema = {
             { id: 'floating', text: 'floating', disabledBys: [{ controlId: 'is portrait' }] },
             { id: 'airborne', text: 'airborne', hiddenBys: [{ controlId: 'is portrait' }] }
           ]
+        },
+        {
+          id: 'portrait pose',
+          text: 'portrait pose',
+          kind: 'or',
+          revealedBys: [{ controlId: 'is portrait' }],
+          options: [
+            { id: 'close crop', text: 'close crop', revealedBys: [{ controlId: 'is portrait' }] },
+            { id: 'tight profile', text: 'tight profile' }
+          ]
         }
       ]
     },
@@ -344,6 +354,22 @@ export const testSchema: Schema = {
           options: [
             { id: 'torso badge', text: 'torso badge' },
             { id: 'torsos', text: 'torsos' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'portrait extras',
+      text: 'portrait extras',
+      revealedBys: [{ controlId: 'is portrait' }],
+      controls: [
+        {
+          id: 'portrait lighting',
+          text: 'portrait lighting',
+          kind: 'or-adj',
+          options: [
+            { id: 'rim-lit', text: 'rim-lit' },
+            { id: 'soft-lit', text: 'soft-lit' }
           ]
         }
       ]

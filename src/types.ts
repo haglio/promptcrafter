@@ -54,6 +54,7 @@ export type BaseItem = {
   id: string;
   text: TextValue;
   hiddenBys?: DisabledOrHiddenBy[];
+  revealedBys?: DisabledOrHiddenBy[];
   disabledBys?: DisabledOrHiddenBy[];
   supplementedBys?: SupplementedBy[];
 };

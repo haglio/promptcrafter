@@ -87,7 +87,7 @@ function RadioControl({
   return (
     <div className="option-group">
       {(control.options ?? []).map((option) => {
-        if (isHidden(state, option.hiddenBys)) return null;
+        if (isHidden(state, option.hiddenBys, option.revealedBys)) return null;
         const optionDisabled = disabled || isDisabled(state, option.disabledBys);
         const checked = controlState.selectedOptions === option.id;
         return (
@@ -158,7 +158,7 @@ function GlobalSelectorControl({
       {isOn && (
         <div className="global-selector-options">
           {(control.options ?? []).map((option) => {
-            if (isHidden(state, option.hiddenBys)) return null;
+            if (isHidden(state, option.hiddenBys, option.revealedBys)) return null;
             const optionDisabled = disabled || isDisabled(state, option.disabledBys);
             const checked = selectedOption === option.id;
             return (
@@ -208,7 +208,7 @@ function CheckboxControl({
   return (
     <div className="option-group">
       {(control.options ?? []).map((option) => {
-        if (isHidden(state, option.hiddenBys)) return null;
+        if (isHidden(state, option.hiddenBys, option.revealedBys)) return null;
         const optionDisabled =
           disabled ||
           control.kind === 'required' ||
@@ -255,7 +255,7 @@ export function Control({
   schema: Schema;
   noTopBorder?: boolean;
 }) {
-  const hidden = control.kind === 'hidden-opposite' || isHidden(state, control.hiddenBys);
+  const hidden = control.kind === 'hidden-opposite' || isHidden(state, control.hiddenBys, control.revealedBys);
   if (hidden) return null;
 
   const controlState = state.controls[control.id];

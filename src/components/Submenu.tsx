@@ -25,7 +25,7 @@ function SubmenuRadio({
     <div className="submenu">
       <div className="submenu-option-group">
         {option.submenu.options.map((child) => {
-          const hidden = isHidden(state, child.hiddenBys);
+          const hidden = isHidden(state, child.hiddenBys, child.revealedBys);
           if (hidden) return null;
 
           const disabled = isDisabled(state, child.disabledBys);
@@ -72,7 +72,7 @@ function SubmenuCheckbox({
     <div className="submenu">
       <div className="submenu-option-group">
         {option.submenu.options.map((child) => {
-          const hidden = isHidden(state, child.hiddenBys);
+          const hidden = isHidden(state, child.hiddenBys, child.revealedBys);
           if (hidden) return null;
 
           const disabled = isDisabled(state, child.disabledBys);

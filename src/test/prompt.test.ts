@@ -241,6 +241,27 @@ describe('prompt building', () => {
     expect(buildPrompt(testSchema, state, 'negative')).toBe('no clutter, blurry');
   });
 
+  describe('revealed bys', () => {
+    it('does not render revealed sections, controls, or options until their trigger is active', () => {
+      const state = createInitialState(testSchema);
+      controlState(state, 'portrait lighting').selectedOptions = 'rim-lit';
+      controlState(state, 'portrait pose').selectedOptions = 'close crop';
+
+      expect(buildPrompt(testSchema, state, 'positive')).toBe('space robo dino demon monster');
+    });
+
+    it('renders revealed sections, controls, and options when their trigger is active', () => {
+      const state = createInitialState(testSchema);
+      controlState(state, 'is portrait').selectedOptions = true;
+      controlState(state, 'portrait lighting').selectedOptions = 'rim-lit';
+      controlState(state, 'portrait pose').selectedOptions = 'close crop';
+
+      expect(buildPrompt(testSchema, state, 'positive')).toBe(
+        'space robo dino demon monster, portrait, close crop, rim-lit portrait lighting',
+      );
+    });
+  });
+
   describe('plurality', () => {
     it('uses pluralText at the control level', () => {
       const state = createInitialState(testSchema);
