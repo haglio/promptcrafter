@@ -21,11 +21,23 @@ export default function App({schema}: {schema: Schema}) {
   }), [state]);
 
   useEffect(() => {
-    setState((current) => ({
-      ...current,
-      positiveText: current.positiveMode === 'auto' ? generated.positive : current.positiveText,
-      negativeText: current.negativeMode === 'auto' ? generated.negative : current.negativeText,
-    }));
+    setState((current) => {
+      const nextPositiveText = current.positiveMode === 'auto' ? generated.positive : current.positiveText;
+      const nextNegativeText = current.negativeMode === 'auto' ? generated.negative : current.negativeText;
+
+      if (
+        current.positiveText === nextPositiveText &&
+        current.negativeText === nextNegativeText
+      ) {
+        return current;
+      }
+
+      return {
+        ...current,
+        positiveText: nextPositiveText,
+        negativeText: nextNegativeText,
+      };
+    });
   }, [generated.negative, generated.positive]);
 
   const actions = {

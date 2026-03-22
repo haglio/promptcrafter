@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { isHidden, isDisabled, isSubjectPlural, controlHasAtLeastOneSelectedOption, getDisplayOptionText, getDisplayItemText } from '../lib/utlities';
 import type { State, Control, Schema } from '../types';
 import { Actions } from './types';
@@ -264,7 +265,7 @@ export function Control({
 
   const controlComponentKind = control.kind === 'toggle' ? 'toggle' : control.kind === 'global-selector' ? 'global-selector' : control.kind.startsWith('or') ? 'radio' : 'checkbox';
 
-  let controlComponent: JSX.Element | null = null;
+  let controlComponent: ReactNode = null;
   switch (controlComponentKind) {
     case 'toggle':
       controlComponent = <ToggleControl control={control} state={state} actions={actions} disabled={disabled} schema={schema} />;

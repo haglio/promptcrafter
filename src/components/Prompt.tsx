@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { copyTextToClipboard } from '../lib/clipboard';
 
 function PromptHeader({
   label,
@@ -14,7 +15,7 @@ function PromptHeader({
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(value);
+    await copyTextToClipboard(value);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1000);
   }

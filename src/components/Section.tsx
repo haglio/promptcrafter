@@ -1,5 +1,6 @@
 import { isHidden, isDisabled, sectionHasAtLeastOneSelectedOption, isSubjectPlural, getDisplayItemText } from "../lib/utlities";
 import { buildSectionPrompt } from "../lib/prompt";
+import { copyTextToClipboard } from "../lib/clipboard";
 import type { State, Schema, Section } from "../types";
 import { Control } from "./Control";
 import type { Actions } from "./types";
@@ -45,7 +46,7 @@ function SectionHeader({
     <div className="section-header">
       <div>
         <CopyButton
-          onClick={() => navigator.clipboard.writeText(sectionPrompt)}
+          onClick={() => { void copyTextToClipboard(sectionPrompt); }}
           ariaLabel="Copy section"
         />
         <label className="section-label"><h3>{sectionLabel}</h3></label>

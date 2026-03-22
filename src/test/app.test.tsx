@@ -130,6 +130,14 @@ describe('PromptCrafter UI', () => {
       expect(negative).toBeDisabled();
       expect(negative).toHaveValue(initialAuto);
     });
+
+    it('renders the PromptCrafter shell on first load without collapsing to a blank root', () => {
+      render(<App schema={testSchema} />);
+
+      expect(screen.getByRole('heading', { name: 'PromptCrafter' })).toBeInTheDocument();
+      expect(screen.getByRole('textbox', { name: 'Positive prompt' })).toBeInTheDocument();
+      expect(screen.getByRole('textbox', { name: 'Negative prompt' })).toBeInTheDocument();
+    });
   });
 
   describe('global selector controls', () => {
