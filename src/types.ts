@@ -89,6 +89,7 @@ type ControlKind =
   | 'or-adj'
   | 'or-prefix'
   | 'and-commas'
+  | 'and-commas-adj'
   | 'and-commas-adv'
   | 'and-spaces-adj'
   | 'required'

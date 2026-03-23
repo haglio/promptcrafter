@@ -514,6 +514,11 @@ function renderControlSegments(
     case 'and-commas':
       combined = optionValues.join(', ');
       break;
+    case 'and-commas-adj':
+      combined = selectedOptions
+        .map((option, index) => `${optionValues[index]} ${getControlText(control, schema, state, option, stack)}`)
+        .join(', ');
+      break;
     case 'and-commas-adv':
       combined = selectedOptions
         .map((option, index) => `${getControlText(control, schema, state, option, stack)} ${optionValues[index]}`)

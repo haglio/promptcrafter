@@ -62,6 +62,26 @@ describe('prompt building', () => {
       );
     });
 
+    it("renders the 'and-commas-adj' control kind", () => {
+      const schema = structuredClone(testSchema);
+      schema.sections[1]?.controls.splice(5, 0, {
+        id: 'material vibe',
+        text: 'material vibe',
+        kind: 'and-commas-adj',
+        options: [
+          { id: 'crystalline', text: 'crystalline' },
+          { id: 'molten', text: 'molten' },
+        ],
+      });
+
+      const state = createInitialState(schema);
+      controlState(state, 'material vibe').selectedOptions = ['crystalline', 'molten'];
+
+      expect(buildPrompt(schema, state, 'positive')).toContain(
+        'crystalline material vibe, molten material vibe',
+      );
+    });
+
     it("renders the 'and-spaces-adj' control kind", () => {
       const state = createInitialState(testSchema);
       controlState(state, 'render style').selectedOptions = ['cinematic', 'volumetric'];
@@ -113,6 +133,27 @@ describe('prompt building', () => {
 
       expect(buildPrompt(testSchema, state, 'positive')).toBe(
         'space robo dino demon monster, alighting upon etchings, alighting upon glow',
+      );
+    });
+
+    it("renders custom text for the 'and-commas-adj' control kind", () => {
+      const schema = structuredClone(testSchema);
+      schema.sections[1]?.controls.splice(5, 0, {
+        id: 'surface mood',
+        text: 'surface mood',
+        customText: 'finish',
+        kind: 'and-commas-adj',
+        options: [
+          { id: 'gleaming', text: 'gleaming' },
+          { id: 'weathered', text: 'weathered' },
+        ],
+      });
+
+      const state = createInitialState(schema);
+      controlState(state, 'surface mood').selectedOptions = ['gleaming', 'weathered'];
+
+      expect(buildPrompt(schema, state, 'positive')).toContain(
+        'gleaming finish, weathered finish',
       );
     });
 

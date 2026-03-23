@@ -9,6 +9,7 @@ const CONTROL_KINDS = new Set([
   'or-adj',
   'or-prefix',
   'and-commas',
+  'and-commas-adj',
   'and-commas-adv',
   'and-spaces-adj',
   'required',
@@ -20,6 +21,7 @@ const CONTROL_KINDS = new Set([
 const RADIO_CONTROL_KINDS = new Set(['or', 'or-adv', 'or-adj', 'or-prefix']);
 const MULTISELECT_CONTROL_KINDS = new Set([
   'and-commas',
+  'and-commas-adj',
   'and-commas-adv',
   'and-spaces-adj',
   'required',
