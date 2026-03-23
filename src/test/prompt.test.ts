@@ -149,6 +149,56 @@ describe('prompt building', () => {
         'space robo dino demon monster, hero, villain',
       );
     });
+
+    it('applies global substitutions for toggles without options without adding extra prompt text', () => {
+      const schema = structuredClone(testSchema);
+      schema.sections[1]?.controls.splice(0, 0, {
+        id: 'thorax mode lite',
+        text: 'replace torso terminology',
+        kind: 'toggle',
+        globalSubstitutions: [
+          {
+            from: 'torso',
+            to: 'thorax',
+          },
+        ],
+        options: [],
+      });
+      schema.sections[1]?.controls.splice(1, 0, {
+        id: 'torso mention',
+        text: 'torso mention',
+        kind: 'and-commas',
+        options: [
+          { id: 'torso badge', text: 'torso badge' },
+        ],
+      });
+
+      const state = createInitialState(schema);
+      controlState(state, 'thorax mode lite').selectedOptions = true;
+      controlState(state, 'torso mention').selectedOptions = ['torso badge'];
+
+      expect(buildPrompt(schema, state, 'positive')).toBe(
+        'space robo dino demon monster, thorax badge',
+      );
+    });
+
+    it('renders control text or custom text for toggles without options when they are enabled', () => {
+      const schema = structuredClone(testSchema);
+      schema.sections[1]?.controls.splice(0, 0, {
+        id: 'safety mode',
+        text: 'safety mode',
+        customText: 'keep safe',
+        kind: 'toggle',
+        options: [],
+      });
+
+      const state = createInitialState(schema);
+      controlState(state, 'safety mode').selectedOptions = true;
+
+      expect(buildPrompt(schema, state, 'positive')).toBe(
+        'space robo dino demon monster, keep safe',
+      );
+    });
   });
 
   describe('control custom text', () => {

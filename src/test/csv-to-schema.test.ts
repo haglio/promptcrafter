@@ -107,4 +107,31 @@ describe('csv-to-schema generator', () => {
     expect(texturePack?.initiallySelectedOptions).toEqual(['oak', 'pine']);
     expect(subjectBase?.initiallySelectedOptions).toEqual(['hero', 'villain']);
   });
+
+  it('allows toggles without options', () => {
+    const csv = [
+      'Section,promptTarget,ControlKind,revealedBy,customText,supplementedBy,globalSubstitutions,all options initially selected,Control',
+      'mods,,toggle,,,,torso → thorax,FALSE,thorax mode',
+      'mods,,toggle,,"keep safe",,,FALSE,safety mode',
+    ].join('\n');
+
+    const result = convertCsvTextToSchema(csv) as { schema: Schema | null; diagnostics: Array<{ message: string }> };
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.schema).not.toBeNull();
+    if (!result.schema) return;
+
+    const thoraxMode = result.schema.sections[0]?.controls[0];
+    const safetyMode = result.schema.sections[0]?.controls[1];
+
+    expect(thoraxMode?.options).toEqual([]);
+    expect(thoraxMode?.globalSubstitutions).toEqual([
+      {
+        from: { singular: 'torso', plural: 'torsos' },
+        to: { singular: 'thorax', plural: 'thoraxes' },
+      },
+    ]);
+    expect(safetyMode?.options).toEqual([]);
+    expect(safetyMode?.customText).toEqual({ singular: 'keep safe', plural: 'keep saves' });
+  });
 });

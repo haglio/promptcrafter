@@ -633,6 +633,10 @@ function validateOptionCounts(controlDraft, diagnostics) {
   const optionCount = controlDraft.options.length;
 
   if (optionCount === 0) {
+    if (controlDraft.controlKind === 'toggle') {
+      return;
+    }
+
     pushError(
       diagnostics,
       `Control "${controlDraft.id}" does not have any options.`,
@@ -1194,6 +1198,7 @@ function determineInitialSelection(control, diagnostics) {
   if (!control.allOptionsInitiallySelected) return undefined;
 
   if (control.controlKind === 'toggle') {
+    if (optionIds.length === 0) return true;
     if (optionIds.length === 1) return true;
     return optionIds;
   }

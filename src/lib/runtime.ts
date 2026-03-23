@@ -233,7 +233,8 @@ export function getActiveSubstitutions(schema: Schema, state: State): GlobalSubs
       if (control.kind !== 'toggle') continue;
       if (isHidden(state, control.hiddenBys, control.revealedBys) || isDisabled(state, control.disabledBys)) continue;
 
-      const enabled = hasAnySelection(state.controls[control.id]?.selectedOptions as boolean | string | string[]);
+      const selectedOptions = state.controls[control.id]?.selectedOptions;
+      const enabled = selectedOptions === undefined ? false : hasAnySelection(selectedOptions);
       if (!enabled) continue;
 
       substitutions.push(...(control.globalSubstitutions ?? []));
@@ -452,9 +453,10 @@ function renderControlSegments(
 
     if (typeof controlState.selectedOptions === 'boolean') {
       if (!controlState.selectedOptions) return [];
+      if ((control.options?.length ?? 0) === 0 && (control.globalSubstitutions?.length ?? 0) > 0) return [];
       const base = control.options?.[0]
         ? getOptionText(control.options[0], isPlural, schema, state, stack)
-        : getTextValue(control.text, isPlural, schema, state, stack);
+        : getControlText(control, schema, state, undefined, stack);
       return [{ text: appendSupplements(base, control, schema, state, stack), weight: ownWeight }];
     }
 
