@@ -2,6 +2,10 @@ import type { State, Control, ControlState, Schema, Section } from '../types';
 
 function createControlState(control: Control): ControlState {
   if (control.kind === 'toggle') {
+    if (Array.isArray(control.initiallySelectedOptions)) {
+      return { selectedOptions: control.initiallySelectedOptions, weight: 1 };
+    }
+
     return { selectedOptions: control.initiallySelectedOptions as boolean ?? false, weight: 1 };
   }
   if (control.kind === 'global-selector') {
@@ -12,7 +16,10 @@ function createControlState(control: Control): ControlState {
     return { selectedOptions: false, weight: 1 };
   }
   if (control.kind === 'required') {
-    return { selectedOptions: control.initiallySelectedOptions as string[] ?? [], weight: 1 };
+    return {
+      selectedOptions: (control.initiallySelectedOptions as string[] | undefined) ?? (control.options ?? []).map((option) => option.id),
+      weight: 1,
+    };
   }
   if (control.kind === 'hidden-opposite') {
     return { selectedOptions: control.initiallySelectedOptions as string[] ?? [], weight: 1 };

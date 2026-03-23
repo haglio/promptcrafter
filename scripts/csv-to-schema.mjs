@@ -642,10 +642,14 @@ function validateOptionCounts(controlDraft, diagnostics) {
     return;
   }
 
-  if ((controlDraft.controlKind === 'toggle' || controlDraft.controlKind === 'required') && optionCount !== 1) {
+  if (controlDraft.controlKind === 'toggle' && optionCount === 1) {
+    return;
+  }
+
+  if (controlDraft.controlKind === 'required' && optionCount === 0) {
     pushError(
       diagnostics,
-      `Control "${controlDraft.id}" uses "${controlDraft.controlKind}", which currently expects exactly one option.`,
+      `Control "${controlDraft.id}" uses "${controlDraft.controlKind}", which requires at least one option.`,
       controlDraft.rowNumber,
       CSV_COLUMNS.firstOption + 1,
     );
@@ -1190,7 +1194,8 @@ function determineInitialSelection(control, diagnostics) {
   if (!control.allOptionsInitiallySelected) return undefined;
 
   if (control.controlKind === 'toggle') {
-    return true;
+    if (optionIds.length === 1) return true;
+    return optionIds;
   }
 
   if (MULTISELECT_CONTROL_KINDS.has(control.controlKind)) {

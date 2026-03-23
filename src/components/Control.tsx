@@ -5,6 +5,58 @@ import { Actions } from './types';
 import { Weight } from './Weight';
 import { Submenu } from './Submenu';
 
+function renderCheckboxOptions({
+  control,
+  state,
+  actions,
+  disabled,
+  schema,
+  disableIndividualOptions = false,
+}: {
+  control: Control;
+  state: State;
+  actions: Actions;
+  disabled: boolean;
+  schema: Schema;
+  disableIndividualOptions?: boolean;
+}) {
+  const controlState = state.controls[control.id];
+  if (!controlState) return null;
+  const isPlural = isSubjectPlural(state);
+
+  return (control.options ?? []).map((option) => {
+    if (isHidden(state, option.hiddenBys, option.revealedBys)) return null;
+    const optionDisabled =
+      disabled ||
+      disableIndividualOptions ||
+      isDisabled(state, option.disabledBys);
+    const checked = Array.isArray(controlState.selectedOptions) && controlState.selectedOptions.includes(option.id);
+
+    return (
+      <div key={option.id} className="option-stack">
+        <label className="inline-control">
+          <input
+            type="checkbox"
+            checked={checked}
+            disabled={optionDisabled}
+            onChange={() => actions.toggleCheck(control.id, option.id)}
+          />
+          <span>{getDisplayOptionText(option, isPlural, schema, state)}</span>
+        </label>
+        {checked && (
+          <Submenu
+            parentControlId={control.id}
+            option={option}
+            state={state}
+            actions={actions}
+            schema={schema}
+          />
+        )}
+      </div>
+    );
+  });
+}
+
 function ControlHeader({
   control,
   state,
@@ -50,6 +102,10 @@ function ToggleControl({
   const controlState = state.controls[control.id];
   if (!controlState) return null;
   const controlLabel = getDisplayItemText(control, isSubjectPlural(state), schema, state);
+  const checked = Array.isArray(controlState.selectedOptions)
+    ? controlState.selectedOptions.length > 0
+    : Boolean(controlState.selectedOptions);
+  const hasOptionList = (control.options?.length ?? 0) > 1 && Array.isArray(controlState.selectedOptions);
 
   return (
     <div className="option-group">
@@ -57,12 +113,13 @@ function ToggleControl({
         <input
           type="checkbox"
           aria-label={controlLabel}
-          checked={controlState.selectedOptions as boolean}
+          checked={checked}
           disabled={disabled}
           onChange={(event) => actions.setToggle(control.id, event.target.checked)}
         />
         <span className="toggle-track" />
       </label>
+      {checked && hasOptionList ? renderCheckboxOptions({ control, state, actions, disabled, schema }) : null}
     </div>
   );
 }
@@ -203,40 +260,16 @@ function CheckboxControl({
 }) {
   const controlState = state.controls[control.id];
   if (!controlState) return null;
-  const isPlural = isSubjectPlural(state);
 
   return (
     <div className="option-group">
-      {(control.options ?? []).map((option) => {
-        if (isHidden(state, option.hiddenBys, option.revealedBys)) return null;
-        const optionDisabled =
-          disabled ||
-          control.kind === 'required' ||
-          isDisabled(state, option.disabledBys);
-        const checked = (controlState.selectedOptions as string[]).includes(option.id);
-
-        return (
-          <div key={option.id} className="option-stack">
-            <label className="inline-control">
-              <input
-                type="checkbox"
-                checked={checked}
-                disabled={optionDisabled}
-                onChange={() => actions.toggleCheck(control.id, option.id)}
-              />
-              <span>{getDisplayOptionText(option, isPlural, schema, state)}</span>
-            </label>
-            {checked && (
-              <Submenu
-                parentControlId={control.id}
-                option={option}
-                state={state}
-                actions={actions}
-                schema={schema}
-              />
-            )}
-          </div>
-        );
+      {renderCheckboxOptions({
+        control,
+        state,
+        actions,
+        disabled,
+        schema,
+        disableIndividualOptions: control.kind === 'required',
       })}
     </div>
   );

@@ -71,6 +71,7 @@ export default function App({ schema }: {schema: Schema}) {
   const [exportPending, setExportPending] = useState(false);
   const [exportError, setExportError] = useState('');
   const [exportMessage, setExportMessage] = useState('');
+  const schemaControls = useMemo(() => schema.sections.flatMap((section) => section.controls), [schema]);
 
   const generated = useMemo(() => ({
     positive: buildPrompt(schema, state, 'positive'),
@@ -169,7 +170,15 @@ export default function App({ schema }: {schema: Schema}) {
       setState((current) => {
         const control = current.controls[controlId];
         if (!control) return current;
-        return { ...current, controls: { ...current.controls, [controlId]: { selectedOptions: value, weight: control.weight } } };
+        const schemaControl = schemaControls.find((entry) => entry.id === controlId);
+        if (!schemaControl || schemaControl.kind !== 'toggle') return current;
+
+        const selectedOptions =
+          (schemaControl.options?.length ?? 0) > 1
+            ? (value ? (schemaControl.options ?? []).map((option) => option.id) : [])
+            : value;
+
+        return { ...current, controls: { ...current.controls, [controlId]: { selectedOptions, weight: control.weight } } };
       });
     },
     setGlobalSelector(controlId: string, toggleOn: boolean, optionId: string) {
@@ -182,7 +191,7 @@ export default function App({ schema }: {schema: Schema}) {
           ...current.controls,
           [controlId]: { selectedOptions: newSelectedOptions, weight: control.weight },
         };
-        const allSchemaControls = schema.sections.flatMap((s) => s.controls);
+        const allSchemaControls = schemaControls;
 
         const shouldClearPrevious = Boolean(previousOptionId) && (!toggleOn || previousOptionId !== optionId);
         if (shouldClearPrevious) {

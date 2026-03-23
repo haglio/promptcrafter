@@ -110,6 +110,45 @@ describe('prompt building', () => {
 
       expect(buildPrompt(testSchema, state, 'negative')).toBe('no clutter, blurry, cold');
     });
+
+    it("renders multi-option toggles as a comma-separated selection list", () => {
+      const schema = structuredClone(testSchema);
+      schema.sections[1]?.controls.splice(0, 0, {
+        id: 'texture pack',
+        text: 'texture pack',
+        kind: 'toggle',
+        initiallySelectedOptions: ['oak', 'pine'],
+        options: [
+          { id: 'oak', text: 'oak' },
+          { id: 'pine', text: 'pine' },
+        ],
+      });
+
+      const state = createInitialState(schema);
+
+      expect(buildPrompt(schema, state, 'positive')).toBe(
+        'space robo dino demon monster, oak, pine',
+      );
+    });
+
+    it("renders required controls with all selected options instead of only the first one", () => {
+      const schema = structuredClone(testSchema);
+      schema.sections[0]?.controls.splice(1, 0, {
+        id: 'subject base',
+        text: 'subject base',
+        kind: 'required',
+        options: [
+          { id: 'hero', text: 'hero' },
+          { id: 'villain', text: 'villain' },
+        ],
+      });
+
+      const state = createInitialState(schema);
+
+      expect(buildPrompt(schema, state, 'positive')).toBe(
+        'space robo dino demon monster, hero, villain',
+      );
+    });
   });
 
   describe('control custom text', () => {

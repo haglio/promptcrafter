@@ -49,7 +49,7 @@ export function controlHasAtLeastOneSelectedOption(control: Control, state: Stat
   if (!current) return false;
 
   if (control.kind === 'required') return true;
-  if (control.kind === 'toggle') return current.selectedOptions as boolean;
+  if (control.kind === 'toggle') return hasAnySelection(current.selectedOptions);
   if (control.kind === 'global-selector') return current.selectedOptions !== false;
   if (control.kind.startsWith('or')) return Boolean(current.selectedOptions as string);
 
@@ -233,7 +233,7 @@ export function getActiveSubstitutions(schema: Schema, state: State): GlobalSubs
       if (control.kind !== 'toggle') continue;
       if (isHidden(state, control.hiddenBys, control.revealedBys) || isDisabled(state, control.disabledBys)) continue;
 
-      const enabled = state.controls[control.id]?.selectedOptions as boolean | undefined;
+      const enabled = hasAnySelection(state.controls[control.id]?.selectedOptions as boolean | string | string[]);
       if (!enabled) continue;
 
       substitutions.push(...(control.globalSubstitutions ?? []));
@@ -448,11 +448,29 @@ function renderControlSegments(
   const isPlural = isSubjectPlural(state);
 
   if (control.kind === 'toggle') {
-    if (!(controlState.selectedOptions as boolean) || disabled) return [];
-    const base = control.options?.[0]
-      ? getOptionText(control.options[0], isPlural, schema, state, stack)
-      : getTextValue(control.text, isPlural, schema, state, stack);
-    return [{ text: appendSupplements(base, control, schema, state, stack), weight: ownWeight }];
+    if (disabled) return [];
+
+    if (typeof controlState.selectedOptions === 'boolean') {
+      if (!controlState.selectedOptions) return [];
+      const base = control.options?.[0]
+        ? getOptionText(control.options[0], isPlural, schema, state, stack)
+        : getTextValue(control.text, isPlural, schema, state, stack);
+      return [{ text: appendSupplements(base, control, schema, state, stack), weight: ownWeight }];
+    }
+
+    const selectedOptions = (control.options ?? []).filter((option) => {
+      if (isHidden(state, option.hiddenBys, option.revealedBys) || isDisabled(state, option.disabledBys)) return false;
+      return (controlState.selectedOptions as string[]).includes(option.id);
+    });
+    if (selectedOptions.length === 0) return [];
+
+    const combined = selectedOptions
+      .map((option) => renderOptionWithModifiers(control.id, option, schema, state, stack))
+      .join(', ')
+      .trim();
+
+    const text = appendSupplements(combined, control, schema, state, stack);
+    return text ? [{ text, weight: ownWeight }] : [];
   }
 
   if (control.kind === 'global-selector') {
@@ -460,10 +478,19 @@ function renderControlSegments(
   }
 
   if (control.kind === 'required') {
-    const base = control.options?.[0]
-      ? getOptionText(control.options[0], isPlural, schema, state, stack)
-      : getTextValue(control.text, isPlural, schema, state, stack);
-    return [{ text: appendSupplements(base, control, schema, state, stack), weight: ownWeight }];
+    const selectedOptions = (control.options ?? []).filter((option) => {
+      if (isHidden(state, option.hiddenBys, option.revealedBys) || isDisabled(state, option.disabledBys) || disabled) return false;
+      return (controlState.selectedOptions as string[]).includes(option.id);
+    });
+    if (selectedOptions.length === 0) return [];
+
+    const combined = selectedOptions
+      .map((option) => renderOptionWithModifiers(control.id, option, schema, state, stack))
+      .join(', ')
+      .trim();
+
+    const text = appendSupplements(combined, control, schema, state, stack);
+    return text ? [{ text, weight: ownWeight }] : [];
   }
 
   if (control.kind === 'hidden-opposite') {

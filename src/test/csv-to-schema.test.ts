@@ -87,4 +87,24 @@ describe('csv-to-schema generator', () => {
     expect(result.source).toBe('');
     expect(result.diagnostics.some((diagnostic: { message: string }) => diagnostic.message.includes('could not be resolved'))).toBe(true);
   });
+
+  it('allows multi-option toggles and multi-option required controls', () => {
+    const csv = [
+      'Section,promptTarget,ControlKind,revealedBy,customText,supplementedBy,globalSubstitutions,all options initially selected,Control,Option 1,Option 2',
+      'mods,,toggle,,,,,TRUE,texture pack,oak,pine',
+      'core,,required,,,,,FALSE,subject base,hero,villain',
+    ].join('\n');
+
+    const result = convertCsvTextToSchema(csv) as { schema: Schema | null; diagnostics: Array<{ message: string }> };
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.schema).not.toBeNull();
+    if (!result.schema) return;
+
+    const texturePack = result.schema.sections[0]?.controls[0];
+    const subjectBase = result.schema.sections[1]?.controls[0];
+
+    expect(texturePack?.initiallySelectedOptions).toEqual(['oak', 'pine']);
+    expect(subjectBase?.initiallySelectedOptions).toEqual(['hero', 'villain']);
+  });
 });

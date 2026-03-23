@@ -256,6 +256,36 @@ describe('PromptCrafter UI', () => {
     });
   });
 
+  describe('toggle controls', () => {
+    it('shows and selects all revealed options when a multi-option toggle is turned on', async () => {
+      const user = userEvent.setup();
+      const schema = structuredClone(testSchema);
+      schema.sections[1]?.controls.splice(0, 0, {
+        id: 'texture pack',
+        text: 'texture pack',
+        kind: 'toggle',
+        options: [
+          { id: 'oak', text: 'oak' },
+          { id: 'pine', text: 'pine' },
+        ],
+      });
+
+      render(<App schema={schema} />);
+
+      const texturePack = getControlByText('texture pack');
+      expect(within(texturePack).queryByRole('checkbox', { name: 'oak' })).not.toBeInTheDocument();
+      expect(within(texturePack).queryByRole('checkbox', { name: 'pine' })).not.toBeInTheDocument();
+
+      await user.click(within(texturePack).getByRole('checkbox', { name: 'texture pack' }));
+
+      expect(within(texturePack).getByRole('checkbox', { name: 'oak' })).toBeChecked();
+      expect(within(texturePack).getByRole('checkbox', { name: 'pine' })).toBeChecked();
+      expect(screen.getByRole('textbox', { name: 'Positive prompt' })).toHaveValue(
+        'space robo dino demon monster, oak, pine',
+      );
+    });
+  });
+
   describe('disabling and hiding', () => {
     it('applies disabledBys at the section level', async () => {
       const user = userEvent.setup();
