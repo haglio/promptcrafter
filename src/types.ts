@@ -64,7 +64,22 @@ export type TextValue =
   | {
       singular: string;
       plural: string;
+    }
+  | {
+      singular: TextPart[];
+      plural?: TextPart[];
     };
+
+export type TextPart =
+  | string
+  | {
+      ref: TextReference;
+    };
+
+export type TextReference = {
+  kind: 'section' | 'control' | 'option';
+  id: string;
+};
 
 export type PromptTarget = 'positive' | 'negative';
 
@@ -103,19 +118,19 @@ export type SupplementedBy =
   | {
       controlId: string;
       optionId?: never;
-      supplementalText: string;
+      supplementalText: TextValue;
       side?: SupplementalSide;
     }
   | {
       controlId?: never;
       optionId: string;
-      supplementalText: string;
+      supplementalText: TextValue;
       side?: SupplementalSide;
     };
 
 export type GlobalSubstitution = {
-  from: string;
-  to: string;
-  fromPlural?: string;
-  toPlural?: string;
+  from: TextValue;
+  to: TextValue;
+  fromPlural?: TextValue;
+  toPlural?: TextValue;
 };

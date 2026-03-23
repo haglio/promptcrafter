@@ -289,6 +289,34 @@ describe('prompt building', () => {
       expect(buildPrompt(testSchema, state, 'positive')).toContain('matte pearlescent finishes');
     });
 
+    it('uses plural supplemental text when a supplement supplies singular and plural forms', () => {
+      const schema = structuredClone(testSchema);
+      const armor = schema.sections
+        .flatMap((section) => section.controls)
+        .find((control) => control.id === 'armor');
+
+      expect(armor).toBeDefined();
+      if (!armor) return;
+
+      armor.supplementedBys = [
+        {
+          controlId: 'movement',
+          supplementalText: {
+            singular: 'storm',
+            plural: 'storms',
+          },
+          side: 'adj',
+        },
+      ];
+
+      const state = createInitialState(schema);
+      controlState(state, 'count').selectedOptions = 'two';
+      controlState(state, 'movement').selectedOptions = 'heavily';
+      controlState(state, 'armor').selectedOptions = 'chrome';
+
+      expect(buildPrompt(schema, state, 'positive')).toContain('storms chrome armor');
+    });
+
     it('applies global substitutions for singular and plural terms when substitution toggle is enabled', () => {
       const state = createInitialState(testSchema);
       controlState(state, 'portrait focus').selectedOptions = ['torso', 'torso side profile', 'torsos'];
