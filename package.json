@@ -9,6 +9,7 @@
     "build": "tsc -b && vite build",
     "desktop:dev": "node ./scripts/desktop-dev.mjs",
     "preview": "vite preview",
+    "schema:from-csv": "node ./scripts/csv-to-schema.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui"
