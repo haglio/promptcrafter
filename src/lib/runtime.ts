@@ -14,6 +14,7 @@ import type {
   TextValue,
 } from '../types';
 import type { Segment } from './types';
+import { isToggleEnabled } from './toggle-state';
 
 type ResolutionStack = Set<string>;
 
@@ -49,7 +50,7 @@ export function controlHasAtLeastOneSelectedOption(control: Control, state: Stat
   if (!current) return false;
 
   if (control.kind === 'required') return true;
-  if (control.kind === 'toggle') return hasAnySelection(current.selectedOptions);
+  if (control.kind === 'toggle') return isToggleEnabled(current);
   if (control.kind === 'global-selector') return current.selectedOptions !== false;
   if (control.kind.startsWith('or')) return Boolean(current.selectedOptions as string);
 
@@ -98,7 +99,10 @@ function isByConditionMatched(state: State, by: DisabledOrHiddenBy): boolean {
 
   const { selectedOptions } = controlState;
 
-  if (!by.optionId) return hasAnySelection(selectedOptions);
+  if (!by.optionId) {
+    if (typeof selectedOptions === 'boolean') return isToggleEnabled(controlState);
+    return controlState.enabled ?? hasAnySelection(selectedOptions);
+  }
   if (typeof selectedOptions === 'string') return selectedOptions === by.optionId;
   if (Array.isArray(selectedOptions)) return selectedOptions.includes(by.optionId);
   return false;
@@ -233,8 +237,8 @@ export function getActiveSubstitutions(schema: Schema, state: State): GlobalSubs
       if (control.kind !== 'toggle') continue;
       if (isHidden(state, control.hiddenBys, control.revealedBys) || isDisabled(state, control.disabledBys)) continue;
 
-      const selectedOptions = state.controls[control.id]?.selectedOptions;
-      const enabled = selectedOptions === undefined ? false : hasAnySelection(selectedOptions);
+      const controlState = state.controls[control.id];
+      const enabled = controlState ? isToggleEnabled(controlState) : false;
       if (!enabled) continue;
 
       substitutions.push(...(control.globalSubstitutions ?? []));
@@ -450,9 +454,9 @@ function renderControlSegments(
 
   if (control.kind === 'toggle') {
     if (disabled) return [];
+    if (!isToggleEnabled(controlState)) return [];
 
     if (typeof controlState.selectedOptions === 'boolean') {
-      if (!controlState.selectedOptions) return [];
       if ((control.options?.length ?? 0) === 0 && (control.globalSubstitutions?.length ?? 0) > 0) return [];
       const base = control.options?.[0]
         ? getOptionText(control.options[0], isPlural, schema, state, stack)

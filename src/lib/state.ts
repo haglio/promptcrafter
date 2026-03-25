@@ -1,12 +1,9 @@
 import type { State, Control, ControlState, Schema, Section } from '../types';
+import { createInitialToggleState } from './toggle-state';
 
 function createControlState(control: Control): ControlState {
   if (control.kind === 'toggle') {
-    if (Array.isArray(control.initiallySelectedOptions)) {
-      return { selectedOptions: control.initiallySelectedOptions, weight: 1 };
-    }
-
-    return { selectedOptions: control.initiallySelectedOptions as boolean ?? false, weight: 1 };
+    return createInitialToggleState(control);
   }
   if (control.kind === 'global-selector') {
     // false = off, string = on (with selected option id, or '' if none chosen)

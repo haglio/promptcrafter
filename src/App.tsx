@@ -4,6 +4,7 @@ import { Section } from './components/Section';
 import { exportPromptCombo } from './lib/export';
 import { buildPrompt } from './lib/prompt';
 import { createInitialState } from './lib/state';
+import { getToggleSelectionsForNextState } from './lib/toggle-state';
 import type { Schema, State } from './types';
 
 function ExportDialog({
@@ -138,7 +139,10 @@ export default function App({ schema }: {schema: Schema}) {
       setState((current) => {
         const control = current.controls[controlId];
         if (!control) return current;
-        return { ...current, controls: { ...current.controls, [controlId]: { selectedOptions: control.selectedOptions, weight } } };
+        return {
+          ...current,
+          controls: { ...current.controls, [controlId]: { selectedOptions: control.selectedOptions, enabled: control.enabled, weight } },
+        };
       });
     },
     setRadio(controlId: string, optionId: string) {
@@ -160,6 +164,7 @@ export default function App({ schema }: {schema: Schema}) {
             ...current.controls,
             [controlId]: {
               selectedOptions: exists ? selectedOptions.filter((value) => value !== optionId) : [...selectedOptions, optionId],
+              enabled: control.enabled,
               weight: control.weight,
             },
           },
@@ -173,12 +178,12 @@ export default function App({ schema }: {schema: Schema}) {
         const schemaControl = schemaControls.find((entry) => entry.id === controlId);
         if (!schemaControl || schemaControl.kind !== 'toggle') return current;
 
-        const selectedOptions =
-          (schemaControl.options?.length ?? 0) > 1
-            ? (value ? (schemaControl.options ?? []).map((option) => option.id) : [])
-            : value;
+        const selectedOptions = getToggleSelectionsForNextState(schemaControl, control, value);
 
-        return { ...current, controls: { ...current.controls, [controlId]: { selectedOptions, weight: control.weight } } };
+        return {
+          ...current,
+          controls: { ...current.controls, [controlId]: { selectedOptions, enabled: value, weight: control.weight } },
+        };
       });
     },
     setGlobalSelector(controlId: string, toggleOn: boolean, optionId: string) {

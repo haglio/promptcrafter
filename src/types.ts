@@ -15,6 +15,9 @@ export type SectionState = {
 
 export type ControlState = {
   selectedOptions: boolean | string | string[];
+  // Toggle controls keep their preferred option selections here even while disabled.
+  // Other control kinds can infer activity directly from selectedOptions.
+  enabled?: boolean;
   weight: number;
 };
 

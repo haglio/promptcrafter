@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { isHidden, isDisabled, isSubjectPlural, controlHasAtLeastOneSelectedOption, getDisplayOptionText, getDisplayItemText } from '../lib/utlities';
+import { isToggleEnabled } from '../lib/toggle-state';
 import type { State, Control, Schema } from '../types';
 import { Actions } from './types';
 import { Weight } from './Weight';
@@ -102,9 +103,7 @@ function ToggleControl({
   const controlState = state.controls[control.id];
   if (!controlState) return null;
   const controlLabel = getDisplayItemText(control, isSubjectPlural(state), schema, state);
-  const checked = Array.isArray(controlState.selectedOptions)
-    ? controlState.selectedOptions.length > 0
-    : Boolean(controlState.selectedOptions);
+  const checked = isToggleEnabled(controlState);
   const hasOptionList = (control.options?.length ?? 0) > 1 && Array.isArray(controlState.selectedOptions);
 
   return (
