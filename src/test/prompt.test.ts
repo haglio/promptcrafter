@@ -111,7 +111,7 @@ describe('prompt building', () => {
       expect(buildPrompt(testSchema, state, 'negative')).toBe('no clutter, blurry, cold');
     });
 
-    it("renders multi-option toggles as a comma-separated selection list", () => {
+    it("does not render multi-option toggles just because they have initial option defaults", () => {
       const schema = structuredClone(testSchema);
       schema.sections[1]?.controls.splice(0, 0, {
         id: 'texture pack',
@@ -126,9 +126,9 @@ describe('prompt building', () => {
 
       const state = createInitialState(schema);
 
-      expect(buildPrompt(schema, state, 'positive')).toBe(
-        'space robo dino demon monster, oak, pine',
-      );
+      expect(buildPrompt(schema, state, 'positive')).toBe('space robo dino demon monster');
+      expect(controlState(state, 'texture pack').enabled).toBe(false);
+      expect(controlState(state, 'texture pack').selectedOptions).toEqual(['oak', 'pine']);
     });
 
     it("renders required controls with all selected options instead of only the first one", () => {

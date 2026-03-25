@@ -257,6 +257,29 @@ describe('PromptCrafter UI', () => {
   });
 
   describe('toggle controls', () => {
+    it('keeps multi-option toggles off initially when they only define default selected options', () => {
+      const schema = structuredClone(testSchema);
+      schema.sections[1]?.controls.splice(0, 0, {
+        id: 'texture pack',
+        text: 'texture pack',
+        kind: 'toggle',
+        initiallySelectedOptions: ['oak'],
+        options: [
+          { id: 'oak', text: 'oak' },
+          { id: 'pine', text: 'pine' },
+        ],
+      });
+
+      render(<App schema={schema} />);
+
+      const texturePack = getControlByText('texture pack');
+      expect(within(texturePack).getByRole('checkbox', { name: 'texture pack' })).not.toBeChecked();
+      expect(within(texturePack).queryByRole('checkbox', { name: 'oak' })).not.toBeInTheDocument();
+      expect(screen.getByRole('textbox', { name: 'Positive prompt' })).toHaveValue(
+        'space robo dino demon monster',
+      );
+    });
+
     it('shows and selects all revealed options when a multi-option toggle is turned on', async () => {
       const user = userEvent.setup();
       const schema = structuredClone(testSchema);
@@ -282,6 +305,60 @@ describe('PromptCrafter UI', () => {
       expect(within(texturePack).getByRole('checkbox', { name: 'pine' })).toBeChecked();
       expect(screen.getByRole('textbox', { name: 'Positive prompt' })).toHaveValue(
         'space robo dino demon monster, oak, pine',
+      );
+    });
+
+    it('uses a multi-option toggle’s initial option defaults when it is turned on', async () => {
+      const user = userEvent.setup();
+      const schema = structuredClone(testSchema);
+      schema.sections[1]?.controls.splice(0, 0, {
+        id: 'texture pack',
+        text: 'texture pack',
+        kind: 'toggle',
+        initiallySelectedOptions: ['oak'],
+        options: [
+          { id: 'oak', text: 'oak' },
+          { id: 'pine', text: 'pine' },
+        ],
+      });
+
+      render(<App schema={schema} />);
+
+      const texturePack = getControlByText('texture pack');
+      await user.click(within(texturePack).getByRole('checkbox', { name: 'texture pack' }));
+
+      expect(within(texturePack).getByRole('checkbox', { name: 'oak' })).toBeChecked();
+      expect(within(texturePack).getByRole('checkbox', { name: 'pine' })).not.toBeChecked();
+      expect(screen.getByRole('textbox', { name: 'Positive prompt' })).toHaveValue(
+        'space robo dino demon monster, oak',
+      );
+    });
+
+    it('preserves a narrowed multi-option toggle selection across off and on transitions', async () => {
+      const user = userEvent.setup();
+      const schema = structuredClone(testSchema);
+      schema.sections[1]?.controls.splice(0, 0, {
+        id: 'texture pack',
+        text: 'texture pack',
+        kind: 'toggle',
+        options: [
+          { id: 'oak', text: 'oak' },
+          { id: 'pine', text: 'pine' },
+        ],
+      });
+
+      render(<App schema={schema} />);
+
+      const texturePack = getControlByText('texture pack');
+      await user.click(within(texturePack).getByRole('checkbox', { name: 'texture pack' }));
+      await user.click(within(texturePack).getByRole('checkbox', { name: 'pine' }));
+      await user.click(within(texturePack).getByRole('checkbox', { name: 'texture pack' }));
+      await user.click(within(texturePack).getByRole('checkbox', { name: 'texture pack' }));
+
+      expect(within(texturePack).getByRole('checkbox', { name: 'oak' })).toBeChecked();
+      expect(within(texturePack).getByRole('checkbox', { name: 'pine' })).not.toBeChecked();
+      expect(screen.getByRole('textbox', { name: 'Positive prompt' })).toHaveValue(
+        'space robo dino demon monster, oak',
       );
     });
   });
