@@ -16,3 +16,6 @@ tmp-electron-probe/
 scripts/_electron_*
 browser-data/
 output/*.json
+
+# Claude Code local config
+.claude/
