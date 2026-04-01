@@ -12,7 +12,8 @@
     "schema:from-csv": "node ./scripts/csv-to-schema.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "tokens:generate": "python ../../../shared_ui/generate_web_tokens.py --output src/tokens.css"
   },
   "dependencies": {
     "react": "^19.1.0",

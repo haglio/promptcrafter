@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import './tokens.css';
 import './styles.css';
 import { schema } from './lib/schema';
 // import { testSchema } from './test/fixtures/testSchema';
@@ -72,11 +73,6 @@ const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error('PromptCrafter root element was not found.');
 }
-
-document.body.style.background = '#111827';
-document.body.style.color = '#f3f4f6';
-rootElement.style.minHeight = '100vh';
-rootElement.style.background = '#111827';
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>

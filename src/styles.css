@@ -1,24 +1,33 @@
+/* PromptCrafter-local tokens (derived from shared, or app-specific) */
 :root {
-  color-scheme: dark;
-  font-family: Inter, system-ui, sans-serif;
-  background: #111827;
-  color: #f3f4f6;
+  --hover-accent-primary: color-mix(in srgb, var(--accent-primary) 85%, black);
+  --hover-bg-keycap: color-mix(in srgb, var(--bg-keycap) 80%, white);
+  --backdrop-bg: color-mix(in srgb, var(--bg-primary) 78%, transparent);
+  --pc-mode-manual-bg: #0f766e;
+  --pc-mode-manual-text: var(--text-primary);
 }
 
-body { margin: 0; background: #111827; }
+:root {
+  color-scheme: dark;
+  font-family: var(--font-ui);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body { margin: 0; background: var(--bg-primary); }
 
 #root {
   min-height: 100vh;
-  background: #111827;
+  background: var(--bg-primary);
 }
 
 * { box-sizing: border-box; }
 
 button, input, textarea { font: inherit; }
 input {
-  background: #0f172a;
-  color: #f8fafc;
-  border: 1px solid #475569;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
   border-radius: 10px;
   padding: 10px 12px;
 }
@@ -42,7 +51,7 @@ input {
 
 .export-message {
   margin: 0;
-  color: #86efac;
+  color: var(--accent-success);
   font-size: 14px;
 }
 
@@ -53,8 +62,8 @@ input {
 }
 
 .prompt-area, .section { 
-  background: #1f2937; 
-  border: 1px solid #374151; 
+  background: var(--bg-tertiary);
+  border: 1px solid var(--bg-button);
   border-radius: 16px; 
   padding: 16px; 
 }
@@ -83,9 +92,9 @@ textarea {
   margin-top: 12px;
   resize: vertical; 
   min-height: 110px; 
-  background: #0f172a; 
-  color: #f8fafc; 
-  border: 1px solid #475569; 
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px; 
   padding: 12px; 
 }
@@ -94,7 +103,7 @@ textarea {
 
 .sections { display: grid; gap: 16px; }
 
-.control { border-top: 1px solid #374151; padding-top: 12px; margin-top: 12px; }
+.control { border-top: 1px solid var(--bg-button); padding-top: 12px; margin-top: 12px; }
 
 .control.no-top-border { border-top: none; }
 
@@ -123,7 +132,7 @@ textarea {
   margin-top: 8px;
   margin-left: 0;
   padding-left: 12px;
-  border-left: 2px solid #475569;
+  border-left: 2px solid var(--border-subtle);
 }
 
 .submenu-option-group {
@@ -139,9 +148,9 @@ textarea {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: #0f172a;
+  background: var(--bg-secondary);
   padding-bottom: 12px;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid var(--bg-keycap);
   box-shadow: 0 6px 14px rgba(0,0,0,0.35);
 }
 
@@ -164,7 +173,7 @@ textarea {
   width: 44px;
   height: 24px;
   border-radius: 999px;
-  background: #475569;
+  background: var(--toggle-off);
   transition: background 0.2s ease;
   flex: 0 0 auto;
 }
@@ -177,12 +186,12 @@ textarea {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #f8fafc;
+  background: var(--toggle-knob);
   transition: transform 0.2s ease;
 }
 
 .toggle-switch input:checked + .toggle-track {
-  background: #22c55e;
+  background: var(--toggle-on);
 }
 
 .toggle-switch input:checked + .toggle-track::after {
@@ -209,8 +218,8 @@ textarea {
 
 .weight-reset {
   border: none;
-  background: #334155;
-  color: #e2e8f0;
+  background: var(--bg-keycap);
+  color: var(--text-secondary);
   font-size: 12px;
   padding: 2px 6px;
   border-radius: 4px;
@@ -218,12 +227,12 @@ textarea {
 }
 
 .weight-reset:hover:not(:disabled) {
-  background: #475569;
+  background: var(--hover-bg-keycap);
 }
 
 .weight-reset:disabled {
-  background: #1e293b;
-  color: #64748b;
+  background: var(--bg-button);
+  color: var(--text-muted);
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -242,18 +251,18 @@ textarea {
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0;
 }
 
 .copy-button:hover {
-  background: #1e293b;
-  color: #e2e8f0;
+  background: var(--bg-button);
+  color: var(--text-secondary);
 }
 
 .copy-button:active {
-  background: #334155;
+  background: var(--bg-keycap);
 }
 
 .mode-toggle {
@@ -265,13 +274,13 @@ textarea {
 }
 
 .mode-toggle.auto {
-  background: #334155;
-  color: #cbd5e1;
+  background: var(--bg-keycap);
+  color: var(--text-tertiary);
 }
 
 .mode-toggle.manual {
-  background: #0f766e;
-  color: #f0fdfa;
+  background: var(--pc-mode-manual-bg);
+  color: var(--pc-mode-manual-text);
 }
 
 textarea:disabled {
@@ -288,21 +297,21 @@ textarea:disabled {
 }
 
 .primary-button {
-  background: #2563eb;
-  color: #eff6ff;
+  background: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 .primary-button:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: var(--hover-accent-primary);
 }
 
 .secondary-button {
-  background: #334155;
-  color: #e2e8f0;
+  background: var(--bg-keycap);
+  color: var(--text-secondary);
 }
 
 .secondary-button:hover:not(:disabled) {
-  background: #475569;
+  background: var(--hover-bg-keycap);
 }
 
 .primary-button:disabled,
@@ -314,7 +323,7 @@ textarea:disabled {
 .dialog-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.78);
+  background: var(--backdrop-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -324,8 +333,8 @@ textarea:disabled {
 
 .dialog-card {
   width: min(100%, 460px);
-  background: #1f2937;
-  border: 1px solid #475569;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
   border-radius: 18px;
   padding: 20px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
@@ -337,7 +346,7 @@ textarea:disabled {
 
 .dialog-copy {
   margin: 0 0 16px;
-  color: #cbd5e1;
+  color: var(--text-tertiary);
 }
 
 .dialog-field {
@@ -354,5 +363,5 @@ textarea:disabled {
 
 .dialog-error {
   margin: 12px 0 0;
-  color: #fca5a5;
+  color: var(--accent-error-text);
 }
