@@ -21,6 +21,8 @@ def create_initial_toggle_state(control: Control) -> ControlState:
             weight=1,
         )
 
+    if len(control.options) > 1:
+        return ControlState(selected_options=[], enabled=False, weight=1)
     return ControlState(selected_options=False, enabled=False, weight=1)
 
 

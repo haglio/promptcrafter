@@ -48,6 +48,21 @@ def is_subject_plural(state: State) -> bool:
     return count is not None and count.selected_options == "two"
 
 
+def control_has_at_least_one_selected_option(control: Control, state: State) -> bool:
+    cs = state.controls.get(control.id)
+    if not cs:
+        return False
+    if control.kind == "required":
+        return True
+    if control.kind == "toggle":
+        return is_toggle_enabled(cs)
+    if control.kind == "global-selector":
+        return cs.selected_options is not False
+    if control.kind.startswith("or"):
+        return bool(cs.selected_options) if isinstance(cs.selected_options, str) else False
+    return isinstance(cs.selected_options, list) and len(cs.selected_options) > 0
+
+
 def _has_any_selection(selected_options: bool | str | list[str]) -> bool:
     if isinstance(selected_options, bool):
         return selected_options
