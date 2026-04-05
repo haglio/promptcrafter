@@ -10,4 +10,5 @@
 # entry, and paste only genuine false positives here. Dead code that
 # vulture correctly identified must be deleted, not whitelisted.
 
-app  # QGuiApplication must stay alive for Qt rendering
+app  # QApplication must stay alive for Qt rendering
+schema  # module-level schema constant loaded by __main__

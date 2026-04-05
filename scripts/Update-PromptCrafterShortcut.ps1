@@ -2,8 +2,8 @@ $ErrorActionPreference = 'Stop'
 
 $LauncherRoot = Split-Path -Parent $PSScriptRoot
 $ShortcutPath = Join-Path $LauncherRoot 'PromptCrafter.lnk'
-$LauncherExe = Join-Path $LauncherRoot 'node_modules\electron\dist\electron.exe'
-$LauncherArgs = '.'
+$LauncherExe = (Get-Command pythonw).Source
+$LauncherArgs = '-m promptcrafter'
 $IconPath = Join-Path $LauncherRoot 'icon.ico'
 $AppUserModelId = 'Alex.PromptCrafter'
 
@@ -149,7 +149,7 @@ public static class ShortcutPropertyWriter
 "@
 
 if (-not (Test-Path -LiteralPath $LauncherExe)) {
-  throw "Electron executable was not found at $LauncherExe"
+  throw "pythonw.exe was not found on PATH"
 }
 
 Remove-Item -LiteralPath $ShortcutPath -Force -ErrorAction SilentlyContinue
