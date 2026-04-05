@@ -9,3 +9,5 @@
 # To generate candidates: run vulture with --make-whitelist, review each
 # entry, and paste only genuine false positives here. Dead code that
 # vulture correctly identified must be deleted, not whitelisted.
+
+app  # QGuiApplication must stay alive for Qt rendering
