@@ -7,5 +7,8 @@ name = "promptcrafter"
 version = "0.1.0"
 requires-python = ">=3.10"
 
+[project.optional-dependencies]
+dev = ["pytest", "vulture"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
