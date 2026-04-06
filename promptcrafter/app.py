@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-    QButtonGroup,
+    QApplication,
     QCheckBox,
+    QFrame,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -17,9 +21,30 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from promptcrafter.runtime import (
+# shared_ui lives at ../../shared_ui relative to the repo root
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from shared_ui.colors import (  # noqa: E402
+    BG_BUTTON,
+    BG_KEYCAP,
+    BG_PRIMARY,
+    BG_SECONDARY,
+    BG_TERTIARY,
+    BLUE,
+    BORDER_SUBTLE,
+    TEXT_MUTED,
+    TEXT_PRIMARY,
+    TEXT_SECONDARY,
+    TOGGLE_KNOB,
+    TOGGLE_OFF,
+    TOGGLE_ON,
+)
+from shared_ui.fonts import FONT_UI, SIZE_BODY, SIZE_HEADING  # noqa: E402
+from shared_ui.spacing import GAP_MEDIUM, GAP_SMALL, MARGIN_STANDARD  # noqa: E402
+
+from promptcrafter.runtime import (  # noqa: E402
     apply_substitutions,
     build_prompt,
+    build_section_prompt,
     control_has_at_least_one_selected_option,
     get_active_substitutions,
     get_text_value,
@@ -27,12 +52,12 @@ from promptcrafter.runtime import (
     is_hidden,
     is_subject_plural,
 )
-from promptcrafter.state import create_initial_state
-from promptcrafter.toggle_state import (
+from promptcrafter.state import create_initial_state  # noqa: E402
+from promptcrafter.toggle_state import (  # noqa: E402
     get_toggle_selections_for_next_state,
     is_toggle_enabled,
 )
-from promptcrafter.types import (
+from promptcrafter.types import (  # noqa: E402
     Control,
     ControlState,
     Option,
@@ -42,44 +67,284 @@ from promptcrafter.types import (
 )
 
 
+def _qcolor_hex(c) -> str:
+    return c.name()
+
+
+def _build_stylesheet() -> str:
+    bg1 = _qcolor_hex(BG_PRIMARY)
+    bg2 = _qcolor_hex(BG_SECONDARY)
+    bg3 = _qcolor_hex(BG_TERTIARY)
+    bg_btn = _qcolor_hex(BG_BUTTON)
+    bg_key = _qcolor_hex(BG_KEYCAP)
+    t1 = _qcolor_hex(TEXT_PRIMARY)
+    t2 = _qcolor_hex(TEXT_SECONDARY)
+    t_muted = _qcolor_hex(TEXT_MUTED)
+    border = _qcolor_hex(BORDER_SUBTLE)
+    blue = _qcolor_hex(BLUE)
+    tog_on = _qcolor_hex(TOGGLE_ON)
+    tog_off = _qcolor_hex(TOGGLE_OFF)
+    tog_knob = _qcolor_hex(TOGGLE_KNOB)
+    font = FONT_UI
+    sz = SIZE_BODY
+
+    return f"""
+    QMainWindow, QWidget#central {{
+        background: {bg1};
+        color: {t1};
+        font-family: "{font}";
+        font-size: {sz}pt;
+    }}
+    QScrollArea, QScrollArea > QWidget > QWidget {{
+        background: {bg1};
+        border: none;
+    }}
+    QGroupBox {{
+        background: {bg3};
+        border: 1px solid {bg_btn};
+        border-radius: 16px;
+        padding: 16px;
+        padding-top: 36px;
+        margin-top: 8px;
+        font-weight: bold;
+        font-size: {SIZE_HEADING}pt;
+        color: {t1};
+    }}
+    QGroupBox::title {{
+        subcontrol-origin: margin;
+        subcontrol-position: top left;
+        padding: 8px 16px;
+        color: {t1};
+    }}
+    QPlainTextEdit {{
+        background: {bg2};
+        color: {t1};
+        border: 1px solid {border};
+        border-radius: 12px;
+        padding: 12px;
+        font-family: "{font}";
+        font-size: {sz}pt;
+    }}
+    QPlainTextEdit:disabled {{
+        color: {t2};
+    }}
+    QLabel {{
+        color: {t1};
+        background: transparent;
+    }}
+    QRadioButton, QCheckBox {{
+        color: {t2};
+        spacing: 6px;
+        background: transparent;
+    }}
+    QRadioButton::indicator, QCheckBox::indicator {{
+        width: 16px;
+        height: 16px;
+    }}
+    QRadioButton:disabled, QCheckBox:disabled {{
+        color: {t_muted};
+    }}
+    QPushButton {{
+        background: {bg_key};
+        color: {t2};
+        border: none;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: {sz}pt;
+    }}
+    QPushButton:hover {{
+        background: {bg_btn};
+    }}
+    QPushButton#primary_button {{
+        background: {blue};
+        color: {t1};
+        border-radius: 8px;
+        padding: 8px 12px;
+    }}
+    QPushButton#copy_button {{
+        background: transparent;
+        color: {t_muted};
+        padding: 2px;
+        min-width: 22px;
+        max-width: 22px;
+        min-height: 22px;
+        max-height: 22px;
+    }}
+    QPushButton#copy_button:hover {{
+        background: {bg_btn};
+        color: {t2};
+    }}
+    QPushButton#weight_reset {{
+        background: {bg_key};
+        color: {t2};
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }}
+    QPushButton#mode_toggle_auto {{
+        background: {bg_key};
+        color: {t2};
+        border-radius: 6px;
+        padding: 4px 8px;
+    }}
+    QPushButton#mode_toggle_manual {{
+        background: #0f766e;
+        color: {t1};
+        border-radius: 6px;
+        padding: 4px 8px;
+    }}
+    QWidget#prompt_area {{
+        background: {bg3};
+        border: 1px solid {bg_btn};
+        border-radius: 16px;
+    }}
+    QWidget#control_divider {{
+        background: {bg_btn};
+        min-height: 1px;
+        max-height: 1px;
+    }}
+    QWidget#submenu_indent {{
+        border-left: 2px solid {border};
+    }}
+    QSlider::groove:horizontal {{
+        height: 4px;
+        background: {bg_btn};
+        border-radius: 2px;
+    }}
+    QSlider::handle:horizontal {{
+        width: 14px;
+        height: 14px;
+        margin: -5px 0;
+        background: {blue};
+        border-radius: 7px;
+    }}
+    QSlider::sub-page:horizontal {{
+        background: {blue};
+        border-radius: 2px;
+    }}
+    QCheckBox#toggle_switch {{
+        spacing: 0px;
+    }}
+    QCheckBox#toggle_switch::indicator {{
+        width: 44px;
+        height: 24px;
+        border-radius: 12px;
+        background: {tog_off};
+    }}
+    QCheckBox#toggle_switch::indicator:checked {{
+        background: {tog_on};
+    }}
+    """
+
+
 class PromptCrafterWindow(QMainWindow):
     def __init__(self, schema: Schema) -> None:
         super().__init__()
         self.schema = schema
         self.state = create_initial_state(schema)
         self.setWindowTitle("PromptCrafter")
+        self.setStyleSheet(_build_stylesheet())
 
         central = QWidget()
+        central.setObjectName("central")
         self.setCentralWidget(central)
         root_layout = QVBoxLayout(central)
-        root_layout.setContentsMargins(0, 0, 0, 0)
+        root_layout.setContentsMargins(24, 24, 24, 24)
+        root_layout.setSpacing(0)
+
+        # App header
+        header = QWidget()
+        header_layout = QHBoxLayout(header)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        title = QLabel("PromptCrafter")
+        title.setStyleSheet(f"font-size: 24pt; font-weight: bold; font-family: '{FONT_UI}';")
+        header_layout.addWidget(title)
+        header_layout.addStretch()
+        root_layout.addWidget(header)
+        root_layout.addSpacing(20)
 
         # Prompt areas
-        prompt_area = QWidget()
-        prompt_layout = QVBoxLayout(prompt_area)
         self.positive_prompt = QPlainTextEdit()
         self.positive_prompt.setAccessibleName("Positive prompt")
         self.positive_prompt.setReadOnly(True)
-        prompt_layout.addWidget(self.positive_prompt)
+        self.positive_prompt.setMinimumHeight(110)
 
         self.negative_prompt = QPlainTextEdit()
         self.negative_prompt.setAccessibleName("Negative prompt")
         self.negative_prompt.setReadOnly(True)
-        prompt_layout.addWidget(self.negative_prompt)
-        root_layout.addWidget(prompt_area)
+        self.negative_prompt.setMinimumHeight(72)
+
+        pos_area = self._build_prompt_area("Positive prompt", self.positive_prompt, "positive")
+        neg_area = self._build_prompt_area("Negative prompt", self.negative_prompt, "negative")
+        root_layout.addWidget(pos_area)
+        root_layout.addSpacing(12)
+        root_layout.addWidget(neg_area)
+        root_layout.addSpacing(16)
 
         # Scrollable sections area
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
         sections_container = QWidget()
         self.sections_layout = QVBoxLayout(sections_container)
+        self.sections_layout.setSpacing(16)
         scroll.setWidget(sections_container)
         root_layout.addWidget(scroll)
 
-        # Track widgets for rebuilds
         self._section_widgets: list[QGroupBox] = []
         self._build_sections()
         self._refresh_prompts()
+
+    def _build_prompt_area(self, label: str, text_edit: QPlainTextEdit, target: str) -> QWidget:
+        area = QWidget()
+        area.setObjectName("prompt_area")
+        layout = QVBoxLayout(area)
+        layout.setContentsMargins(16, 12, 16, 16)
+
+        # Header row: copy + mode toggle + label
+        header = QWidget()
+        hlayout = QHBoxLayout(header)
+        hlayout.setContentsMargins(0, 0, 0, 0)
+        hlayout.setSpacing(12)
+
+        copy_btn = QPushButton("\U0001f4cb")
+        copy_btn.setObjectName("copy_button")
+        copy_btn.setAccessibleName("Copy prompt")
+        copy_btn.clicked.connect(lambda: self._copy_to_clipboard(text_edit.toPlainText()))
+        hlayout.addWidget(copy_btn)
+
+        mode = getattr(self.state, f"{target}_mode")
+        mode_btn = QPushButton("manual" if mode == "auto" else "auto")
+        mode_btn.setObjectName(f"mode_toggle_{mode}")
+        mode_btn.setAccessibleName("manual" if mode == "auto" else "auto")
+        mode_btn.clicked.connect(lambda: self._toggle_prompt_mode(target))
+        hlayout.addWidget(mode_btn)
+
+        lbl = QLabel(f"<b>{label}</b>")
+        lbl.setStyleSheet(f"font-size: {SIZE_HEADING}pt;")
+        hlayout.addWidget(lbl)
+        hlayout.addStretch()
+
+        layout.addWidget(header)
+        layout.addWidget(text_edit)
+        return area
+
+    def _toggle_prompt_mode(self, target: str) -> None:
+        current = getattr(self.state, f"{target}_mode")
+        new_mode = "manual" if current == "auto" else "auto"
+        setattr(self.state, f"{target}_mode", new_mode)
+        prompt_widget = self.positive_prompt if target == "positive" else self.negative_prompt
+        if new_mode == "auto":
+            prompt_widget.setReadOnly(True)
+            self._refresh_prompts()
+        else:
+            prompt_widget.setReadOnly(False)
+        self._rebuild()
+
+    def _copy_to_clipboard(self, text: str) -> None:
+        cb = QApplication.clipboard()
+        if cb:
+            cb.setText(text)
 
     def _build_sections(self) -> None:
         for w in self._section_widgets:
@@ -87,7 +352,6 @@ class PromptCrafterWindow(QMainWindow):
             w.setParent(None)
             w.deleteLater()
         self._section_widgets.clear()
-        # Remove the trailing stretch if present
         while self.sections_layout.count():
             item = self.sections_layout.takeAt(0)
             if item.widget():
@@ -113,24 +377,63 @@ class PromptCrafterWindow(QMainWindow):
         group = QGroupBox(label)
         group.setProperty("section_id", section.id)
         layout = QVBoxLayout(group)
+        layout.setSpacing(0)
 
-        # Section weight slider
+        # Section header actions: copy button + weight slider (inside the groupbox)
+        actions = QWidget()
+        actions.setObjectName("section-header-actions")
+        actions_layout = QHBoxLayout(actions)
+        actions_layout.setContentsMargins(0, 0, 0, GAP_MEDIUM)
+        actions_layout.setSpacing(GAP_MEDIUM)
+
+        copy_btn = QPushButton("\U0001f4cb")
+        copy_btn.setObjectName("copy_button")
+        copy_btn.setAccessibleName("Copy section")
+        copy_btn.clicked.connect(
+            lambda sid=section.id: self._copy_section_prompt(sid)
+        )
+        actions_layout.addWidget(copy_btn)
+        actions_layout.addStretch()
+
         if self._section_has_selection(section):
             weight_row = self._build_weight_widget(
                 self.state.sections[section.id].weight,
                 lambda w, sid=section.id: self._set_section_weight(sid, w),
             )
-            layout.addWidget(weight_row)
+            actions_layout.addWidget(weight_row)
 
+        layout.addWidget(actions)
+
+        # Controls
+        first_control = True
+        prev_was_prefix = False
         for control in section.controls:
             control_widget = self._build_control(control, disabled)
             if control_widget:
+                if not first_control and not prev_was_prefix:
+                    divider = QWidget()
+                    divider.setObjectName("control_divider")
+                    divider.setFixedHeight(1)
+                    layout.addSpacing(12)
+                    layout.addWidget(divider)
+                    layout.addSpacing(12)
                 layout.addWidget(control_widget)
+                first_control = False
+            prev_was_prefix = control.kind == "or-prefix"
 
         if disabled:
             group.setEnabled(False)
 
         return group
+
+    def _copy_section_prompt(self, section_id: str) -> None:
+        target = "positive"
+        for s in self.schema.sections:
+            if s.id == section_id and s.prompt_target:
+                target = s.prompt_target
+                break
+        text = build_section_prompt(self.schema, self.state, target, section_id)
+        self._copy_to_clipboard(text)
 
     def _build_control(self, control: Control, section_disabled: bool) -> QWidget | None:
         if control.kind == "hidden-opposite":
@@ -149,17 +452,18 @@ class PromptCrafterWindow(QMainWindow):
         container = QWidget()
         container.setProperty("control_id", control.id)
         vlayout = QVBoxLayout(container)
-        vlayout.setContentsMargins(4, 2, 4, 2)
+        vlayout.setContentsMargins(0, 0, 0, 0)
+        vlayout.setSpacing(GAP_SMALL)
 
-        # Control header with label
+        # Control header: label on left, weight on right
         header = QWidget()
         hlayout = QHBoxLayout(header)
         hlayout.setContentsMargins(0, 0, 0, 0)
+        hlayout.setSpacing(GAP_MEDIUM)
         control_label = QLabel(f"<b>{label}</b>")
         hlayout.addWidget(control_label)
         hlayout.addStretch()
 
-        # Control weight slider (only if has selection and not or-prefix)
         if control.kind != "or-prefix" and self._control_has_selection(control):
             weight_row = self._build_weight_widget(
                 cs.weight,
@@ -187,17 +491,33 @@ class PromptCrafterWindow(QMainWindow):
         plural = is_subject_plural(self.state)
         label = self._display_text(control.text, plural)
 
+        # Options row
+        options_row = QWidget()
+        options_layout = QHBoxLayout(options_row)
+        options_layout.setContentsMargins(0, 0, 0, 0)
+        options_layout.setSpacing(20)
+        options_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
         toggle = QCheckBox()
+        toggle.setObjectName("toggle_switch")
         toggle.setAccessibleName(label)
         toggle.setText(label)
         toggle.setChecked(is_toggle_enabled(cs))
         toggle.setEnabled(not disabled)
         toggle.clicked.connect(lambda checked, cid=control.id: self._on_toggle(cid, checked))
-        layout.addWidget(toggle)
+        options_layout.addWidget(toggle)
+
+        layout.addWidget(options_row)
 
         # Multi-option toggles show options when enabled
         has_option_list = len(control.options) > 1 and isinstance(cs.selected_options, list)
         if is_toggle_enabled(cs) and has_option_list:
+            opts_row = QWidget()
+            opts_layout = QHBoxLayout(opts_row)
+            opts_layout.setContentsMargins(0, 0, 0, 0)
+            opts_layout.setSpacing(20)
+            opts_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
             for option in control.options:
                 if is_hidden(self.state, option.hidden_bys, option.revealed_bys):
                     continue
@@ -209,7 +529,9 @@ class PromptCrafterWindow(QMainWindow):
                 cb.clicked.connect(
                     lambda _, cid=control.id, oid=option.id: self._on_toggle_check(cid, oid)
                 )
-                layout.addWidget(cb)
+                opts_layout.addWidget(cb)
+
+            layout.addWidget(opts_row)
 
     def _build_global_selector_control(
         self, layout: QVBoxLayout, control: Control, cs: ControlState, disabled: bool
@@ -218,7 +540,15 @@ class PromptCrafterWindow(QMainWindow):
         label = self._display_text(control.text, plural)
         is_on = cs.selected_options is not False
 
+        # Toggle row
+        toggle_row = QWidget()
+        toggle_layout = QHBoxLayout(toggle_row)
+        toggle_layout.setContentsMargins(0, 0, 0, 0)
+        toggle_layout.setSpacing(20)
+        toggle_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
         toggle = QCheckBox()
+        toggle.setObjectName("toggle_switch")
         toggle.setAccessibleName(label)
         toggle.setText(label)
         toggle.setChecked(is_on)
@@ -226,12 +556,17 @@ class PromptCrafterWindow(QMainWindow):
         toggle.clicked.connect(
             lambda checked, cid=control.id: self._on_global_selector_toggle(cid, checked)
         )
-        layout.addWidget(toggle)
+        toggle_layout.addWidget(toggle)
+        layout.addWidget(toggle_row)
 
         if is_on:
             selected = cs.selected_options if isinstance(cs.selected_options, str) else ""
-            group = QButtonGroup(layout.parentWidget())
-            group.setExclusive(False)
+            opts_row = QWidget()
+            opts_layout = QHBoxLayout(opts_row)
+            opts_layout.setContentsMargins(0, 0, 0, 0)
+            opts_layout.setSpacing(20)
+            opts_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
             for option in control.options:
                 if is_hidden(self.state, option.hidden_bys, option.revealed_bys):
                     continue
@@ -243,7 +578,9 @@ class PromptCrafterWindow(QMainWindow):
                 rb.clicked.connect(
                     lambda _, cid=control.id, oid=option.id: self._on_global_selector_option(cid, oid)
                 )
-                layout.addWidget(rb)
+                opts_layout.addWidget(rb)
+
+            layout.addWidget(opts_row)
 
     def _build_radio_control(
         self, layout: QVBoxLayout, control: Control, cs: ControlState, disabled: bool
@@ -251,11 +588,24 @@ class PromptCrafterWindow(QMainWindow):
         plural = is_subject_plural(self.state)
         selected = cs.selected_options if isinstance(cs.selected_options, str) else ""
 
+        options_row = QWidget()
+        options_layout = QHBoxLayout(options_row)
+        options_layout.setContentsMargins(0, 0, 0, 0)
+        options_layout.setSpacing(20)
+        options_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
         for option in control.options:
             if is_hidden(self.state, option.hidden_bys, option.revealed_bys):
                 continue
             opt_disabled = disabled or is_disabled(self.state, option.disabled_bys)
             opt_label = self._display_text(option.text, plural)
+
+            # Each option + its submenu forms a vertical stack
+            opt_stack = QWidget()
+            stack_layout = QVBoxLayout(opt_stack)
+            stack_layout.setContentsMargins(0, 0, 0, 0)
+            stack_layout.setSpacing(GAP_SMALL)
+
             rb = QRadioButton(opt_label)
             rb.setAutoExclusive(False)
             rb.setChecked(selected == option.id)
@@ -263,16 +613,25 @@ class PromptCrafterWindow(QMainWindow):
             rb.clicked.connect(
                 lambda _, cid=control.id, oid=option.id: self._on_radio(cid, oid)
             )
-            layout.addWidget(rb)
+            stack_layout.addWidget(rb)
 
-            # Submenu
             if selected == option.id and option.submenu:
-                self._build_submenu(layout, control.id, option, disabled)
+                self._build_submenu(stack_layout, control.id, option, disabled)
+
+            options_layout.addWidget(opt_stack)
+
+        layout.addWidget(options_row)
 
     def _build_checkbox_control(
         self, layout: QVBoxLayout, control: Control, cs: ControlState, disabled: bool
     ) -> None:
         plural = is_subject_plural(self.state)
+
+        options_row = QWidget()
+        options_layout = QHBoxLayout(options_row)
+        options_layout.setContentsMargins(0, 0, 0, 0)
+        options_layout.setSpacing(20)
+        options_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         for option in control.options:
             if is_hidden(self.state, option.hidden_bys, option.revealed_bys):
@@ -281,17 +640,27 @@ class PromptCrafterWindow(QMainWindow):
             if control.kind == "required":
                 opt_disabled = True
             opt_label = self._display_text(option.text, plural)
+
+            # Each option + its submenu forms a vertical stack
+            opt_stack = QWidget()
+            stack_layout = QVBoxLayout(opt_stack)
+            stack_layout.setContentsMargins(0, 0, 0, 0)
+            stack_layout.setSpacing(GAP_SMALL)
+
             cb = QCheckBox(opt_label)
             cb.setChecked(isinstance(cs.selected_options, list) and option.id in cs.selected_options)
             cb.setEnabled(not opt_disabled)
             cb.clicked.connect(
                 lambda _, cid=control.id, oid=option.id: self._on_checkbox(cid, oid)
             )
-            layout.addWidget(cb)
+            stack_layout.addWidget(cb)
 
-            # Submenu
             if isinstance(cs.selected_options, list) and option.id in cs.selected_options and option.submenu:
-                self._build_submenu(layout, control.id, option, disabled)
+                self._build_submenu(stack_layout, control.id, option, disabled)
+
+            options_layout.addWidget(opt_stack)
+
+        layout.addWidget(options_row)
 
     def _build_submenu(
         self, layout: QVBoxLayout, parent_control_id: str, option: Option, disabled: bool
@@ -306,8 +675,10 @@ class PromptCrafterWindow(QMainWindow):
         is_radio = option.submenu.kind.startswith("or")
 
         indent = QWidget()
+        indent.setObjectName("submenu_indent")
         indent_layout = QVBoxLayout(indent)
-        indent_layout.setContentsMargins(20, 0, 0, 0)
+        indent_layout.setContentsMargins(12, GAP_SMALL, 0, 0)
+        indent_layout.setSpacing(GAP_SMALL)
 
         for child in option.submenu.options:
             if is_hidden(self.state, child.hidden_bys, child.revealed_bys):
@@ -339,8 +710,10 @@ class PromptCrafterWindow(QMainWindow):
         container = QWidget()
         hlayout = QHBoxLayout(container)
         hlayout.setContentsMargins(0, 0, 0, 0)
+        hlayout.setSpacing(6)
 
         reset_btn = QPushButton("\u21ba")
+        reset_btn.setObjectName("weight_reset")
         reset_btn.setVisible(value != 1)
         reset_btn.clicked.connect(lambda: on_change(1.0))
         hlayout.addWidget(reset_btn)
@@ -350,6 +723,7 @@ class PromptCrafterWindow(QMainWindow):
         slider.setMaximum(50)
         slider.setSingleStep(1)
         slider.setValue(int(value * 10))
+        slider.setFixedWidth(120)
         slider.setAccessibleName("weight")
         slider.valueChanged.connect(lambda v: on_change(v / 10.0))
         hlayout.addWidget(slider)
@@ -407,14 +781,9 @@ class PromptCrafterWindow(QMainWindow):
         if not cs:
             return
         previous = cs.selected_options if isinstance(cs.selected_options, str) else ""
-
-        # Clear previous matches
         if previous and previous != option_id:
             self._clear_global_selector_matches(previous)
-
         cs.selected_options = option_id
-
-        # Apply new matches
         if option_id:
             self._apply_global_selector_matches(control_id, option_id)
         self._rebuild()

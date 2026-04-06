@@ -690,6 +690,23 @@ def render_section(
     return [_apply_weight(part.text, part.weight) for part in merged]
 
 
+def build_section_prompt(
+    schema: Schema,
+    state: State,
+    target: PromptTarget,
+    section_id: str,
+) -> str:
+    section = next((s for s in schema.sections if s.id == section_id), None)
+    if not section:
+        return ""
+    return apply_substitutions(
+        join_parts(render_section(section, schema, state, target)),
+        get_active_substitutions(schema, state),
+        schema,
+        state,
+    )
+
+
 def build_prompt(schema: Schema, state: State, target: PromptTarget) -> str:
     raw = join_parts([
         text
