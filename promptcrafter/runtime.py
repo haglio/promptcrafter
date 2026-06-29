@@ -24,10 +24,6 @@ from promptcrafter.types import (
 ResolutionStack = set[str]
 
 
-def _is_template_text(text: TextValue) -> bool:
-    return isinstance(text, TemplateText)
-
-
 def _normalize_resolved_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 

@@ -34,12 +34,11 @@ from shared_ui.colors import (  # noqa: E402
     TEXT_MUTED,
     TEXT_PRIMARY,
     TEXT_SECONDARY,
-    TOGGLE_KNOB,
     TOGGLE_OFF,
     TOGGLE_ON,
 )
 from shared_ui.fonts import FONT_UI, SIZE_BODY, SIZE_HEADING  # noqa: E402
-from shared_ui.spacing import GAP_MEDIUM, GAP_SMALL, MARGIN_STANDARD  # noqa: E402
+from shared_ui.spacing import GAP_MEDIUM, GAP_SMALL  # noqa: E402
 
 from promptcrafter.runtime import (  # noqa: E402
     apply_substitutions,
@@ -84,7 +83,6 @@ def _build_stylesheet() -> str:
     blue = _qcolor_hex(BLUE)
     tog_on = _qcolor_hex(TOGGLE_ON)
     tog_off = _qcolor_hex(TOGGLE_OFF)
-    tog_knob = _qcolor_hex(TOGGLE_KNOB)
     font = FONT_UI
     sz = SIZE_BODY
 

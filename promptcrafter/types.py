@@ -142,8 +142,6 @@ class SectionState:
 class State:
     controls: dict[str, ControlState]
     sections: dict[str, SectionState]
-    positive_text: str = ""
-    negative_text: str = ""
     positive_mode: Literal["auto", "manual"] = "auto"
     negative_mode: Literal["auto", "manual"] = "auto"
 
