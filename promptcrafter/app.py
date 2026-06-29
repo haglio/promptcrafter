@@ -39,6 +39,7 @@ from shared_ui.colors import (  # noqa: E402
 )
 from shared_ui.fonts import FONT_UI, SIZE_BODY, SIZE_HEADING  # noqa: E402
 from shared_ui.spacing import GAP_MEDIUM, GAP_SMALL  # noqa: E402
+from shared_ui.check_box import CheckBox  # noqa: E402
 
 from promptcrafter.runtime import (  # noqa: E402
     apply_substitutions,
@@ -521,7 +522,7 @@ class PromptCrafterWindow(QMainWindow):
                     continue
                 opt_disabled = disabled or is_disabled(self.state, option.disabled_bys)
                 opt_label = self._display_text(option.text, plural)
-                cb = QCheckBox(opt_label)
+                cb = CheckBox(opt_label)
                 cb.setChecked(isinstance(cs.selected_options, list) and option.id in cs.selected_options)
                 cb.setEnabled(not opt_disabled)
                 cb.clicked.connect(
@@ -645,7 +646,7 @@ class PromptCrafterWindow(QMainWindow):
             stack_layout.setContentsMargins(0, 0, 0, 0)
             stack_layout.setSpacing(GAP_SMALL)
 
-            cb = QCheckBox(opt_label)
+            cb = CheckBox(opt_label)
             cb.setChecked(isinstance(cs.selected_options, list) and option.id in cs.selected_options)
             cb.setEnabled(not opt_disabled)
             cb.clicked.connect(
@@ -694,7 +695,7 @@ class PromptCrafterWindow(QMainWindow):
                 )
                 indent_layout.addWidget(rb)
             else:
-                cb = QCheckBox(child_label)
+                cb = CheckBox(child_label)
                 cb.setChecked(isinstance(submenu_state.selected_options, list) and child.id in submenu_state.selected_options)
                 cb.setEnabled(not child_disabled)
                 cb.clicked.connect(

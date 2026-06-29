@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QCheckBox, QGroupBox, QPushButton, QRadioButton, QSl
 
 from promptcrafter.app import PromptCrafterWindow
 from promptcrafter.types import Control, Option
+from shared_ui.check_box import CheckBox
 from tests.fixtures.test_schema import TEST_SCHEMA
 
 
@@ -405,3 +406,15 @@ class TestGlobalSelector:
         eye_color_section = find_section(app, "details")
         green_radio = find_radio(eye_color_section, "green")
         assert green_radio.isChecked()
+
+
+def test_option_checkboxes_use_the_shared_ticked_checkbox(app):
+    # Every option checkbox must be the shared CheckBox (a real ticked box),
+    # not a plain QCheckBox whose styled indicator renders as a down-caret.
+    # The QSS pill toggles (objectName "toggle_switch") stay QCheckBox.
+    option_boxes = [
+        cb for cb in app.findChildren(QCheckBox)
+        if cb.objectName() != "toggle_switch"
+    ]
+    assert option_boxes  # the test schema renders checkbox options
+    assert all(isinstance(cb, CheckBox) for cb in option_boxes)
