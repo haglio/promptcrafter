@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QApplication,
@@ -21,8 +18,12 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-# shared_ui lives at ../../shared_ui relative to the repo root
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from promptcrafter.paths import ensure_shared_ui_on_path
+
+# shared_ui is imported via sys.path rather than installed; make it importable
+# regardless of checkout depth (normal clone vs .claude/worktrees/<name>).
+ensure_shared_ui_on_path()
+
 from shared_ui.colors import (  # noqa: E402
     BG_BUTTON,
     BG_KEYCAP,
@@ -63,7 +64,6 @@ from promptcrafter.types import (  # noqa: E402
     Option,
     Schema,
     Section,
-    State,
 )
 
 
