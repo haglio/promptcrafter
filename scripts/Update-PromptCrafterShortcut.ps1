@@ -5,7 +5,7 @@ $ShortcutPath = Join-Path $LauncherRoot 'PromptCrafter.lnk'
 $LauncherExe = (Get-Command pythonw).Source
 $LauncherArgs = '-m promptcrafter'
 $IconPath = Join-Path $LauncherRoot 'icon.ico'
-$AppUserModelId = 'Alex.PromptCrafter'
+$AppUserModelId = 'Local.PromptCrafter'
 
 Add-Type -TypeDefinition @"
 using System;

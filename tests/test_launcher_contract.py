@@ -16,7 +16,7 @@ class PromptCrafterLauncherContractTests(unittest.TestCase):
     def test_shortcut_points_at_pythonw(self):
         self.assertIn("pythonw", self.shortcut_script)
         self.assertIn("$LauncherArgs = '-m promptcrafter'", self.shortcut_script)
-        self.assertIn("Alex.PromptCrafter", self.shortcut_script)
+        self.assertIn("Local.PromptCrafter", self.shortcut_script)
 
     def test_app_module_imports_cleanly(self):
         from promptcrafter.app import PromptCrafterWindow
