@@ -81,8 +81,8 @@ schema = Schema(sections=[
                 options=[
                     Option(id="the bucket", text="the bucket"),
                     Option(
-                        id="redacted",
-                        text="redacted",
+                        id="the ladder",
+                        text="the ladder",
                         submenu=Submenu(
                             kind="or-adj",
                             options=[
