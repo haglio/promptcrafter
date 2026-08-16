@@ -37,3 +37,17 @@ def ensure_shared_ui_on_path() -> None:
     root = str(projects_root())
     if root not in sys.path:
         sys.path.append(root)
+
+
+def project_root() -> Path:
+    """The checkout this package lives in, where its assets sit."""
+    return Path(__file__).resolve().parent.parent
+
+
+def icon_path() -> Path:
+    """PromptCrafter's mark, beside the checkout root.
+
+    Named here rather than at the one call site so a worktree finds its own copy
+    -- the same reason :func:`projects_root` walks instead of counting parents.
+    """
+    return project_root() / "icon.ico"
