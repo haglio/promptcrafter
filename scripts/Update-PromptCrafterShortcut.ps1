@@ -2,7 +2,15 @@ $ErrorActionPreference = 'Stop'
 
 $LauncherRoot = Split-Path -Parent $PSScriptRoot
 $ShortcutPath = Join-Path $LauncherRoot 'PromptCrafter.lnk'
-$LauncherExe = (Get-Command pythonw).Source
+# This project's own interpreter, never the one on PATH. A shortcut is how
+# Windows decides what a running process IS: it matches a process against a
+# pinned shortcut whose target is the same executable, and draws that
+# shortcut's icon and name for it. Pinned at the shared C:\PythonXXX\pythonw.exe,
+# this shortcut lent PromptCrafter's mark to every unrelated Python process on
+# the machine -- the tray apps, the broker's workers -- so the task list showed
+# a column of PromptCrafter rows while PromptCrafter had not run in months.
+# An interpreter inside this checkout is claimed by this app and nothing else.
+$LauncherExe = Join-Path $LauncherRoot '.venv\Scripts\pythonw.exe'
 $LauncherArgs = '-m promptcrafter'
 $IconPath = Join-Path $LauncherRoot 'icon.ico'
 $AppUserModelId = 'Local.PromptCrafter'
@@ -149,7 +157,7 @@ public static class ShortcutPropertyWriter
 "@
 
 if (-not (Test-Path -LiteralPath $LauncherExe)) {
-  throw "pythonw.exe was not found on PATH"
+  throw "No interpreter at $LauncherExe -- create the project venv first"
 }
 
 Remove-Item -LiteralPath $ShortcutPath -Force -ErrorAction SilentlyContinue
