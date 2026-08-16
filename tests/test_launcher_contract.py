@@ -18,6 +18,19 @@ class PromptCrafterLauncherContractTests(unittest.TestCase):
         self.assertIn("$LauncherArgs = '-m promptcrafter'", self.shortcut_script)
         self.assertIn("Local.PromptCrafter", self.shortcut_script)
 
+    def test_shortcut_points_at_this_projects_own_interpreter(self):
+        """Windows works out what a running process IS by matching it against a
+        pinned shortcut with the same target, and draws that shortcut's icon for
+        it.  Aimed at the shared system interpreter, this shortcut lent
+        PromptCrafter's mark to every unrelated Python process on the machine --
+        so the task list filled with PromptCrafter rows while PromptCrafter had
+        not run in months.  An interpreter inside the checkout is claimed by this
+        app and nothing else."""
+        self.assertIn(
+            r"$LauncherExe = Join-Path $LauncherRoot '.venv\Scripts\pythonw.exe'",
+            self.shortcut_script)
+        self.assertNotIn("(Get-Command pythonw).Source", self.shortcut_script)
+
     def test_app_module_imports_cleanly(self):
         from promptcrafter.app import PromptCrafterWindow
         self.assertTrue(callable(PromptCrafterWindow))
