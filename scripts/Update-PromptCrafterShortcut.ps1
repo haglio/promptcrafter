@@ -10,7 +10,24 @@ $ShortcutPath = Join-Path $LauncherRoot 'PromptCrafter.lnk'
 # the machine -- the tray apps, the broker's workers -- so the task list showed
 # a column of PromptCrafter rows while PromptCrafter had not run in months.
 # An interpreter inside this checkout is claimed by this app and nothing else.
-$LauncherExe = Join-Path $LauncherRoot '.venv\Scripts\pythonw.exe'
+$PlainExe = Join-Path $LauncherRoot '.venv\Scripts\pythonw.exe'
+# Prefer the copy that describes itself. Windows takes what it shows about a
+# process -- the task list's name, its description, the icon beside it -- from
+# the file the process was started from, so a shortcut aimed at a bare
+# interpreter leaves PromptCrafter as one more anonymous "Python" row. The app
+# makes that copy on every run (promptcrafter.process_name); this asks it to
+# make one NOW, so the shortcut can point at something that already exists.
+$NamedExe = $null
+if (Test-Path -LiteralPath $PlainExe) {
+  & $PlainExe -c "from promptcrafter.process_name import name_this_process; name_this_process()" 2>$null
+  $NamedExe = Join-Path $LauncherRoot ('.venv\Scripts\' + (& $PlainExe -m promptcrafter.process_name))
+}
+if ($NamedExe -and (Test-Path -LiteralPath $NamedExe)) {
+  $LauncherExe = $NamedExe
+} else {
+  # A venv that would not take the copy costs the name and nothing else.
+  $LauncherExe = $PlainExe
+}
 $LauncherArgs = '-m promptcrafter'
 $IconPath = Join-Path $LauncherRoot 'icon.ico'
 $AppUserModelId = 'Local.PromptCrafter'

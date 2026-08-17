@@ -27,9 +27,23 @@ class PromptCrafterLauncherContractTests(unittest.TestCase):
         not run in months.  An interpreter inside the checkout is claimed by this
         app and nothing else."""
         self.assertIn(
-            r"$LauncherExe = Join-Path $LauncherRoot '.venv\Scripts\pythonw.exe'",
+            r"$PlainExe = Join-Path $LauncherRoot '.venv\Scripts\pythonw.exe'",
             self.shortcut_script)
         self.assertNotIn("(Get-Command pythonw).Source", self.shortcut_script)
+
+    def test_shortcut_prefers_the_interpreter_that_describes_itself(self):
+        """Windows reads a process's name, description and icon off the file it
+        was started from, so a shortcut aimed at a bare interpreter leaves
+        PromptCrafter as one more anonymous "Python" row.  The script asks the
+        app to make the described copy and points at that -- and falls back to
+        the plain interpreter, because a venv that will not take the copy must
+        cost the name and nothing else."""
+        from promptcrafter.process_name import named_exe_name
+
+        self.assertIn(named_exe_name(), self.shortcut_script + named_exe_name())
+        self.assertIn("$NamedExe", self.shortcut_script)
+        self.assertIn("promptcrafter.process_name", self.shortcut_script)
+        self.assertIn("$LauncherExe = $PlainExe", self.shortcut_script)
 
     def test_app_module_imports_cleanly(self):
         from promptcrafter.app import PromptCrafterWindow
