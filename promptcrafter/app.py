@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -41,6 +42,7 @@ from shared_ui.colors import (  # noqa: E402
 from shared_ui.fonts import FONT_UI, SIZE_BODY, SIZE_HEADING  # noqa: E402
 from shared_ui.spacing import GAP_MEDIUM, GAP_SMALL  # noqa: E402
 from shared_ui.check_box import CheckBox  # noqa: E402
+from shared_ui.icons import glyph_pixmap  # noqa: E402
 
 from promptcrafter.runtime import (  # noqa: E402
     apply_substitutions,
@@ -65,6 +67,32 @@ from promptcrafter.types import (  # noqa: E402
     Schema,
     Section,
 )
+
+
+# The copy button's mark, at the size its 22px square leaves room for.
+_COPY_ICON = 14
+
+
+def _copy_button(accessible_name: str) -> QPushButton:
+    """A copy button wearing the family's two-overlapping-sheets mark.
+
+    It was the clipboard emoji, which is a picture out of whatever font Windows
+    resolves it to -- a different drawing at a different weight from the copy
+    buttons in Origenerator and Fun Time, which the user has open beside this.
+
+    Two renderings rather than one: Qt swaps to the Active pixmap while the
+    cursor is over the button, which is how the stylesheet's hover brightening
+    used to reach the glyph back when the glyph was text.
+    """
+    button = QPushButton()
+    button.setObjectName("copy_button")
+    button.setAccessibleName(accessible_name)
+    icon = QIcon()
+    icon.addPixmap(glyph_pixmap("copy", _COPY_ICON, TEXT_MUTED), QIcon.Mode.Normal)
+    icon.addPixmap(glyph_pixmap("copy", _COPY_ICON, TEXT_SECONDARY), QIcon.Mode.Active)
+    button.setIcon(icon)
+    button.setIconSize(QSize(_COPY_ICON, _COPY_ICON))
+    return button
 
 
 def _qcolor_hex(c) -> str:
@@ -306,9 +334,7 @@ class PromptCrafterWindow(QMainWindow):
         hlayout.setContentsMargins(0, 0, 0, 0)
         hlayout.setSpacing(12)
 
-        copy_btn = QPushButton("\U0001f4cb")
-        copy_btn.setObjectName("copy_button")
-        copy_btn.setAccessibleName("Copy prompt")
+        copy_btn = _copy_button("Copy prompt")
         copy_btn.clicked.connect(lambda: self._copy_to_clipboard(text_edit.toPlainText()))
         hlayout.addWidget(copy_btn)
 
@@ -385,9 +411,7 @@ class PromptCrafterWindow(QMainWindow):
         actions_layout.setContentsMargins(0, 0, 0, GAP_MEDIUM)
         actions_layout.setSpacing(GAP_MEDIUM)
 
-        copy_btn = QPushButton("\U0001f4cb")
-        copy_btn.setObjectName("copy_button")
-        copy_btn.setAccessibleName("Copy section")
+        copy_btn = _copy_button("Copy section")
         copy_btn.clicked.connect(
             lambda sid=section.id: self._copy_section_prompt(sid)
         )
