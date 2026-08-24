@@ -17,46 +17,49 @@ def app(qtbot):
     return window
 
 
-def find_checkbox(container, label):
+# Each of these comes in two names for one look-up: `find_` for a control that
+# has to be there (missing is the failure, and says so), `query_` for one whose
+# absence is what a test is checking. Same body -- the pair used to be the same
+# loop written twice.
+
+
+def find_checkbox(container, label, *, required=True):
     for cb in container.findChildren(QCheckBox):
         if cb.text() == label or cb.accessibleName() == label:
             return cb
-    raise AssertionError(f"No QCheckBox with label '{label}'")
+    if required:
+        raise AssertionError(f"No QCheckBox with label '{label}'")
+    return None
 
 
 def query_checkbox(container, label):
-    for cb in container.findChildren(QCheckBox):
-        if cb.text() == label or cb.accessibleName() == label:
-            return cb
-    return None
+    return find_checkbox(container, label, required=False)
 
 
-def find_radio(container, label):
+def find_radio(container, label, *, required=True):
     for rb in container.findChildren(QRadioButton):
         if rb.text() == label:
             return rb
-    raise AssertionError(f"No QRadioButton with label '{label}'")
+    if required:
+        raise AssertionError(f"No QRadioButton with label '{label}'")
+    return None
 
 
 def query_radio(container, label):
-    for rb in container.findChildren(QRadioButton):
-        if rb.text() == label:
-            return rb
-    return None
+    return find_radio(container, label, required=False)
 
 
-def find_section(app, heading_text):
+def find_section(app, heading_text, *, required=True):
     for gb in app.findChildren(QGroupBox):
         if gb.title() == heading_text:
             return gb
-    raise AssertionError(f"No section with heading '{heading_text}'")
+    if required:
+        raise AssertionError(f"No section with heading '{heading_text}'")
+    return None
 
 
 def query_section(app, heading_text):
-    for gb in app.findChildren(QGroupBox):
-        if gb.title() == heading_text:
-            return gb
-    return None
+    return find_section(app, heading_text, required=False)
 
 
 def find_slider(container):
