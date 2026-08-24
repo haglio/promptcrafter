@@ -23,6 +23,28 @@ def app(qtbot):
 # loop written twice.
 
 
+@pytest.fixture()
+def window_with_a_toggle(qtbot):
+    """Build a window whose second section leads with a multi-option toggle.
+
+    The four toggle tests differ only in which of its options start selected,
+    which was being spelled out in full four times.
+    """
+    def build(initially_selected_options=None):
+        schema = copy.deepcopy(TEST_SCHEMA)
+        schema.sections[1].controls.insert(0, Control(
+            id="texture pack", text="texture pack", kind="toggle",
+            initially_selected_options=initially_selected_options,
+            options=[Option(id="oak", text="oak"), Option(id="pine", text="pine")],
+        ))
+        window = PromptCrafterWindow(schema)
+        qtbot.addWidget(window)
+        window.show()
+        return window
+
+    return build
+
+
 def find_checkbox(container, label, *, required=True):
     for cb in container.findChildren(QCheckBox):
         if cb.text() == label or cb.accessibleName() == label:
@@ -110,31 +132,16 @@ class TestUpdatingPrompts:
 
 
 class TestToggleControls:
-    def test_keeps_multi_option_toggles_off_initially(self, qtbot):
-        schema = copy.deepcopy(TEST_SCHEMA)
-        schema.sections[1].controls.insert(0, Control(
-            id="texture pack", text="texture pack", kind="toggle",
-            initially_selected_options=["oak"],
-            options=[Option(id="oak", text="oak"), Option(id="pine", text="pine")],
-        ))
-        window = PromptCrafterWindow(schema)
-        qtbot.addWidget(window)
-        window.show()
+    def test_keeps_multi_option_toggles_off_initially(self, window_with_a_toggle):
+        window = window_with_a_toggle(initially_selected_options=["oak"])
 
         toggle = find_checkbox(window, "texture pack")
         assert not toggle.isChecked()
         assert query_checkbox(window, "oak") is None
         assert window.positive_prompt.toPlainText() == "space robo dino demon monster"
 
-    def test_shows_options_when_toggle_turned_on(self, qtbot):
-        schema = copy.deepcopy(TEST_SCHEMA)
-        schema.sections[1].controls.insert(0, Control(
-            id="texture pack", text="texture pack", kind="toggle",
-            options=[Option(id="oak", text="oak"), Option(id="pine", text="pine")],
-        ))
-        window = PromptCrafterWindow(schema)
-        qtbot.addWidget(window)
-        window.show()
+    def test_shows_options_when_toggle_turned_on(self, window_with_a_toggle):
+        window = window_with_a_toggle()
 
         assert query_checkbox(window, "oak") is None
         find_checkbox(window, "texture pack").click()
@@ -143,16 +150,8 @@ class TestToggleControls:
         assert find_checkbox(window, "pine").isChecked()
         assert window.positive_prompt.toPlainText() == "space robo dino demon monster, oak, pine"
 
-    def test_uses_initial_option_defaults_when_turned_on(self, qtbot):
-        schema = copy.deepcopy(TEST_SCHEMA)
-        schema.sections[1].controls.insert(0, Control(
-            id="texture pack", text="texture pack", kind="toggle",
-            initially_selected_options=["oak"],
-            options=[Option(id="oak", text="oak"), Option(id="pine", text="pine")],
-        ))
-        window = PromptCrafterWindow(schema)
-        qtbot.addWidget(window)
-        window.show()
+    def test_uses_initial_option_defaults_when_turned_on(self, window_with_a_toggle):
+        window = window_with_a_toggle(initially_selected_options=["oak"])
 
         find_checkbox(window, "texture pack").click()
 
@@ -160,15 +159,8 @@ class TestToggleControls:
         assert not find_checkbox(window, "pine").isChecked()
         assert window.positive_prompt.toPlainText() == "space robo dino demon monster, oak"
 
-    def test_preserves_narrowed_selection_across_off_on(self, qtbot):
-        schema = copy.deepcopy(TEST_SCHEMA)
-        schema.sections[1].controls.insert(0, Control(
-            id="texture pack", text="texture pack", kind="toggle",
-            options=[Option(id="oak", text="oak"), Option(id="pine", text="pine")],
-        ))
-        window = PromptCrafterWindow(schema)
-        qtbot.addWidget(window)
-        window.show()
+    def test_preserves_narrowed_selection_across_off_on(self, window_with_a_toggle):
+        window = window_with_a_toggle()
 
         find_checkbox(window, "texture pack").click()
         find_checkbox(window, "pine").click()
