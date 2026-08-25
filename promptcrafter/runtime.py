@@ -526,9 +526,7 @@ def _render_control_segments(
         for opt in selected
     ]
 
-    if control.kind == "and-commas":
-        combined = ", ".join(option_values)
-    elif control.kind == "and-commas-adj":
+    if control.kind == "and-commas-adj":
         combined = ", ".join(
             f"{option_values[i]} {_get_control_text(control, schema, state, selected[i], stack)}"
             for i in range(len(selected))
@@ -540,7 +538,7 @@ def _render_control_segments(
         )
     elif control.kind == "and-spaces-adj":
         combined = f"{' '.join(option_values)} {_get_control_text(control, schema, state, selected[0], stack)}"
-    else:
+    else:  # and-commas
         combined = ", ".join(option_values)
 
     combined = _append_supplements(combined.strip(), control, schema, state, stack)
