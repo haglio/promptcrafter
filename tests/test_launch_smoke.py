@@ -1,18 +1,16 @@
 """The launch smoke test: everything ``pythonw -m promptcrafter`` imports.
 
 The suite can be entirely green while the shortcut does nothing, and the reason
-is the interpreter. ``tests/conftest.py`` puts ``shared_ui`` on ``sys.path`` and
-renders Qt offscreen before the first test module is collected, and pytest runs
-on this repo's ``.venv``. The shortcut does neither and uses neither: it targets
-whichever ``pythonw`` is first on PATH -- ``Update-PromptCrafterShortcut.ps1``
-resolves it with ``Get-Command pythonw`` -- with the repo root as its working
-directory and nothing else. A module that imports cleanly under the venv the
-suite happens to use can therefore fail under the interpreter that actually
-launches, and the window simply never appears; ``pythonw`` has no console, so
-nothing anywhere records why.
+is the setup around it. ``tests/conftest.py`` puts ``shared_ui`` on ``sys.path``
+and renders Qt offscreen before the first test module is collected. The shortcut
+does neither: it starts ``.venv\\Scripts\\pythonw.exe`` inside this checkout with
+the repo root as its working directory and nothing else. A module that imports
+cleanly under the suite's arrangements can therefore fail at launch, and the
+window simply never appears; ``pythonw`` has no console, so nothing anywhere
+records why.
 
-So this drives the launch's import phase under that interpreter, from that
-working directory, with no inherited ``PYTHONPATH``.
+So this replays the launch's import phase in a fresh process: the interpreter the
+shortcut starts, that working directory, and no inherited ``PYTHONPATH``.
 
 ``__main__.py`` *is* the whole launch here -- it builds the QApplication and the
 window at module level -- so its imports are the launch's imports. They come off
@@ -25,10 +23,7 @@ from __future__ import annotations
 import ast
 import os
 import subprocess
-import shutil
 import sys
-
-import pytest
 
 from pathlib import Path
 
@@ -132,24 +127,36 @@ def _launch_imports(package: str, launch_files) -> list[str]:
     return statements
 
 
-def _the_shortcuts_interpreter() -> str | None:
-    """``Get-Command pythonw`` is how the shortcut script picks its target, so
-    the first ``pythonw`` on PATH is what the icon really runs -- not this
-    repo's venv, and not the ``python.exe`` running pytest."""
-    return shutil.which("pythonw")
+def _the_launchs_interpreter(repo_root: Path = REPO_ROOT) -> Path:
+    """The interpreter to replay the launch under.
+
+    The shortcut's own, where this checkout has one: the ``.ps1`` targets
+    ``.venv\\Scripts\\pythonw.exe`` beside the repo, this project's interpreter
+    and never PATH's, and the named copy it prefers is a copy of that same file
+    in that same directory -- so either way the site-packages are this venv's.
+    ``pythonw`` has no stdout or stderr to capture, so its console twin next to
+    it stands in and the traceback is readable.
+
+    A checkout with no venv of its own -- CI installs into the runner's Python
+    -- falls back to the interpreter running the suite, which is the one this
+    package is installed into. What must never stand in is a third interpreter
+    off PATH, whose site-packages belong to neither the launch nor the suite.
+    """
+    for console in (
+        repo_root / ".venv" / "Scripts" / "python.exe",
+        repo_root / ".venv" / "bin" / "python",
+    ):
+        if console.exists():
+            return console
+    return Path(sys.executable)
 
 
 def _run_the_launchs_way(statements: list[str]) -> subprocess.CompletedProcess:
     env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
     env["QT_QPA_PLATFORM"] = "offscreen"
 
-    # pythonw has no stdout or stderr to capture, so the console build of the
-    # same interpreter stands in -- same install, same site-packages, and a
-    # traceback we can actually read.
-    interpreter = Path(_the_shortcuts_interpreter()).with_name("python.exe")
-
     return subprocess.run(
-        [str(interpreter), "-c", "\n".join(statements)],
+        [str(_the_launchs_interpreter()), "-c", "\n".join(statements)],
         cwd=REPO_ROOT,
         env=env,
         capture_output=True,
@@ -157,18 +164,37 @@ def _run_the_launchs_way(statements: list[str]) -> subprocess.CompletedProcess:
     )
 
 
-needs_the_shortcuts_interpreter = pytest.mark.skipif(
-    _the_shortcuts_interpreter() is None, reason="no pythonw on PATH for the shortcut"
-)
-
-
-@needs_the_shortcuts_interpreter
 def test_the_launch_imports_everything_it_names():
     """Failing here means the shortcut does nothing at all: pythonw has no
     console, so the traceback goes nowhere and no window appears."""
     result = _run_the_launchs_way(_launch_imports(PACKAGE, LAUNCH_FILES))
 
     assert result.returncode == 0, result.stderr
+
+
+def test_the_replay_takes_the_venv_the_shortcut_starts(tmp_path):
+    """Which interpreter the replay picks is the whole premise of this file, so
+    it is pinned here rather than left for a reader to work out -- nothing else
+    goes red when the helper and the shortcut script drift apart."""
+    scripts = tmp_path / ".venv" / "Scripts"
+    scripts.mkdir(parents=True)
+    (scripts / "python.exe").touch()
+
+    assert _the_launchs_interpreter(tmp_path) == scripts / "python.exe"
+
+
+def test_the_replay_takes_a_posix_venv_the_same_way(tmp_path):
+    bin_dir = tmp_path / ".venv" / "bin"
+    bin_dir.mkdir(parents=True)
+    (bin_dir / "python").touch()
+
+    assert _the_launchs_interpreter(tmp_path) == bin_dir / "python"
+
+
+def test_the_replay_falls_back_to_the_interpreter_running_the_suite(tmp_path):
+    """A checkout with no venv of its own is CI's shape, and the two tests that
+    replay the launch have to keep running there rather than skipping away."""
+    assert _the_launchs_interpreter(tmp_path) == Path(sys.executable)
 
 
 def test_the_walk_reaches_what_the_launch_is_made_of():
@@ -178,7 +204,6 @@ def test_the_walk_reaches_what_the_launch_is_made_of():
         assert module in found, f"the launch imports {module}; the walk missed it"
 
 
-@needs_the_shortcuts_interpreter
 def test_a_launch_import_that_cannot_resolve_fails_here():
     """A negative control: if the subprocess reported success regardless, every
     assertion above would pass vacuously and the guard would be decorative."""
