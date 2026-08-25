@@ -2,6 +2,7 @@ import copy
 
 import pytest
 from PyQt6.QtWidgets import (
+    QApplication,
     QCheckBox,
     QGroupBox,
     QPushButton,
@@ -116,6 +117,26 @@ def find_button(container, label):
         if btn.text() == label and not btn.isHidden():
             return btn
     return None
+
+
+def find_mode_button(prompt):
+    """The auto/manual button beside one prompt.
+
+    Its label names the mode it switches *to*, so both prompts' buttons read
+    "manual" at load; the object name is what separates it from the copy button
+    sitting next to it.
+    """
+    for btn in prompt.parent().findChildren(QPushButton):
+        if btn.objectName().startswith("mode_toggle_"):
+            return btn
+    raise AssertionError("No mode button beside the prompt")
+
+
+def find_copy_button(container):
+    for btn in container.findChildren(QPushButton):
+        if btn.objectName() == "copy_button":
+            return btn
+    raise AssertionError("No copy button in this container")
 
 
 def find_label_widget(container, label_text):
@@ -459,6 +480,87 @@ class TestGlobalSelector:
         assert not find_radio(find_control(app, "eye color"), "green").isChecked()
         assert not find_checkbox(find_control(app, "render style"), "green tinted").isChecked()
         assert app.positive_prompt.toPlainText() == "space robo dino demon monster"
+
+
+class TestPromptMode:
+    def test_manual_hands_the_prompt_over(self, app):
+        assert app.positive_prompt.isReadOnly()
+
+        find_mode_button(app.positive_prompt).click()
+
+        assert app.state.positive_mode == "manual"
+        assert not app.positive_prompt.isReadOnly()
+
+    def test_manual_leaves_what_was_typed_alone(self, app):
+        find_mode_button(app.positive_prompt).click()
+        app.positive_prompt.setPlainText("a prompt of my own")
+
+        find_radio(app, "bone").click()
+
+        assert app.positive_prompt.toPlainText() == "a prompt of my own"
+
+    def test_auto_takes_the_prompt_back_and_rewrites_it(self, app):
+        button = find_mode_button(app.positive_prompt)
+        button.click()
+        app.positive_prompt.setPlainText("a prompt of my own")
+        find_radio(app, "bone").click()
+
+        button.click()
+
+        assert app.positive_prompt.isReadOnly()
+        assert app.positive_prompt.toPlainText() == "space robo dino demon monster, bone armor"
+
+    def test_each_prompt_switches_on_its_own(self, app):
+        find_mode_button(app.positive_prompt).click()
+
+        assert app.state.negative_mode == "auto"
+        assert app.negative_prompt.isReadOnly()
+
+
+class TestCopying:
+    def test_the_copy_button_copies_the_prompt_beside_it(self, app):
+        find_radio(app, "bone").click()
+
+        find_copy_button(app.positive_prompt.parent()).click()
+
+        assert QApplication.clipboard().text() == "space robo dino demon monster, bone armor"
+
+    def test_each_prompt_has_its_own_copy_button(self, app):
+        find_copy_button(app.negative_prompt.parent()).click()
+
+        assert QApplication.clipboard().text() == "no clutter, blurry"
+
+    def test_a_sections_copy_button_copies_nothing(self, app):
+        """What the section copy buttons do today: clear the clipboard.
+
+        ``clicked`` carries a bool, and the lambda behind these buttons names
+        the section id as its first parameter with a default, so Qt's
+        ``checked`` lands there instead: the handler is called with ``False``,
+        matches no section, and copies an empty string. Recorded 2026-08-25 and
+        held unfixed. The two tests below pin the copy itself, which is sound.
+        """
+        find_copy_button(find_section(app, "negative modes")).click()
+
+        assert QApplication.clipboard().text() == ""
+
+    def test_the_section_copy_takes_its_target_from_the_section(self, app):
+        # Called with the id the button above fails to pass. This section
+        # renders into the negative prompt, so a copy that assumed positive
+        # would come back empty.
+        app._copy_section_prompt("negative modes")
+
+        assert QApplication.clipboard().text() == "no clutter"
+
+    def test_the_section_copy_leaves_the_other_sections_out(self, app):
+        find_radio(app, "bone").click()
+        find_radio(find_control(app, "eye color"), "green").click()
+
+        app._copy_section_prompt("subject-core")
+
+        assert app.positive_prompt.toPlainText() == (
+            "space robo dino demon monster, bone armor, green"
+        )
+        assert QApplication.clipboard().text() == "space robo dino demon monster, bone armor"
 
 
 def test_option_checkboxes_use_the_shared_ticked_checkbox(app):
