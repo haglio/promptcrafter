@@ -164,14 +164,6 @@ def _run_the_launchs_way(statements: list[str]) -> subprocess.CompletedProcess:
     )
 
 
-def test_the_launch_imports_everything_it_names():
-    """Failing here means the shortcut does nothing at all: pythonw has no
-    console, so the traceback goes nowhere and no window appears."""
-    result = _run_the_launchs_way(_launch_imports(PACKAGE, LAUNCH_FILES))
-
-    assert result.returncode == 0, result.stderr
-
-
 def test_the_replay_takes_the_venv_the_shortcut_starts(tmp_path):
     """Which interpreter the replay picks is the whole premise of this file, so
     it is pinned here rather than left for a reader to work out -- nothing else
@@ -195,6 +187,14 @@ def test_the_replay_falls_back_to_the_interpreter_running_the_suite(tmp_path):
     """A checkout with no venv of its own is CI's shape, and the two tests that
     replay the launch have to keep running there rather than skipping away."""
     assert _the_launchs_interpreter(tmp_path) == Path(sys.executable)
+
+
+def test_the_launch_imports_everything_it_names():
+    """Failing here means the shortcut does nothing at all: pythonw has no
+    console, so the traceback goes nowhere and no window appears."""
+    result = _run_the_launchs_way(_launch_imports(PACKAGE, LAUNCH_FILES))
+
+    assert result.returncode == 0, result.stderr
 
 
 def test_the_walk_reaches_what_the_launch_is_made_of():
