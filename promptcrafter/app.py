@@ -487,7 +487,7 @@ class PromptCrafterWindow(QMainWindow):
         hlayout.addWidget(control_label)
         hlayout.addStretch()
 
-        if control.kind != "or-prefix" and self._control_has_selection(control):
+        if control.kind != "or-prefix" and control_has_at_least_one_selected_option(control, self.state):
             weight_row = self._build_weight_widget(
                 cs.weight,
                 lambda w, cid=control.id: self._set_control_weight(cid, w),
@@ -550,7 +550,7 @@ class PromptCrafterWindow(QMainWindow):
                 cb.setChecked(isinstance(cs.selected_options, list) and option.id in cs.selected_options)
                 cb.setEnabled(not opt_disabled)
                 cb.clicked.connect(
-                    lambda _, cid=control.id, oid=option.id: self._on_toggle_check(cid, oid)
+                    lambda _, cid=control.id, oid=option.id: self._on_checkbox(cid, oid)
                 )
                 opts_layout.addWidget(cb)
 
@@ -786,9 +786,6 @@ class PromptCrafterWindow(QMainWindow):
         cs.enabled = checked
         self._rebuild()
 
-    def _on_toggle_check(self, control_id: str, option_id: str) -> None:
-        self._on_checkbox(control_id, option_id)
-
     def _on_global_selector_toggle(self, control_id: str, checked: bool) -> None:
         cs = self.state.controls.get(control_id)
         if not cs:
@@ -893,9 +890,6 @@ class PromptCrafterWindow(QMainWindow):
 
     def _section_has_selection(self, section: Section) -> bool:
         return any(control_has_at_least_one_selected_option(c, self.state) for c in section.controls)
-
-    def _control_has_selection(self, control: Control) -> bool:
-        return control_has_at_least_one_selected_option(control, self.state)
 
     def _rebuild(self) -> None:
         self._build_sections()
