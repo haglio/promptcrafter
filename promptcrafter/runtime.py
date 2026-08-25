@@ -28,15 +28,11 @@ def _normalize_resolved_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def _escape_regex(source: str) -> str:
-    return re.escape(source)
-
-
 def _replace_whole_word(input_text: str, from_text: str, to_text: str) -> str:
     trimmed = from_text.strip()
     if not trimmed:
         return input_text
-    return re.sub(rf"\b{_escape_regex(trimmed)}\b", to_text, input_text, flags=re.IGNORECASE)
+    return re.sub(rf"\b{re.escape(trimmed)}\b", to_text, input_text, flags=re.IGNORECASE)
 
 
 def is_subject_plural(state: State) -> bool:
@@ -202,16 +198,6 @@ def get_text_value(
     return ""
 
 
-def get_item_text(
-    item_text: TextValue,
-    is_plural: bool,
-    schema: Schema | None = None,
-    state: State | None = None,
-    stack: ResolutionStack | None = None,
-) -> str:
-    return get_text_value(item_text, is_plural, schema, state, stack)
-
-
 def get_option_text(
     option: Option,
     is_plural: bool,
@@ -219,7 +205,7 @@ def get_option_text(
     state: State | None = None,
     stack: ResolutionStack | None = None,
 ) -> str:
-    return get_item_text(option.text, is_plural, schema, state, stack)
+    return get_text_value(option.text, is_plural, schema, state, stack)
 
 
 def get_active_substitutions(schema: Schema, state: State) -> list[GlobalSubstitution]:
