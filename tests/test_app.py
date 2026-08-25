@@ -25,12 +25,6 @@ def app(qtbot):
     return window
 
 
-# Each of these comes in two names for one look-up: `find_` for a control that
-# has to be there (missing is the failure, and says so), `query_` for one whose
-# absence is what a test is checking. Same body -- the pair used to be the same
-# loop written twice.
-
-
 @pytest.fixture()
 def window_with_a_toggle(qtbot):
     """Build a window whose second section leads with a multi-option toggle.
@@ -51,6 +45,12 @@ def window_with_a_toggle(qtbot):
         return window
 
     return build
+
+
+# Each of these comes in two names for one look-up: `find_` for a control that
+# has to be there (missing is the failure, and says so), `query_` for one whose
+# absence is what a test is checking. Same body -- the pair used to be the same
+# loop written twice.
 
 
 def find_checkbox(container, label, *, required=True):
