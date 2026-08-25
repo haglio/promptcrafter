@@ -1,7 +1,14 @@
 import copy
 
 import pytest
-from PyQt6.QtWidgets import QCheckBox, QGroupBox, QPushButton, QRadioButton, QSlider
+from PyQt6.QtWidgets import (
+    QCheckBox,
+    QGroupBox,
+    QPushButton,
+    QRadioButton,
+    QSlider,
+    QWidget,
+)
 
 from promptcrafter.app import PromptCrafterWindow
 from promptcrafter.types import Control, Option
@@ -82,6 +89,21 @@ def find_section(app, heading_text, *, required=True):
 
 def query_section(app, heading_text):
     return find_section(app, heading_text, required=False)
+
+
+def find_control(app, control_id):
+    """The widget one control's rows are built into.
+
+    ``control_id`` is a property of that container and of nothing else, so it is
+    the only way to ask what *one* control shows. Searching the window instead
+    answers about every control at once: the fixture spells "green" in three
+    places, so a window-wide count of green radios says the same thing whether
+    the selector built any or not.
+    """
+    for widget in app.findChildren(QWidget):
+        if widget.property("control_id") == control_id:
+            return widget
+    raise AssertionError(f"No control container for '{control_id}'")
 
 
 def find_slider(container):
@@ -371,36 +393,72 @@ class TestWeights:
 
 
 class TestGlobalSelector:
+    """One control that reaches across the window and sets the others.
+
+    Every look-up here is scoped to a single control's container. The window
+    rebuilds on each click, so the container is fetched again after one.
+    """
+
+    def _click_the_toggle(self, app):
+        find_checkbox(find_control(app, "colorize"), "colorize").click()
+
+    def _choose(self, app, option_label):
+        find_radio(find_control(app, "colorize"), option_label).click()
+
     def test_hides_options_while_off(self, app):
-        toggle = find_checkbox(app, "colorize")
-        assert not toggle.isChecked()
-        assert query_radio(app, "green") is None or not any(
-            rb.parent() and rb.parent().property("control_id") == "colorize"
-            for rb in app.findChildren(QRadioButton)
-            if rb.text() == "green"
+        colorize = find_control(app, "colorize")
+
+        assert not find_checkbox(colorize, "colorize").isChecked()
+        assert query_radio(colorize, "green") is None
+        assert query_radio(colorize, "black") is None
+
+    def test_shows_options_when_turned_on(self, app):
+        self._click_the_toggle(app)
+
+        colorize = find_control(app, "colorize")
+        assert find_checkbox(colorize, "colorize").isChecked()
+        assert find_radio(colorize, "green").isEnabled()
+        assert find_radio(colorize, "black").isEnabled()
+
+    def test_selects_the_same_option_in_every_other_control(self, app):
+        self._click_the_toggle(app)
+        self._choose(app, "green")
+
+        assert find_radio(find_control(app, "eye color"), "green").isChecked()
+        assert app.positive_prompt.toPlainText() == (
+            "space robo dino demon monster, green, green tinted render style"
         )
 
-    def test_shows_options_when_turned_on(self, qtbot, app):
-        find_checkbox(app, "colorize").click()
+    def test_reaches_options_that_merely_contain_the_chosen_id(self, app):
+        # Matching is a substring test rather than an id comparison, so
+        # choosing "green" also ticks "green tinted". Held as a finding at the
+        # owner's decision (2026-08-25); this pins what it does today so the
+        # decision to change it has to be a deliberate one.
+        self._click_the_toggle(app)
+        self._choose(app, "green")
 
-        # Should now have radio buttons for green and black under the colorize control
-        assert find_checkbox(app, "colorize").isChecked()
-        # The global selector radios should now be visible
-        radios = [rb for rb in app.findChildren(QRadioButton) if rb.text() in ("green", "black")]
-        assert len(radios) >= 2
+        assert find_checkbox(find_control(app, "render style"), "green tinted").isChecked()
 
-    def test_selects_matching_options_in_radio_controls(self, qtbot, app):
-        find_checkbox(app, "colorize").click()
-        # Find the green radio in the global selector (not the eye color one)
-        # After turning on, click green
-        green_radios = [rb for rb in app.findChildren(QRadioButton) if rb.text() == "green"]
-        # Click the first green radio that belongs to the colorize control area
-        green_radios[0].click()
+    def test_choosing_another_option_releases_the_first(self, app):
+        self._click_the_toggle(app)
+        self._choose(app, "green")
+        self._choose(app, "black")
 
-        # Now the eye color control's "green" radio should be checked
-        eye_color_section = find_section(app, "details")
-        green_radio = find_radio(eye_color_section, "green")
-        assert green_radio.isChecked()
+        assert find_radio(find_control(app, "eye color"), "black").isChecked()
+        assert not find_radio(find_control(app, "eye color"), "green").isChecked()
+        assert not find_checkbox(find_control(app, "render style"), "green tinted").isChecked()
+        assert app.positive_prompt.toPlainText() == (
+            "space robo dino demon monster, black, black and white render style"
+        )
+
+    def test_turning_it_off_clears_everything_it_selected(self, app):
+        self._click_the_toggle(app)
+        self._choose(app, "green")
+        self._click_the_toggle(app)
+
+        assert not find_radio(find_control(app, "eye color"), "green").isChecked()
+        assert not find_checkbox(find_control(app, "render style"), "green tinted").isChecked()
+        assert app.positive_prompt.toPlainText() == "space robo dino demon monster"
 
 
 def test_option_checkboxes_use_the_shared_ticked_checkbox(app):
