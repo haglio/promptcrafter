@@ -518,6 +518,16 @@ class TestPromptMode:
 
 
 class TestCopying:
+    @pytest.fixture(autouse=True)
+    def _nothing_copied_yet(self, app):
+        """Put something on the clipboard that no test here expects.
+
+        The clipboard is one object for the whole process, and two of these
+        tests copy the same text, so without this a test could be reading what
+        the test before it left there -- the suite is also run shuffled.
+        """
+        QApplication.clipboard().setText("nothing has been copied yet")
+
     def test_the_copy_button_copies_the_prompt_beside_it(self, app):
         find_radio(app, "bone").click()
 
