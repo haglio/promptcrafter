@@ -13,6 +13,38 @@ a `.claude/worktrees/<name>` checkout whose root path contains `.claude`, so
 *everything* — the scan becomes a no-op that always passes and hides real dead
 code. See the test's module docstring for the full rationale.
 
+### A script run by path imports the *primary* checkout, not your worktree
+
+The venv carries an editable install of `promptcrafter` pointing at
+`~/workspace/Haglio/promptcrafter` — the primary checkout, i.e. `main`. Python
+puts the *script's own directory* on `sys.path`, not the cwd, so
+`python /tmp/probe.py` from inside a worktree resolves `import promptcrafter` to
+the primary checkout and your edits are invisible. Nothing errors; the probe
+just answers about `main`.
+
+This is worse than it sounds, because the failure looks like success: a
+differential harness comparing "before" against "after" reports zero differences
+and you conclude the refactor is safe. That happened on 2026-08-30 — the sweep
+said 171,960 states identical, and it was comparing `main` against a file, with
+the working tree not loaded at all. It was caught only by a negative control (a
+deliberate one-line break that the harness should have flagged and didn't).
+
+So, in any throwaway script:
+
+```python
+import sys
+WORKTREE = "/Users/.../promptcrafter/.claude/worktrees/<name>"
+sys.path.insert(0, WORKTREE)          # before importing promptcrafter
+import promptcrafter
+assert promptcrafter.__file__.startswith(WORKTREE)
+```
+
+`python -c` from the worktree root is fine (cwd is on the path) and so is
+pytest (rootdir goes on the path), which is why the suite never sees this.
+**And always give a differential harness a negative control** — break something
+on purpose once and check the harness notices. A comparison tool that cannot
+fail is not evidence.
+
 ## Test fixtures must be fabricated, never copied from the real library
 
 Every fixture value that stands in for library data — a video title, a filename,
