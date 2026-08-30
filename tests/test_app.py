@@ -593,7 +593,7 @@ class TestPromptMode:
 
         find_mode_button(app.positive_prompt).click()
 
-        assert app.state.positive_mode == "manual"
+        assert app.state.modes["positive"] == "manual"
         assert not app.positive_prompt.isReadOnly()
 
     def test_manual_leaves_what_was_typed_alone(self, app):
@@ -618,8 +618,21 @@ class TestPromptMode:
     def test_each_prompt_switches_on_its_own(self, app):
         find_mode_button(app.positive_prompt).click()
 
-        assert app.state.negative_mode == "auto"
+        assert app.state.modes["negative"] == "auto"
         assert app.negative_prompt.isReadOnly()
+
+    def test_the_negative_button_switches_the_negative_prompt(self, app):
+        """The other half of the pair, which nothing asked for.
+
+        Every mode test drove the positive button, so a handler that wrote
+        "positive" whatever it was handed passed all of them.
+        """
+        find_mode_button(app.negative_prompt).click()
+
+        assert app.state.modes["negative"] == "manual"
+        assert app.state.modes["positive"] == "auto"
+        assert not app.negative_prompt.isReadOnly()
+        assert app.positive_prompt.isReadOnly()
 
 
 class TestCopying:

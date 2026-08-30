@@ -71,6 +71,7 @@ ControlKind = Literal[
 SubmenuKind = Literal["or-adv", "or-adj", "and-adv", "and-adj"]
 
 PromptTarget = Literal["positive", "negative"]
+PromptMode = Literal["auto", "manual"]
 
 
 @dataclass
@@ -138,12 +139,18 @@ class SectionState:
     weight: float = 1.0
 
 
+def _both_prompts_on_auto() -> dict[PromptTarget, PromptMode]:
+    return {"positive": "auto", "negative": "auto"}
+
+
 @dataclass
 class State:
     controls: dict[str, ControlState]
     sections: dict[str, SectionState]
-    positive_mode: Literal["auto", "manual"] = "auto"
-    negative_mode: Literal["auto", "manual"] = "auto"
+    # Keyed by target rather than two fields named after their targets: the
+    # window reaches these by the same string it uses to build a prompt, and
+    # it used to do that by assembling the attribute name.
+    modes: dict[PromptTarget, PromptMode] = field(default_factory=_both_prompts_on_auto)
 
 
 # --- Rendering types ---

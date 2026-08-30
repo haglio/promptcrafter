@@ -72,6 +72,7 @@ from promptcrafter.types import (  # noqa: E402
     Control,
     ControlState,
     Option,
+    PromptTarget,
     Schema,
     Section,
 )
@@ -329,7 +330,7 @@ class PromptCrafterWindow(QMainWindow):
         self._build_sections()
         self._refresh_prompts()
 
-    def _build_prompt_area(self, label: str, text_edit: QPlainTextEdit, target: str) -> QWidget:
+    def _build_prompt_area(self, label: str, text_edit: QPlainTextEdit, target: PromptTarget) -> QWidget:
         area = QWidget()
         area.setObjectName("prompt_area")
         layout = QVBoxLayout(area)
@@ -345,7 +346,7 @@ class PromptCrafterWindow(QMainWindow):
         copy_btn.clicked.connect(lambda: self._copy_to_clipboard(text_edit.toPlainText()))
         hlayout.addWidget(copy_btn)
 
-        mode = getattr(self.state, f"{target}_mode")
+        mode = self.state.modes[target]
         mode_btn = QPushButton("manual" if mode == "auto" else "auto")
         mode_btn.setObjectName(f"mode_toggle_{mode}")
         mode_btn.setAccessibleName("manual" if mode == "auto" else "auto")
@@ -361,10 +362,9 @@ class PromptCrafterWindow(QMainWindow):
         layout.addWidget(text_edit)
         return area
 
-    def _toggle_prompt_mode(self, target: str) -> None:
-        current = getattr(self.state, f"{target}_mode")
-        new_mode = "manual" if current == "auto" else "auto"
-        setattr(self.state, f"{target}_mode", new_mode)
+    def _toggle_prompt_mode(self, target: PromptTarget) -> None:
+        new_mode = "manual" if self.state.modes[target] == "auto" else "auto"
+        self.state.modes[target] = new_mode
         prompt_widget = self.positive_prompt if target == "positive" else self.negative_prompt
         if new_mode == "auto":
             prompt_widget.setReadOnly(True)
@@ -808,7 +808,7 @@ class PromptCrafterWindow(QMainWindow):
         self._refresh_prompts()
 
     def _refresh_prompts(self) -> None:
-        if self.state.positive_mode == "auto":
+        if self.state.modes["positive"] == "auto":
             self.positive_prompt.setPlainText(build_prompt(self.schema, self.state, "positive"))
-        if self.state.negative_mode == "auto":
+        if self.state.modes["negative"] == "auto":
             self.negative_prompt.setPlainText(build_prompt(self.schema, self.state, "negative"))
