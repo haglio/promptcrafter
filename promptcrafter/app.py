@@ -326,7 +326,6 @@ class PromptCrafterWindow(QMainWindow):
         scroll.setWidget(sections_container)
         root_layout.addWidget(scroll)
 
-        self._section_widgets: list[QGroupBox] = []
         self._build_sections()
         self._refresh_prompts()
 
@@ -380,22 +379,23 @@ class PromptCrafterWindow(QMainWindow):
             cb.setText(text)
 
     def _build_sections(self) -> None:
-        for w in self._section_widgets:
-            self.sections_layout.removeWidget(w)
-            w.setParent(None)
-            w.deleteLater()
-        self._section_widgets.clear()
         while self.sections_layout.count():
             item = self.sections_layout.takeAt(0)
-            if item.widget():
-                item.widget().setParent(None)
-                item.widget().deleteLater()
+            # Hold the widget in a name across both calls. `setParent(None)`
+            # leaves it with no C++ parent, so the only thing keeping it alive
+            # is a Python reference; asking the layout item for it a second time
+            # gets None back and `deleteLater` raises. That branch never ran
+            # while a second list was holding those references, which is why the
+            # list could not simply be deleted.
+            widget = item.widget()
+            if widget is not None:
+                widget.setParent(None)
+                widget.deleteLater()
 
         for section in self.schema.sections:
             section_widget = self._build_section(section)
             if section_widget:
                 self.sections_layout.addWidget(section_widget)
-                self._section_widgets.append(section_widget)
 
         self.sections_layout.addStretch()
 
