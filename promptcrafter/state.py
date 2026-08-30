@@ -1,4 +1,4 @@
-from promptcrafter.kinds import is_radio_kind
+from promptcrafter.kinds import is_or_prefixed_kind
 from promptcrafter.toggle_state import create_initial_toggle_state
 from promptcrafter.types import (
     Control,
@@ -32,7 +32,7 @@ def _create_control_state(control: Control) -> ControlState:
             return ControlState(selected_options=list(control.initially_selected_options), weight=1)
         return ControlState(selected_options=[], weight=1)
 
-    is_radio = is_radio_kind(control.kind)
+    is_radio = is_or_prefixed_kind(control.kind)
     if is_radio:
         return ControlState(
             selected_options=control.initially_selected_options if isinstance(control.initially_selected_options, str) else "",
@@ -49,7 +49,7 @@ def _walk_controls(controls: list[Control], bucket: dict[str, ControlState]) -> 
         bucket[control.id] = _create_control_state(control)
         for option in control.options:
             if option.submenu:
-                is_radio = is_radio_kind(option.submenu.kind)
+                is_radio = is_or_prefixed_kind(option.submenu.kind)
                 key = submenu_state_key(control.id, option.id)
                 bucket[key] = ControlState(
                     selected_options="" if is_radio else [],
