@@ -49,6 +49,7 @@ from promptcrafter.runtime import (  # noqa: E402
     build_prompt,
     build_section_prompt,
     control_has_at_least_one_selected_option,
+    find_section,
     get_active_substitutions,
     get_text_value,
     is_disabled,
@@ -56,9 +57,15 @@ from promptcrafter.runtime import (  # noqa: E402
     is_subject_plural,
 )
 from promptcrafter.state import create_initial_state  # noqa: E402
-from promptcrafter.toggle_state import (  # noqa: E402
-    get_toggle_selections_for_next_state,
-    is_toggle_enabled,
+from promptcrafter.toggle_state import is_toggle_enabled  # noqa: E402
+from promptcrafter.transitions import (  # noqa: E402
+    choose_global_selector_option,
+    choose_option,
+    set_control_weight,
+    set_global_selector_enabled,
+    set_section_weight,
+    set_toggle_enabled,
+    toggle_option,
 )
 from promptcrafter.types import (  # noqa: E402
     Control,
@@ -450,11 +457,8 @@ class PromptCrafterWindow(QMainWindow):
         return group
 
     def _copy_section_prompt(self, section_id: str) -> None:
-        target = "positive"
-        for s in self.schema.sections:
-            if s.id == section_id and s.prompt_target:
-                target = s.prompt_target
-                break
+        section = find_section(self.schema, section_id)
+        target = section.prompt_target if section and section.prompt_target else "positive"
         text = build_section_prompt(self.schema, self.state, target, section_id)
         self._copy_to_clipboard(text)
 
@@ -715,7 +719,7 @@ class PromptCrafterWindow(QMainWindow):
                 rb.setChecked(isinstance(submenu_state.selected_options, str) and submenu_state.selected_options == child.id)
                 rb.setEnabled(not child_disabled)
                 rb.clicked.connect(
-                    lambda _, k=key, oid=child.id: self._on_submenu_radio(k, oid)
+                    lambda _, k=key, oid=child.id: self._on_radio(k, oid)
                 )
                 indent_layout.addWidget(rb)
             else:
@@ -723,7 +727,7 @@ class PromptCrafterWindow(QMainWindow):
                 cb.setChecked(isinstance(submenu_state.selected_options, list) and child.id in submenu_state.selected_options)
                 cb.setEnabled(not child_disabled)
                 cb.clicked.connect(
-                    lambda _, k=key, oid=child.id: self._on_submenu_checkbox(k, oid)
+                    lambda _, k=key, oid=child.id: self._on_checkbox(k, oid)
                 )
                 indent_layout.addWidget(cb)
 
@@ -755,133 +759,40 @@ class PromptCrafterWindow(QMainWindow):
 
     # --- State mutation handlers ---
 
-    def _on_radio(self, control_id: str, option_id: str) -> None:
-        cs = self.state.controls.get(control_id)
-        if not cs:
-            return
-        if cs.selected_options == option_id:
-            cs.selected_options = ""
-        else:
-            cs.selected_options = option_id
+    # Each one reads two ids off the widget that was clicked, hands them to the
+    # rule in `transitions`, and rebuilds. The submenu radios and checkboxes go
+    # through the same two as the top-level ones: submenu state lives in the
+    # same flat dict under a composite key, so the rules never had to differ.
+
+    def _on_radio(self, control_key: str, option_id: str) -> None:
+        choose_option(self.state, control_key, option_id)
         self._rebuild()
 
-    def _on_checkbox(self, control_id: str, option_id: str) -> None:
-        cs = self.state.controls.get(control_id)
-        if not cs or not isinstance(cs.selected_options, list):
-            return
-        if option_id in cs.selected_options:
-            cs.selected_options = [o for o in cs.selected_options if o != option_id]
-        else:
-            cs.selected_options = [*cs.selected_options, option_id]
+    def _on_checkbox(self, control_key: str, option_id: str) -> None:
+        toggle_option(self.state, control_key, option_id)
         self._rebuild()
 
     def _on_toggle(self, control_id: str, checked: bool) -> None:
-        cs = self.state.controls.get(control_id)
-        if not cs:
-            return
-        control = self._find_schema_control(control_id)
-        if not control:
-            return
-        cs.selected_options = get_toggle_selections_for_next_state(control, cs, checked)
-        cs.enabled = checked
+        set_toggle_enabled(self.schema, self.state, control_id, checked)
         self._rebuild()
 
     def _on_global_selector_toggle(self, control_id: str, checked: bool) -> None:
-        cs = self.state.controls.get(control_id)
-        if not cs:
-            return
-        previous = cs.selected_options if isinstance(cs.selected_options, str) else ""
-        cs.selected_options = "" if checked else False
-        if not checked and previous:
-            self._clear_global_selector_matches(previous)
+        set_global_selector_enabled(self.schema, self.state, control_id, checked)
         self._rebuild()
 
     def _on_global_selector_option(self, control_id: str, option_id: str) -> None:
-        cs = self.state.controls.get(control_id)
-        if not cs:
-            return
-        previous = cs.selected_options if isinstance(cs.selected_options, str) else ""
-        if previous and previous != option_id:
-            self._clear_global_selector_matches(previous)
-        cs.selected_options = option_id
-        if option_id:
-            self._apply_global_selector_matches(control_id, option_id)
-        self._rebuild()
-
-    def _clear_global_selector_matches(self, option_id: str) -> None:
-        for section in self.schema.sections:
-            for control in section.controls:
-                if control.kind == "global-selector":
-                    continue
-                cs = self.state.controls.get(control.id)
-                if not cs:
-                    continue
-                if isinstance(cs.selected_options, str):
-                    if cs.selected_options == option_id or option_id in cs.selected_options:
-                        cs.selected_options = ""
-                elif isinstance(cs.selected_options, list):
-                    filtered = [s for s in cs.selected_options if s != option_id and option_id not in s]
-                    if len(filtered) != len(cs.selected_options):
-                        cs.selected_options = filtered
-
-    def _apply_global_selector_matches(self, source_control_id: str, option_id: str) -> None:
-        for section in self.schema.sections:
-            for control in section.controls:
-                if control.id == source_control_id:
-                    continue
-                cs = self.state.controls.get(control.id)
-                if not cs:
-                    continue
-                if isinstance(cs.selected_options, str):
-                    match = next(
-                        (o for o in control.options if o.id == option_id or option_id in o.id),
-                        None,
-                    )
-                    if match:
-                        cs.selected_options = match.id
-                elif isinstance(cs.selected_options, list):
-                    matching = [o.id for o in control.options if o.id == option_id or option_id in o.id]
-                    if matching:
-                        cs.selected_options = list(set(cs.selected_options) | set(matching))
-
-    def _on_submenu_radio(self, key: str, option_id: str) -> None:
-        cs = self.state.controls.get(key)
-        if not cs:
-            return
-        if cs.selected_options == option_id:
-            cs.selected_options = ""
-        else:
-            cs.selected_options = option_id
-        self._rebuild()
-
-    def _on_submenu_checkbox(self, key: str, option_id: str) -> None:
-        cs = self.state.controls.get(key)
-        if not cs or not isinstance(cs.selected_options, list):
-            return
-        if option_id in cs.selected_options:
-            cs.selected_options = [o for o in cs.selected_options if o != option_id]
-        else:
-            cs.selected_options = [*cs.selected_options, option_id]
+        choose_global_selector_option(self.schema, self.state, control_id, option_id)
         self._rebuild()
 
     def _set_section_weight(self, section_id: str, weight: float) -> None:
-        self.state.sections[section_id].weight = weight
+        set_section_weight(self.state, section_id, weight)
         self._rebuild()
 
     def _set_control_weight(self, control_id: str, weight: float) -> None:
-        cs = self.state.controls.get(control_id)
-        if cs:
-            cs.weight = weight
+        set_control_weight(self.state, control_id, weight)
         self._rebuild()
 
     # --- Helpers ---
-
-    def _find_schema_control(self, control_id: str) -> Control | None:
-        for section in self.schema.sections:
-            for control in section.controls:
-                if control.id == control_id:
-                    return control
-        return None
 
     def _display_text(self, text, plural: bool) -> str:
         raw = get_text_value(text, plural, self.schema, self.state)
