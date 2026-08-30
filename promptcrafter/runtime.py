@@ -397,34 +397,34 @@ def _get_control_text(
     return get_text_value(control.text, plural, schema, state, stack)
 
 
-def _render_control_segments(
+def _render_control_segment(
     control: Control,
     schema: Schema,
     state: State,
     stack: ResolutionStack | None = None,
-) -> list[Segment]:
+) -> Segment | None:
     if stack is None:
         stack = set()
     if is_hidden(state, control.hidden_bys, control.revealed_bys):
-        return []
+        return None
     cs = state.controls.get(control.id)
     if not cs:
-        return []
+        return None
     disabled = is_disabled(state, control.disabled_bys)
     own_weight = cs.weight
     plural = is_subject_plural(state)
 
     if control.kind == "toggle":
         if disabled or not is_toggle_enabled(cs):
-            return []
+            return None
         if isinstance(cs.selected_options, bool):
             if not control.options and control.global_substitutions:
-                return []
+                return None
             if control.options:
                 base = get_option_text(control.options[0], plural, schema, state, stack)
             else:
                 base = _get_control_text(control, schema, state, None, stack)
-            return [Segment(text=_append_supplements(base, control, schema, state, stack), weight=own_weight)]
+            return Segment(text=_append_supplements(base, control, schema, state, stack), weight=own_weight)
         selected = [
             opt for opt in control.options
             if not is_hidden(state, opt.hidden_bys, opt.revealed_bys)
@@ -433,16 +433,16 @@ def _render_control_segments(
             and opt.id in cs.selected_options
         ]
         if not selected:
-            return []
+            return None
         combined = ", ".join(
             _render_option_with_modifiers(control.id, opt, schema, state, stack)
             for opt in selected
         ).strip()
         text = _append_supplements(combined, control, schema, state, stack)
-        return [Segment(text=text, weight=own_weight)] if text else []
+        return Segment(text=text, weight=own_weight) if text else None
 
     if control.kind == "global-selector":
-        return []
+        return None
 
     if control.kind == "required":
         selected = [
@@ -453,17 +453,17 @@ def _render_control_segments(
             and opt.id in cs.selected_options
         ]
         if not selected:
-            return []
+            return None
         combined = ", ".join(
             _render_option_with_modifiers(control.id, opt, schema, state, stack)
             for opt in selected
         ).strip()
         text = _append_supplements(combined, control, schema, state, stack)
-        return [Segment(text=text, weight=own_weight)] if text else []
+        return Segment(text=text, weight=own_weight) if text else None
 
     if control.kind == "hidden-opposite":
         if not is_triggered_by(state, control.hidden_opposite_bys) or disabled:
-            return []
+            return None
         selected = [
             opt for opt in control.options
             if not is_hidden(state, opt.hidden_bys, opt.revealed_bys)
@@ -472,7 +472,7 @@ def _render_control_segments(
             and opt.id in cs.selected_options
         ]
         if not selected:
-            return []
+            return None
         text = _append_supplements(
             ", ".join(
                 _render_option_with_modifiers(control.id, opt, schema, state, stack)
@@ -480,21 +480,21 @@ def _render_control_segments(
             ).strip(),
             control, schema, state, stack,
         )
-        return [Segment(text=text, weight=own_weight)] if text else []
+        return Segment(text=text, weight=own_weight) if text else None
 
     radio_kinds = {"or", "or-adv", "or-adj", "or-prefix"}
     if control.kind in radio_kinds:
         sel_id = cs.selected_options if not disabled and isinstance(cs.selected_options, str) else None
         option = _option_by_id(control, sel_id) if sel_id else None
         if not option or is_hidden(state, option.hidden_bys, option.revealed_bys) or is_disabled(state, option.disabled_bys):
-            return []
+            return None
         text = _render_option_with_modifiers(control.id, option, schema, state, stack)
         if control.kind == "or-adv":
             text = f"{_get_control_text(control, schema, state, option, stack)} {text}"
         if control.kind == "or-adj":
             text = f"{text} {_get_control_text(control, schema, state, option, stack)}"
         text = _append_supplements(text, control, schema, state, stack)
-        return [Segment(text=text, weight=own_weight)] if text else []
+        return Segment(text=text, weight=own_weight) if text else None
 
     # and-commas, and-commas-adj, and-commas-adv, and-spaces-adj
     selected = [
@@ -505,7 +505,7 @@ def _render_control_segments(
         and opt.id in cs.selected_options
     ]
     if not selected:
-        return []
+        return None
 
     option_values = [
         _render_option_with_modifiers(control.id, opt, schema, state, stack)
@@ -528,17 +528,7 @@ def _render_control_segments(
         combined = ", ".join(option_values)
 
     combined = _append_supplements(combined.strip(), control, schema, state, stack)
-    return [Segment(text=combined.strip(), weight=own_weight)] if combined.strip() else []
-
-
-def _first_rendered_part(
-    control: Control,
-    schema: Schema,
-    state: State,
-    stack: ResolutionStack,
-) -> Segment | None:
-    segments = _render_control_segments(control, schema, state, stack)
-    return segments[0] if segments else None
+    return Segment(text=combined.strip(), weight=own_weight) if combined.strip() else None
 
 
 def _merge_segments(segments: list[Segment]) -> list[Segment]:
@@ -579,7 +569,7 @@ def _build_section_segments(
         control = section.controls[i]
 
         if control.kind == "or-prefix":
-            prefix = _first_rendered_part(control, schema, state, stack)
+            prefix = _render_control_segment(control, schema, state, stack)
             next_control = section.controls[i + 1] if i + 1 < len(section.controls) else None
 
             if not next_control:
@@ -591,7 +581,7 @@ def _build_section_segments(
                 i += 1
                 continue
 
-            next_rendered = _first_rendered_part(next_control, schema, state, stack)
+            next_rendered = _render_control_segment(next_control, schema, state, stack)
 
             if prefix and next_rendered:
                 parts.append(Segment(
@@ -623,7 +613,8 @@ def _build_section_segments(
             i += 1
             continue
 
-        for part in _render_control_segments(control, schema, state, stack):
+        part = _render_control_segment(control, schema, state, stack)
+        if part is not None:
             parts.append(Segment(
                 text=part.text,
                 weight=_effective_weight(section_weight, part.weight),
@@ -641,7 +632,8 @@ def _render_control_value(
 ) -> str:
     if stack is None:
         stack = set()
-    return join_parts([seg.text for seg in _render_control_segments(control, schema, state, stack)])
+    segment = _render_control_segment(control, schema, state, stack)
+    return join_parts([segment.text] if segment else [])
 
 
 def _render_section_value(
