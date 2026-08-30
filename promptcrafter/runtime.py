@@ -97,14 +97,14 @@ def _is_by_condition_matched(state: State, by: DisabledOrHiddenBy) -> bool:
     return False
 
 
-def is_triggered_by(state: State, conditions: list[DisabledOrHiddenBy] | None) -> bool:
+def _is_triggered_by(state: State, conditions: list[DisabledOrHiddenBy] | None) -> bool:
     if not conditions:
         return False
     return any(_is_by_condition_matched(state, c) for c in conditions)
 
 
 def is_disabled(state: State, disabled_bys: list[DisabledOrHiddenBy]) -> bool:
-    return is_triggered_by(state, disabled_bys)
+    return _is_triggered_by(state, disabled_bys)
 
 
 def is_hidden(
@@ -112,11 +112,11 @@ def is_hidden(
     hidden_bys: list[DisabledOrHiddenBy],
     revealed_bys: list[DisabledOrHiddenBy],
 ) -> bool:
-    if is_triggered_by(state, hidden_bys):
+    if _is_triggered_by(state, hidden_bys):
         return True
     if not revealed_bys:
         return False
-    return not is_triggered_by(state, revealed_bys)
+    return not _is_triggered_by(state, revealed_bys)
 
 
 def find_control(schema: Schema, control_id: str) -> Control | None:
@@ -162,7 +162,7 @@ def _resolve_reference_value(
 
     if ref_kind == "option":
         option = _find_option(schema, ref_id)
-        return get_option_text(option, is_plural, schema, state, next_stack) if option else ""
+        return _get_option_text(option, is_plural, schema, state, next_stack) if option else ""
     if ref_kind == "control":
         control = find_control(schema, ref_id)
         return _render_control_value(control, schema, state, next_stack) if control else ""
@@ -201,7 +201,7 @@ def get_text_value(
     return ""
 
 
-def get_option_text(
+def _get_option_text(
     option: Option,
     is_plural: bool,
     schema: Schema | None = None,
@@ -247,7 +247,7 @@ def apply_substitutions(
     return result
 
 
-def join_parts(parts: list[str]) -> str:
+def _join_parts(parts: list[str]) -> str:
     filtered = [p for p in parts if p]
     joined = ", ".join(filtered)
     joined = re.sub(r"\s+,", ",", joined)
@@ -256,7 +256,7 @@ def join_parts(parts: list[str]) -> str:
     return joined
 
 
-def get_supplemental_texts(
+def _get_supplemental_texts(
     schema: Schema,
     state: State,
     supplemented_bys: list[SupplementedBy],
@@ -326,7 +326,7 @@ def _render_submenu(
         and not is_disabled(state, child.disabled_bys)
     ]
     if checked:
-        return " ".join(get_option_text(child, plural, schema, state, stack) for child in checked)
+        return " ".join(_get_option_text(child, plural, schema, state, stack) for child in checked)
 
     # "or" submenus: check for string selection
     if isinstance(submenu_state.selected_options, str):
@@ -340,7 +340,7 @@ def _render_submenu(
             ),
             None,
         )
-        return get_option_text(selected, plural, schema, state, stack) if selected else ""
+        return _get_option_text(selected, plural, schema, state, stack) if selected else ""
 
     return ""
 
@@ -354,7 +354,7 @@ def _render_option_with_modifiers(
 ) -> str:
     modifier_text = _render_submenu(parent_control_id, option, schema, state, stack)
     plural = is_subject_plural(state)
-    option_text = get_option_text(option, plural, schema, state, stack)
+    option_text = _get_option_text(option, plural, schema, state, stack)
     if not modifier_text:
         return option_text
     if option.submenu and is_adverb_submenu_kind(option.submenu.kind):
@@ -371,7 +371,7 @@ def _append_supplements(
 ) -> str:
     if not base_text.strip():
         return ""
-    supplements = get_supplemental_texts(schema, state, control.supplemented_bys, stack)
+    supplements = _get_supplemental_texts(schema, state, control.supplemented_bys, stack)
     if not supplements:
         return base_text
     prepend = [s.text for s in supplements if s.side == "adj"]
@@ -489,7 +489,7 @@ def _render_toggle(
     if not control.options and control.global_substitutions:
         return None
     if control.options:
-        base = get_option_text(control.options[0], is_subject_plural(state), schema, state, stack)
+        base = _get_option_text(control.options[0], is_subject_plural(state), schema, state, stack)
     else:
         base = _get_control_text(control, schema, state, None, stack)
     # The one renderer that answers with a segment either way, empty text and
@@ -508,7 +508,7 @@ def _render_hidden_opposite(
     stack: ResolutionStack,
     disabled: bool,
 ) -> Segment | None:
-    if not is_triggered_by(state, control.hidden_opposite_bys) or disabled:
+    if not _is_triggered_by(state, control.hidden_opposite_bys) or disabled:
         return None
     return _render_every_selected_option(control, cs, schema, state, stack, disabled)
 
@@ -702,7 +702,7 @@ def _render_control_value(
     if stack is None:
         stack = set()
     segment = _render_control_segment(control, schema, state, stack)
-    return join_parts([segment.text] if segment else [])
+    return _join_parts([segment.text] if segment else [])
 
 
 def _render_section_value(
@@ -713,13 +713,13 @@ def _render_section_value(
 ) -> str:
     if stack is None:
         stack = set()
-    return join_parts([
+    return _join_parts([
         seg.text
         for seg in _build_section_segments(section, schema, state, section.prompt_target or "positive", stack)
     ])
 
 
-def render_section(
+def _render_section(
     section: Section,
     schema: Schema,
     state: State,
@@ -741,7 +741,7 @@ def build_section_prompt(
     if not section:
         return ""
     return apply_substitutions(
-        join_parts(render_section(section, schema, state, target)),
+        _join_parts(_render_section(section, schema, state, target)),
         get_active_substitutions(schema, state),
         schema,
         state,
@@ -749,9 +749,9 @@ def build_section_prompt(
 
 
 def build_prompt(schema: Schema, state: State, target: PromptTarget) -> str:
-    raw = join_parts([
+    raw = _join_parts([
         text
         for section in schema.sections
-        for text in render_section(section, schema, state, target)
+        for text in _render_section(section, schema, state, target)
     ])
     return apply_substitutions(raw, get_active_substitutions(schema, state), schema, state)
