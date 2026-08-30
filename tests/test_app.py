@@ -229,6 +229,31 @@ class TestToggleControls:
         assert window.positive_prompt.toPlainText() == "space robo dino demon monster, oak"
 
 
+class TestRebuilding:
+    def test_a_rebuild_leaves_one_widget_per_section(self, qtbot, app):
+        """Nothing from the previous tree is still hanging off the window.
+
+        Every click rebuilds the whole control tree, so a teardown that missed
+        anything would stack a second copy of each section on each interaction
+        and the window would grow without ever looking wrong at first glance.
+        """
+        titles = sorted(gb.title() for gb in app.findChildren(QGroupBox))
+        assert titles
+
+        for _ in range(4):
+            app._rebuild()
+
+        assert sorted(gb.title() for gb in app.findChildren(QGroupBox)) == titles
+
+    def test_a_rebuild_keeps_one_trailing_stretch(self, qtbot, app):
+        before = app.sections_layout.count()
+
+        app._rebuild()
+        app._rebuild()
+
+        assert app.sections_layout.count() == before
+
+
 class TestSubmenus:
     """The second row an option opens under itself.
 
