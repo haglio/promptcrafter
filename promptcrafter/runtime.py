@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 
+from promptcrafter.kinds import is_adverb_submenu_kind, is_or_prefixed_kind, is_radio_kind
 from promptcrafter.toggle_state import is_toggle_enabled
 from promptcrafter.types import (
     Control,
@@ -51,7 +52,7 @@ def control_has_at_least_one_selected_option(control: Control, state: State) -> 
         return is_toggle_enabled(cs)
     if control.kind == "global-selector":
         return cs.selected_options is not False
-    if control.kind.startswith("or"):
+    if is_or_prefixed_kind(control.kind):
         return bool(cs.selected_options) if isinstance(cs.selected_options, str) else False
     return isinstance(cs.selected_options, list) and len(cs.selected_options) > 0
 
@@ -359,7 +360,7 @@ def _render_option_with_modifiers(
     option_text = get_option_text(option, plural, schema, state, stack)
     if not modifier_text:
         return option_text
-    if option.submenu and option.submenu.kind in ("and-adv", "or-adv"):
+    if option.submenu and is_adverb_submenu_kind(option.submenu.kind):
         return f"{option_text} {modifier_text}"
     return f"{modifier_text} {option_text}"
 
@@ -597,8 +598,7 @@ def _render_control_segment(
         return _render_every_selected_option(control, cs, schema, state, stack, disabled)
     if control.kind == "hidden-opposite":
         return _render_hidden_opposite(control, cs, schema, state, stack, disabled)
-    radio_kinds = {"or", "or-adv", "or-adj", "or-prefix"}
-    if control.kind in radio_kinds:
+    if is_radio_kind(control.kind):
         return _render_radio(control, cs, schema, state, stack, disabled)
     return _render_and_list(control, cs, schema, state, stack, disabled)
 
