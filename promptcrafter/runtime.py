@@ -5,6 +5,7 @@ import re
 from promptcrafter.toggle_state import is_toggle_enabled
 from promptcrafter.types import (
     Control,
+    ControlState,
     DisabledOrHiddenBy,
     GlobalSubstitution,
     Option,
@@ -397,6 +398,30 @@ def _get_control_text(
     return get_text_value(control.text, plural, schema, state, stack)
 
 
+def _selected_options(
+    control: Control,
+    cs: ControlState,
+    state: State,
+    disabled: bool,
+) -> list[Option]:
+    """The control's options that are ticked, visible and not disabled.
+
+    This was written out four times, and in two of the four the control's own
+    ``disabled`` was left out of the filter -- the ``toggle`` and
+    ``hidden-opposite`` branches, both of which have already returned by the
+    time they reach it if the control is disabled at all. So the four agreed;
+    folding ``disabled`` in for every caller is what all four already did.
+    """
+    if not isinstance(cs.selected_options, list):
+        return []
+    return [
+        opt for opt in control.options
+        if not is_hidden(state, opt.hidden_bys, opt.revealed_bys)
+        and not (is_disabled(state, opt.disabled_bys) or disabled)
+        and opt.id in cs.selected_options
+    ]
+
+
 def _render_control_segment(
     control: Control,
     schema: Schema,
@@ -425,13 +450,7 @@ def _render_control_segment(
             else:
                 base = _get_control_text(control, schema, state, None, stack)
             return Segment(text=_append_supplements(base, control, schema, state, stack), weight=own_weight)
-        selected = [
-            opt for opt in control.options
-            if not is_hidden(state, opt.hidden_bys, opt.revealed_bys)
-            and not is_disabled(state, opt.disabled_bys)
-            and isinstance(cs.selected_options, list)
-            and opt.id in cs.selected_options
-        ]
+        selected = _selected_options(control, cs, state, disabled)
         if not selected:
             return None
         combined = ", ".join(
@@ -445,13 +464,7 @@ def _render_control_segment(
         return None
 
     if control.kind == "required":
-        selected = [
-            opt for opt in control.options
-            if not is_hidden(state, opt.hidden_bys, opt.revealed_bys)
-            and not (is_disabled(state, opt.disabled_bys) or disabled)
-            and isinstance(cs.selected_options, list)
-            and opt.id in cs.selected_options
-        ]
+        selected = _selected_options(control, cs, state, disabled)
         if not selected:
             return None
         combined = ", ".join(
@@ -464,13 +477,7 @@ def _render_control_segment(
     if control.kind == "hidden-opposite":
         if not is_triggered_by(state, control.hidden_opposite_bys) or disabled:
             return None
-        selected = [
-            opt for opt in control.options
-            if not is_hidden(state, opt.hidden_bys, opt.revealed_bys)
-            and not is_disabled(state, opt.disabled_bys)
-            and isinstance(cs.selected_options, list)
-            and opt.id in cs.selected_options
-        ]
+        selected = _selected_options(control, cs, state, disabled)
         if not selected:
             return None
         text = _append_supplements(
@@ -497,13 +504,7 @@ def _render_control_segment(
         return Segment(text=text, weight=own_weight) if text else None
 
     # and-commas, and-commas-adj, and-commas-adv, and-spaces-adj
-    selected = [
-        opt for opt in control.options
-        if not is_hidden(state, opt.hidden_bys, opt.revealed_bys)
-        and not (is_disabled(state, opt.disabled_bys) or disabled)
-        and isinstance(cs.selected_options, list)
-        and opt.id in cs.selected_options
-    ]
+    selected = _selected_options(control, cs, state, disabled)
     if not selected:
         return None
 
