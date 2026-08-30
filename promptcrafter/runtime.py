@@ -15,6 +15,7 @@ from promptcrafter.types import (
     PromptTarget,
     Schema,
     Section,
+    SectionState,
     Segment,
     State,
     SupplementalText,
@@ -630,7 +631,7 @@ def _build_section_segments(
     if is_hidden(state, section.hidden_bys, section.revealed_bys):
         return []
 
-    section_weight = state.sections.get(section.id, type("", (), {"weight": 1})).weight
+    section_weight = state.sections.get(section.id, SectionState()).weight
     parts: list[Segment] = []
     i = 0
 
