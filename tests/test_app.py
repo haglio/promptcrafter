@@ -173,6 +173,20 @@ class TestUpdatingPrompts:
         find_radio(app, "hot").click()
         assert app.negative_prompt.toPlainText() == "no clutter, blurry, cold"
 
+    def test_clicking_the_chosen_radio_again_clears_it(self, qtbot, app):
+        """A radio is the only control here that can be emptied by one click.
+
+        Every other test clicks a radio to *choose*; the branch that puts the
+        control back to no selection had never run.
+        """
+        find_radio(app, "bone").click()
+        assert app.positive_prompt.toPlainText() == "space robo dino demon monster, bone armor"
+
+        find_radio(app, "bone").click()
+
+        assert app.positive_prompt.toPlainText() == "space robo dino demon monster"
+        assert not find_radio(app, "bone").isChecked()
+
 
 class TestToggleControls:
     def test_keeps_multi_option_toggles_off_initially(self, window_with_a_toggle):
@@ -213,6 +227,50 @@ class TestToggleControls:
         assert find_checkbox(window, "oak").isChecked()
         assert not find_checkbox(window, "pine").isChecked()
         assert window.positive_prompt.toPlainText() == "space robo dino demon monster, oak"
+
+
+class TestSubmenus:
+    """The second row an option opens under itself.
+
+    A submenu's radios and checkboxes go through their own handlers, and the
+    suite reached only one of the two: the checkbox handler had never been
+    called by any test, and neither deselect branch had ever run.
+    """
+
+    def test_clicking_the_chosen_submenu_radio_again_clears_it(self, qtbot, app):
+        find_checkbox(app, "wings").click()
+        find_radio(app, "mechanical").click()
+        assert app.positive_prompt.toPlainText() == (
+            "space robo dino demon monster, mechanical wings"
+        )
+
+        find_radio(app, "mechanical").click()
+
+        assert app.positive_prompt.toPlainText() == "space robo dino demon monster, wings"
+
+    def test_a_submenu_checkbox_ticks_and_unticks(self, qtbot, app):
+        find_checkbox(app, "tail").click()
+        assert app.positive_prompt.toPlainText() == "space robo dino demon monster, tail"
+
+        find_checkbox(app, "barbed").click()
+        assert app.positive_prompt.toPlainText() == (
+            "space robo dino demon monster, barbed tail"
+        )
+
+        find_checkbox(app, "barbed").click()
+
+        assert app.positive_prompt.toPlainText() == "space robo dino demon monster, tail"
+
+    def test_a_submenu_keeps_the_options_the_click_did_not_touch(self, qtbot, app):
+        find_checkbox(app, "antennae").click()
+        find_checkbox(app, "arched").click()
+        find_checkbox(app, "flared").click()
+
+        find_checkbox(app, "arched").click()
+
+        assert app.positive_prompt.toPlainText() == (
+            "space robo dino demon monster, antennae flared"
+        )
 
 
 class TestDisablingAndHiding:
@@ -348,6 +406,28 @@ class TestWeights:
         app._rebuild()
 
         assert app.negative_prompt.toPlainText() == "(no clutter:2.5), blurry"
+
+    def test_the_control_slider_sets_the_controls_weight(self, qtbot, app):
+        """The slider itself, not the state behind it.
+
+        The other weight tests here assign to ``state`` and rebuild, and the
+        reset button only ever asks for 1.0 -- so the one number the slider is
+        for had never travelled from the widget to the prompt.
+        """
+        find_radio(app, "bone").click()
+
+        find_slider(find_control(app, "armor")).setValue(24)
+
+        assert app.state.controls["armor"].weight == 2.4
+        assert app.positive_prompt.toPlainText() == (
+            "space robo dino demon monster, (bone armor:2.4)"
+        )
+
+    def test_the_section_slider_sets_the_sections_weight(self, qtbot, app):
+        find_slider(find_section(app, "negative modes")).setValue(15)
+
+        assert app.state.sections["negative modes"].weight == 1.5
+        assert app.negative_prompt.toPlainText() == "(no clutter:1.5), blurry"
 
     def test_no_section_slider_when_no_selection(self, app):
         section = find_section(app, "details")
