@@ -422,6 +422,38 @@ def _selected_options(
     ]
 
 
+def _rendered_options(
+    control: Control,
+    selected: list[Option],
+    schema: Schema,
+    state: State,
+    stack: ResolutionStack,
+) -> list[str]:
+    return [
+        _render_option_with_modifiers(control.id, opt, schema, state, stack)
+        for opt in selected
+    ]
+
+
+def _supplemented_segment(
+    base_text: str,
+    control: Control,
+    schema: Schema,
+    state: State,
+    stack: ResolutionStack,
+    weight: float,
+) -> Segment | None:
+    """The control's text with its supplements attached, as a segment.
+
+    Nothing comes back when there is no text left to carry. The toggle's
+    single-option arm is the one place that wants a segment either way, so that
+    arm builds its own -- see `TestASegmentWithNothingInIt`, which pins what the
+    difference does.
+    """
+    text = _append_supplements(base_text, control, schema, state, stack)
+    return Segment(text=text, weight=weight) if text else None
+
+
 def _render_control_segment(
     control: Control,
     schema: Schema,
@@ -453,12 +485,8 @@ def _render_control_segment(
         selected = _selected_options(control, cs, state, disabled)
         if not selected:
             return None
-        combined = ", ".join(
-            _render_option_with_modifiers(control.id, opt, schema, state, stack)
-            for opt in selected
-        ).strip()
-        text = _append_supplements(combined, control, schema, state, stack)
-        return Segment(text=text, weight=own_weight) if text else None
+        combined = ", ".join(_rendered_options(control, selected, schema, state, stack)).strip()
+        return _supplemented_segment(combined, control, schema, state, stack, own_weight)
 
     if control.kind == "global-selector":
         return None
@@ -467,12 +495,8 @@ def _render_control_segment(
         selected = _selected_options(control, cs, state, disabled)
         if not selected:
             return None
-        combined = ", ".join(
-            _render_option_with_modifiers(control.id, opt, schema, state, stack)
-            for opt in selected
-        ).strip()
-        text = _append_supplements(combined, control, schema, state, stack)
-        return Segment(text=text, weight=own_weight) if text else None
+        combined = ", ".join(_rendered_options(control, selected, schema, state, stack)).strip()
+        return _supplemented_segment(combined, control, schema, state, stack, own_weight)
 
     if control.kind == "hidden-opposite":
         if not is_triggered_by(state, control.hidden_opposite_bys) or disabled:
@@ -480,14 +504,8 @@ def _render_control_segment(
         selected = _selected_options(control, cs, state, disabled)
         if not selected:
             return None
-        text = _append_supplements(
-            ", ".join(
-                _render_option_with_modifiers(control.id, opt, schema, state, stack)
-                for opt in selected
-            ).strip(),
-            control, schema, state, stack,
-        )
-        return Segment(text=text, weight=own_weight) if text else None
+        combined = ", ".join(_rendered_options(control, selected, schema, state, stack)).strip()
+        return _supplemented_segment(combined, control, schema, state, stack, own_weight)
 
     radio_kinds = {"or", "or-adv", "or-adj", "or-prefix"}
     if control.kind in radio_kinds:
@@ -500,18 +518,14 @@ def _render_control_segment(
             text = f"{_get_control_text(control, schema, state, option, stack)} {text}"
         if control.kind == "or-adj":
             text = f"{text} {_get_control_text(control, schema, state, option, stack)}"
-        text = _append_supplements(text, control, schema, state, stack)
-        return Segment(text=text, weight=own_weight) if text else None
+        return _supplemented_segment(text, control, schema, state, stack, own_weight)
 
     # and-commas, and-commas-adj, and-commas-adv, and-spaces-adj
     selected = _selected_options(control, cs, state, disabled)
     if not selected:
         return None
 
-    option_values = [
-        _render_option_with_modifiers(control.id, opt, schema, state, stack)
-        for opt in selected
-    ]
+    option_values = _rendered_options(control, selected, schema, state, stack)
 
     if control.kind == "and-commas-adj":
         combined = ", ".join(
@@ -528,8 +542,7 @@ def _render_control_segment(
     else:  # and-commas
         combined = ", ".join(option_values)
 
-    combined = _append_supplements(combined.strip(), control, schema, state, stack)
-    return Segment(text=combined.strip(), weight=own_weight) if combined.strip() else None
+    return _supplemented_segment(combined.strip(), control, schema, state, stack, own_weight)
 
 
 def _merge_segments(segments: list[Segment]) -> list[Segment]:
