@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 
 from promptcrafter.kinds import is_adverb_submenu_kind, is_or_prefixed_kind, is_radio_kind
+from promptcrafter.state import submenu_state_key
 from promptcrafter.toggle_state import is_toggle_enabled
 from promptcrafter.types import (
     Control,
@@ -244,10 +245,6 @@ def apply_substitutions(
         if from_text and to_text:
             result = _replace_whole_word(result, from_text, to_text)
     return result
-
-
-def submenu_state_key(parent_control_id: str, option_id: str) -> str:
-    return f"{parent_control_id}__{option_id}__submenu"
 
 
 def join_parts(parts: list[str]) -> str:

@@ -57,7 +57,7 @@ from promptcrafter.runtime import (  # noqa: E402
     is_hidden,
     is_subject_plural,
 )
-from promptcrafter.state import create_initial_state  # noqa: E402
+from promptcrafter.state import create_initial_state, submenu_state_key  # noqa: E402
 from promptcrafter.toggle_state import is_toggle_enabled  # noqa: E402
 from promptcrafter.transitions import (  # noqa: E402
     choose_global_selector_option,
@@ -695,7 +695,7 @@ class PromptCrafterWindow(QMainWindow):
     ) -> None:
         if not option.submenu:
             return
-        key = f"{parent_control_id}__{option.id}__submenu"
+        key = submenu_state_key(parent_control_id, option.id)
         submenu_state = self.state.controls.get(key)
         if not submenu_state:
             return
