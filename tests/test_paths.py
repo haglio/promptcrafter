@@ -3,17 +3,17 @@ import subprocess
 import sys
 from pathlib import Path
 
-from promptcrafter.paths import ensure_shared_ui_on_path, projects_root
+from promptcrafter.paths import ensure_shared_ui_on_path, shared_ui_checkout
 
 
-def test_projects_root_contains_shared_ui():
-    root = projects_root()
+def test_the_shared_ui_checkout_contains_the_shared_ui_package():
+    root = shared_ui_checkout()
     assert (root / "shared_ui" / "__init__.py").exists()
 
 
 def test_ensure_shared_ui_on_path_makes_it_importable_and_is_idempotent():
     ensure_shared_ui_on_path()
-    root = str(projects_root())
+    root = str(shared_ui_checkout())
     assert root in sys.path
 
     before = list(sys.path)
