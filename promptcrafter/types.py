@@ -80,6 +80,19 @@ class Submenu:
     options: list[Option]
 
 
+def submenu_state_key(parent_control_id: str, option_id: str) -> str:
+    """Where a submenu's own selections live.
+
+    Submenu state sits in the same flat dict as control state, under a
+    composite key. Three modules build that key -- the one that writes the dict
+    and the two that read it -- so it lives with the `Submenu` it addresses
+    rather than with any of them: a reader that disagreed with the writer would
+    find no key, and every consumer treats a missing key as "there is no
+    submenu" and returns early, so the app would go quiet rather than fail.
+    """
+    return f"{parent_control_id}__{option_id}__submenu"
+
+
 @dataclass
 class Option:
     id: str

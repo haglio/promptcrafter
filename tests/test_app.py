@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
 )
 
 from promptcrafter.app import PromptCrafterWindow
-from promptcrafter.types import Control, Option
+from promptcrafter.types import Control, Option, Schema, Section, Submenu
 from shared_ui.check_box import CheckBox
 from tests.fixtures.test_schema import TEST_SCHEMA
 
@@ -285,6 +285,27 @@ class TestSubmenus:
         find_checkbox(app, "barbed").click()
 
         assert app.positive_prompt.toPlainText() == "space robo dino demon monster, tail"
+
+    def test_an_or_prefixed_submenu_kind_builds_radios_whatever_follows_the_or(self, qtbot):
+        """The widget half of the open rival, pinned beside the state half.
+
+        `_build_submenu` asks whether the kind begins with `or`, not whether it
+        is one of the two declared `or` submenu kinds. Nothing validates a
+        submenu kind, so a schema can carry `or` here and it builds radios;
+        narrowing the test to a closed set would silently make them checkboxes.
+        """
+        schema = Schema(sections=[Section(id="grove", text="grove", controls=[
+            Control(id="bough", text="bough", kind="and-commas",
+                    initially_selected_options=["knot"], options=[
+                        Option(id="knot", text="knot", submenu=Submenu(
+                            kind="or", options=[Option(id="burl", text="burl")])),
+                    ]),
+        ])])
+        window = PromptCrafterWindow(schema)
+        qtbot.addWidget(window)
+
+        assert query_radio(window, "burl") is not None
+        assert query_checkbox(window, "burl") is None
 
     def test_a_submenu_keeps_the_options_the_click_did_not_touch(self, qtbot, app):
         find_checkbox(app, "antennae").click()
@@ -678,6 +699,31 @@ class TestCopying:
         app._copy_section_prompt("negative modes")
 
         assert QApplication.clipboard().text() == "no clutter"
+
+    def test_the_section_copy_reads_past_a_section_that_names_no_target(self, qtbot):
+        """Two sections can share an id, and the target comes from either.
+
+        The look-up is not "the section with this id" -- it is "the first
+        section with this id that names a target", so a pair whose second half
+        is the negative one copies the negative prompt. Nothing makes ids
+        unique, and a copy button is built for each half.
+        """
+        schema = Schema(sections=[
+            Section(id="zonk", text="zonk", controls=[
+                Control(id="quaffle", text="quaffle", kind="toggle",
+                        initially_selected_options=True),
+            ]),
+            Section(id="zonk", text="zonk", prompt_target="negative", controls=[
+                Control(id="snitch", text="snitch", kind="toggle",
+                        initially_selected_options=True),
+            ]),
+        ])
+        window = PromptCrafterWindow(schema)
+        qtbot.addWidget(window)
+
+        window._copy_section_prompt("zonk")
+
+        assert QApplication.clipboard().text() == ""
 
     def test_the_section_copy_leaves_the_other_sections_out(self, app):
         find_radio(app, "bone").click()

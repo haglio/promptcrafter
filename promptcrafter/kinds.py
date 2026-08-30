@@ -19,13 +19,10 @@ from promptcrafter.types import ControlKind, SubmenuKind
 # The four control kinds that hold one selection rather than a list.
 RADIO_CONTROL_KINDS: frozenset[ControlKind] = frozenset({"or", "or-adv", "or-adj", "or-prefix"})
 
-# The two submenu kinds that do. `or` and `or-prefix` are control kinds only and
-# never appear on a Submenu, which is why the prefix test below happens to give
-# the right answer when it is pointed at one.
-RADIO_SUBMENU_KINDS: frozenset[SubmenuKind] = frozenset({"or-adv", "or-adj"})
-
 # The submenu kinds whose modifier follows the option text instead of preceding
-# it. Note this cuts across the previous set rather than agreeing with it.
+# it. Note this cuts across the arity question rather than agreeing with it: of
+# the four submenu kinds, the two answers match on `or-adv` and `and-adj` and
+# differ on the other two.
 ADVERB_SUBMENU_KINDS: frozenset[SubmenuKind] = frozenset({"or-adv", "and-adv"})
 
 
@@ -55,21 +52,21 @@ def is_or_prefixed_kind(kind: str) -> bool:
     return kind.startswith("or")
 
 
-def is_radio_submenu_kind(kind: str) -> bool:
-    """A submenu rendered as radios rather than checkboxes -- an arity question.
-
-    Decides the submenu's state shape (a string, not a list) and its widget
-    class. Not the same question as :func:`is_adverb_submenu_kind`, which the
-    identical-looking test beside it in the renderer is asking.
-    """
-    return kind in RADIO_SUBMENU_KINDS
-
-
 def is_adverb_submenu_kind(kind: str) -> bool:
     """A submenu whose text goes after the option's -- a word-order question.
 
-    Cuts across :func:`is_radio_submenu_kind` rather than agreeing with it: of
-    the four submenu kinds the two answer the same for `or-adv` and `and-adj`
-    and differently for the other two. Collapsing them would be wrong.
+    Not the same question as the arity one, though the two tests look alike
+    where they sit. Arity -- one selection or several, which decides the state
+    shape and the widget class -- is asked of a submenu with
+    :func:`is_or_prefixed_kind`, the same open rival the control kinds use. Over
+    the four declared submenu kinds the two answers match on `or-adv` and
+    `and-adj` and differ on `or-adj` and `and-adv`, so collapsing them would be
+    wrong.
+
+    A closed rival for the arity question would be `{"or-adv", "or-adj"}`. It is
+    deliberately not written here: no call site uses it, and adding it would
+    narrow both submenu sites off the predicate they use today -- which is the
+    same open-versus-closed choice the owner is being asked to make for control
+    kinds, and it should be made once for both.
     """
     return kind in ADVERB_SUBMENU_KINDS

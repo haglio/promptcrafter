@@ -28,7 +28,7 @@ from shared_ui.fonts import FONT_UI, SIZE_HEADING  # noqa: E402
 from shared_ui.spacing import GAP_MEDIUM, GAP_SMALL  # noqa: E402
 from shared_ui.check_box import CheckBox  # noqa: E402
 
-from promptcrafter.kinds import is_or_prefixed_kind, is_radio_submenu_kind  # noqa: E402
+from promptcrafter.kinds import is_or_prefixed_kind  # noqa: E402
 from promptcrafter.runtime import (  # noqa: E402
     apply_substitutions,
     build_prompt,
@@ -41,7 +41,7 @@ from promptcrafter.runtime import (  # noqa: E402
     is_hidden,
     is_subject_plural,
 )
-from promptcrafter.state import create_initial_state, submenu_state_key  # noqa: E402
+from promptcrafter.state import create_initial_state  # noqa: E402
 from promptcrafter.style import build_stylesheet, copy_button  # noqa: E402
 from promptcrafter.toggle_state import is_toggle_enabled  # noqa: E402
 from promptcrafter.transitions import (  # noqa: E402
@@ -60,6 +60,7 @@ from promptcrafter.types import (  # noqa: E402
     PromptTarget,
     Schema,
     Section,
+    submenu_state_key,
 )
 
 
@@ -248,8 +249,15 @@ class PromptCrafterWindow(QMainWindow):
         return group
 
     def _copy_section_prompt(self, section_id: str) -> None:
-        section = find_section(self.schema, section_id)
-        target = section.prompt_target if section and section.prompt_target else "positive"
+        # Not `find_section`: this looks for the first section with the id *that
+        # names a target*, which is a different search when two sections share
+        # an id -- `find_section` would stop at the first one and answer
+        # "positive" for a pair whose second half is the negative one.
+        section = next(
+            (s for s in self.schema.sections if s.id == section_id and s.prompt_target),
+            None,
+        )
+        target = section.prompt_target if section else "positive"
         text = build_section_prompt(self.schema, self.state, target, section_id)
         self._copy_to_clipboard(text)
 
@@ -490,7 +498,7 @@ class PromptCrafterWindow(QMainWindow):
         if not submenu_state:
             return
         plural = is_subject_plural(self.state)
-        is_radio = is_radio_submenu_kind(option.submenu.kind)
+        is_radio = is_or_prefixed_kind(option.submenu.kind)
 
         indent = QWidget()
         indent.setObjectName("submenu_indent")

@@ -17,11 +17,9 @@ from typing import get_args
 from promptcrafter.kinds import (
     ADVERB_SUBMENU_KINDS,
     RADIO_CONTROL_KINDS,
-    RADIO_SUBMENU_KINDS,
     is_adverb_submenu_kind,
     is_or_prefixed_kind,
     is_radio_kind,
-    is_radio_submenu_kind,
 )
 from promptcrafter.types import ControlKind, SubmenuKind
 
@@ -75,18 +73,19 @@ class TestTheTwoRivals:
             assert not is_radio_kind(kind)
 
 
-class TestTheSubmenuPredicatesAreNotOneQuestion:
-    """Arity and word order, which look alike and are not.
+class TestTheSubmenuQuestionsAreNotOneQuestion:
+    """Arity and word order, which look alike where they sit and are not.
 
-    `is_radio_submenu_kind` decides the state shape and the widget class;
-    `is_adverb_submenu_kind` decides only whether the modifier goes before the
-    option text or after. They agree on two of the four submenu kinds and
-    differ on the other two, so a refactor that merged them would be wrong.
+    Arity -- radios or checkboxes, a string state or a list -- is asked with
+    `is_or_prefixed_kind`, the same open rival the control kinds use. Word
+    order is `is_adverb_submenu_kind`. They agree on two of the four submenu
+    kinds and differ on the other two, so a refactor that merged them would be
+    wrong.
     """
 
     def test_they_disagree_on_half_the_declared_submenu_kinds(self):
         answers = {
-            kind: (is_radio_submenu_kind(kind), is_adverb_submenu_kind(kind))
+            kind: (is_or_prefixed_kind(kind), is_adverb_submenu_kind(kind))
             for kind in DECLARED_SUBMENU_KINDS
         }
 
@@ -97,15 +96,19 @@ class TestTheSubmenuPredicatesAreNotOneQuestion:
             "and-adj": (False, False),
         }
 
-    def test_both_sets_are_drawn_from_the_declared_submenu_kinds(self):
-        assert RADIO_SUBMENU_KINDS <= set(DECLARED_SUBMENU_KINDS)
+    def test_the_adverb_set_is_drawn_from_the_declared_submenu_kinds(self):
         assert ADVERB_SUBMENU_KINDS <= set(DECLARED_SUBMENU_KINDS)
 
-    def test_the_prefix_rival_answers_the_arity_question_for_submenus_too(self):
-        """Which is why one expression served both, and why it was hard to see.
+    def test_a_closed_rival_would_answer_arity_differently_off_the_four(self):
+        """Why `kinds.py` does not carry one, and what it would change.
 
-        No submenu kind is `or` or `or-prefix`, so over the four that exist the
-        prefix test and the submenu set give the same answer.
+        `{"or-adv", "or-adj"}` matches the open rival on all four declared
+        submenu kinds, so swapping to it looks free -- and it silently flips
+        every other `or*` string from radio to checkbox, which is what
+        `tests/test_app.py` and `tests/test_state.py` now pin at the two sites
+        that ask.
         """
-        for kind in DECLARED_SUBMENU_KINDS:
-            assert is_or_prefixed_kind(kind) == is_radio_submenu_kind(kind)
+        closed = {"or-adv", "or-adj"}
+        assert {k for k in DECLARED_SUBMENU_KINDS if is_or_prefixed_kind(k)} == closed
+        assert is_or_prefixed_kind("or")
+        assert "or" not in closed
