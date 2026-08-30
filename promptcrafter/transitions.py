@@ -80,7 +80,7 @@ def set_global_selector_enabled(
     previous = cs.selected_options if isinstance(cs.selected_options, str) else ""
     cs.selected_options = "" if enabled else False
     if not enabled and previous:
-        _clear_matches(schema, state, previous)
+        _clear_matches(schema, state, control_id, previous)
 
 
 def choose_global_selector_option(
@@ -96,24 +96,31 @@ def choose_global_selector_option(
         return
     previous = cs.selected_options if isinstance(cs.selected_options, str) else ""
     if previous and previous != option_id:
-        _clear_matches(schema, state, previous)
+        _clear_matches(schema, state, control_id, previous)
     cs.selected_options = option_id
     if option_id:
         _apply_matches(schema, state, control_id, option_id)
 
 
-def _clear_matches(schema: Schema, state: State, option_id: str) -> None:
+def _clear_matches(
+    schema: Schema, state: State, source_control_id: str, option_id: str
+) -> None:
     """Release ``option_id`` from every control the selector could have set.
 
+    Skips the control the choice came from and nothing else, which is what
+    :func:`_apply_matches` does and what the TypeScript this was ported from did
+    in both loops (``src/App.tsx:204`` and ``:226``, ``schemaCtrl.id ===
+    controlId``).  The port turned this one into a test on the *kind*, so a
+    second selector was written to like any other control and then never
+    released; with one selector in the schema the two guards pick the same
+    control and nothing showed.
+
     Held as found (2026-08-25, bug 20): the match is a substring test, so
-    releasing ``green`` also releases ``green tinted``.  Note also that this
-    skips every control of kind ``global-selector`` while :func:`_apply_matches`
-    skips only the one control the choice came from -- an asymmetry recorded
-    rather than fixed, since one selector is all any schema here has.
+    releasing ``green`` also releases ``green tinted``.
     """
     for section in schema.sections:
         for control in section.controls:
-            if control.kind == "global-selector":
+            if control.id == source_control_id:
                 continue
             cs = state.controls.get(control.id)
             if not cs:
@@ -150,7 +157,17 @@ def _apply_matches(schema: Schema, state: State, source_control_id: str, option_
             elif isinstance(cs.selected_options, list):
                 matching = [o.id for o in control.options if o.id == option_id or option_id in o.id]
                 if matching:
-                    cs.selected_options = list(set(cs.selected_options) | set(matching))
+                    # `dict.fromkeys`, not `set`: the TypeScript merged these
+                    # with `Array.from(new Set([...]))` (`src/App.tsx:239`) and a
+                    # JS Set keeps insertion order, so the list was stable. A
+                    # Python set is hash-ordered, and string hashing is salted
+                    # per process -- the port made this list come out in a
+                    # different order run to run. Nothing reads it in order
+                    # today, because the renderer and the widget builder both
+                    # walk `control.options`, so it never showed in a prompt.
+                    cs.selected_options = list(
+                        dict.fromkeys([*cs.selected_options, *matching])
+                    )
 
 
 def set_section_weight(state: State, section_id: str, weight: float) -> None:

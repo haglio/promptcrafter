@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from promptcrafter.kinds import is_adverb_submenu_kind, is_or_prefixed_kind, is_radio_kind
+from promptcrafter.kinds import is_adverb_submenu_kind, is_radio_kind
 from promptcrafter.toggle_state import is_toggle_enabled
 from promptcrafter.types import (
     Control,
@@ -54,7 +54,7 @@ def control_has_at_least_one_selected_option(control: Control, state: State) -> 
         return is_toggle_enabled(cs)
     if control.kind == "global-selector":
         return cs.selected_options is not False
-    if is_or_prefixed_kind(control.kind):
+    if is_radio_kind(control.kind):
         return bool(cs.selected_options) if isinstance(cs.selected_options, str) else False
     return isinstance(cs.selected_options, list) and len(cs.selected_options) > 0
 
