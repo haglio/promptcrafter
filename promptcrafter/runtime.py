@@ -116,7 +116,7 @@ def is_hidden(
     return not is_triggered_by(state, revealed_bys)
 
 
-def _find_control(schema: Schema, control_id: str) -> Control | None:
+def find_control(schema: Schema, control_id: str) -> Control | None:
     for section in schema.sections:
         for control in section.controls:
             if control.id == control_id:
@@ -124,7 +124,7 @@ def _find_control(schema: Schema, control_id: str) -> Control | None:
     return None
 
 
-def _find_section(schema: Schema, section_id: str) -> Section | None:
+def find_section(schema: Schema, section_id: str) -> Section | None:
     for section in schema.sections:
         if section.id == section_id:
             return section
@@ -161,9 +161,9 @@ def _resolve_reference_value(
         option = _find_option(schema, ref_id)
         return get_option_text(option, is_plural, schema, state, next_stack) if option else ""
     if ref_kind == "control":
-        control = _find_control(schema, ref_id)
+        control = find_control(schema, ref_id)
         return _render_control_value(control, schema, state, next_stack) if control else ""
-    section = _find_section(schema, ref_id)
+    section = find_section(schema, ref_id)
     return _render_section_value(section, schema, state, next_stack) if section else ""
 
 
@@ -676,7 +676,7 @@ def build_section_prompt(
     target: PromptTarget,
     section_id: str,
 ) -> str:
-    section = next((s for s in schema.sections if s.id == section_id), None)
+    section = find_section(schema, section_id)
     if not section:
         return ""
     return apply_substitutions(
