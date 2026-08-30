@@ -240,15 +240,16 @@ class TestTheGlobalSelector:
 
         assert state.controls["hue"].selected_options == ""
 
-    def test_a_second_selector_is_written_to_but_never_released(self):
-        """What two selectors in one schema do today. Found 2026-08-30, held.
+    def test_a_second_selector_is_released_like_any_other_control(self):
+        """Both loops skip the control the choice came from, and only that one.
 
-        Choosing skips only the control the choice came from, so the other
-        selector is written to like any ordinary control. Releasing skips every
-        control of kind `global-selector`, so that write is never taken back:
-        `mood` keeps a choice its own switch never made. No schema here has two
-        selectors, which is why the asymmetry has never shown; this records it
-        rather than fixing it.
+        The TypeScript this was ported from wrote the same guard in both --
+        `schemaCtrl.id === controlId`, `src/App.tsx:204` and `:226`. The port
+        turned the releasing one into a test on the *kind*, so a second selector
+        was written to like any ordinary control and then never released: it
+        kept a choice its own switch never made, and would push it onward. One
+        selector is all any schema here has, so the two guards picked the same
+        control and nothing showed.
         """
         schema = _two_selector_schema()
         state = create_initial_state(schema)
@@ -260,7 +261,7 @@ class TestTheGlobalSelector:
 
         set_global_selector_enabled(schema, state, "tint", False)
 
-        assert state.controls["mood"].selected_options == "amber"
+        assert state.controls["mood"].selected_options == ""
         assert state.controls["hue"].selected_options == ""
 
 
@@ -322,3 +323,29 @@ class TestTheStateObjectsSurviveEveryRule:
         set_control_weight(state, "armor", 0.6)
 
         assert self._ids(state) == before
+
+
+class TestTheSelectorsMergeIsStable:
+    """The merged list comes out the same on every run.
+
+    The TypeScript merged with `Array.from(new Set([...a, ...b]))`
+    (`src/App.tsx:239`), and a JS Set keeps insertion order. The port used
+    `list(set(a) | set(b))`, which is hash-ordered -- and Python salts string
+    hashing per process, so the same clicks left the list in a different order
+    from one run to the next. Nothing renders from that order, so it never
+    reached a prompt; it is still a state that changes when nothing did.
+    """
+
+    def test_the_merged_selection_keeps_the_order_it_was_built_in(self):
+        schema = _two_selector_schema()
+        schema.sections[0].controls.append(
+            Control(id="wash", text="wash", kind="and-commas",
+                    initially_selected_options=["slate washed"],
+                    options=[Option(id="amber glazed", text="amber glazed"),
+                             Option(id="slate washed", text="slate washed")]))
+        state = create_initial_state(schema)
+        set_global_selector_enabled(schema, state, "tint", True)
+
+        choose_global_selector_option(schema, state, "tint", "amber")
+
+        assert state.controls["wash"].selected_options == ["slate washed", "amber glazed"]

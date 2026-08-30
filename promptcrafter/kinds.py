@@ -1,53 +1,41 @@
-"""The questions the four modules ask about a control's kind.
+"""What a control's kind means, asked in one place.
 
-`ControlKind` is a twelve-member string `Literal`, and until now four modules
-each answered "is this a radio kind?" for themselves -- three of them with
-`kind.startswith("or")` and the fourth with an explicit set. The two are not the
-same question, and neither is the submenu test that looks almost identical to
-them, so all three keep a name here rather than being collapsed into whichever
-one was written most often.
+Six sites ask "is this kind single-select?" -- the state builder (twice, once
+for controls and once for submenus), the widget builder (twice, the same way),
+the has-a-selection query, and the renderer. Five of them spelled it
+``kind.startswith('or')`` and the sixth built a set of the four ``or`` kinds
+inside the render function; both came straight across from the TypeScript this
+was ported from (``src/lib/state.ts:24``, ``:38``, ``src/components/Control.tsx:298``,
+``src/components/Submenu.tsx:113``, ``src/lib/runtime.ts:55`` against
+``src/lib/runtime.ts:522``).
 
-Nothing validates a kind at any layer: `Literal` is erased at runtime, the
-dataclasses have no `__post_init__`, and there is no type checker in the gate.
-A kind outside the twelve reaches every one of these predicates unchecked.
+They agreed on every kind that has ever existed, so the difference was invisible
+-- and it could only ever show as the state shape and the renderer disagreeing
+about one control, which is a shape no schema should be able to reach. It is the
+majority spelling now, at all six, so they cannot disagree at all.
 """
 
 from __future__ import annotations
 
-from promptcrafter.types import ControlKind, SubmenuKind
-
-# The four control kinds that hold one selection rather than a list.
-RADIO_CONTROL_KINDS: frozenset[ControlKind] = frozenset({"or", "or-adv", "or-adj", "or-prefix"})
+from promptcrafter.types import SubmenuKind
 
 # The submenu kinds whose modifier follows the option text instead of preceding
-# it. Note this cuts across the arity question rather than agreeing with it: of
-# the four submenu kinds, the two answers match on `or-adv` and `and-adj` and
-# differ on the other two.
+# it. A different question from single-select, though the two tests sit close
+# enough to look alike: of the four submenu kinds these two answers match on
+# `or-adv` and `and-adj` and differ on the other two.
 ADVERB_SUBMENU_KINDS: frozenset[SubmenuKind] = frozenset({"or-adv", "and-adv"})
 
 
 def is_radio_kind(kind: str) -> bool:
-    """The closed rival: `kind` is one of the four enumerated radio kinds.
+    """One selection rather than several -- a radio group, not checkboxes.
 
-    Agrees with :func:`is_or_prefixed_kind` on every one of the twelve declared
-    `ControlKind` members -- they part company only on a string that merely
-    begins with `or`, such as a thirteenth kind named `or-suffix`. This one
-    leaves such a kind out until somebody adds it to the set above.
+    Decides the state shape (a string, not a list), the widget class, whether
+    the control counts as having a selection, and which renderer builds its
+    text. All four answers come from here, so they cannot drift apart.
 
-    Which of the two is right is the owner's to say; `tests/test_kinds.py` holds
-    the evidence and will red if a thirteenth `or-*` kind is declared without
-    the question being answered.
-    """
-    return kind in RADIO_CONTROL_KINDS
-
-
-def is_or_prefixed_kind(kind: str) -> bool:
-    """The open rival: `kind` merely begins with `or`.
-
-    Same answers as :func:`is_radio_kind` on everything that exists today (see
-    that docstring). This one takes a future `or-*` kind in with no edit here,
-    which is convenient if every `or-*` kind is single-select by construction
-    and silent on the day one is not.
+    The rule is the naming convention the schema already follows: every
+    single-select kind is named `or`-something, and no other kind is. It holds
+    over all twelve control kinds and all four submenu kinds.
     """
     return kind.startswith("or")
 
@@ -55,18 +43,9 @@ def is_or_prefixed_kind(kind: str) -> bool:
 def is_adverb_submenu_kind(kind: str) -> bool:
     """A submenu whose text goes after the option's -- a word-order question.
 
-    Not the same question as the arity one, though the two tests look alike
-    where they sit. Arity -- one selection or several, which decides the state
-    shape and the widget class -- is asked of a submenu with
-    :func:`is_or_prefixed_kind`, the same open rival the control kinds use. Over
-    the four declared submenu kinds the two answers match on `or-adv` and
-    `and-adj` and differ on `or-adj` and `and-adv`, so collapsing them would be
-    wrong.
-
-    A closed rival for the arity question would be `{"or-adv", "or-adj"}`. It is
-    deliberately not written here: no call site uses it, and adding it would
-    narrow both submenu sites off the predicate they use today -- which is the
-    same open-versus-closed choice the owner is being asked to make for control
-    kinds, and it should be made once for both.
+    Not the same question as :func:`is_radio_kind`, though the two tests look
+    alike where they sit: this one decides only whether the modifier precedes
+    or follows the option text, and over the four submenu kinds the two answers
+    differ on half of them.
     """
     return kind in ADVERB_SUBMENU_KINDS
