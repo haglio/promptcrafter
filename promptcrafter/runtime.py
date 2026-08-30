@@ -454,73 +454,100 @@ def _supplemented_segment(
     return Segment(text=text, weight=weight) if text else None
 
 
-def _render_control_segment(
+def _render_every_selected_option(
     control: Control,
+    cs: ControlState,
     schema: Schema,
     state: State,
-    stack: ResolutionStack | None = None,
+    stack: ResolutionStack,
+    disabled: bool,
 ) -> Segment | None:
-    if stack is None:
-        stack = set()
-    if is_hidden(state, control.hidden_bys, control.revealed_bys):
+    """Every ticked option, comma-joined.
+
+    What `required`, `hidden-opposite` and a multi-option toggle all render to;
+    the three used to spell it out one after another.
+    """
+    selected = _selected_options(control, cs, state, disabled)
+    if not selected:
         return None
-    cs = state.controls.get(control.id)
-    if not cs:
+    combined = ", ".join(_rendered_options(control, selected, schema, state, stack)).strip()
+    return _supplemented_segment(combined, control, schema, state, stack, cs.weight)
+
+
+def _render_toggle(
+    control: Control,
+    cs: ControlState,
+    schema: Schema,
+    state: State,
+    stack: ResolutionStack,
+    disabled: bool,
+) -> Segment | None:
+    if disabled or not is_toggle_enabled(cs):
         return None
-    disabled = is_disabled(state, control.disabled_bys)
-    own_weight = cs.weight
-    plural = is_subject_plural(state)
-
-    if control.kind == "toggle":
-        if disabled or not is_toggle_enabled(cs):
-            return None
-        if isinstance(cs.selected_options, bool):
-            if not control.options and control.global_substitutions:
-                return None
-            if control.options:
-                base = get_option_text(control.options[0], plural, schema, state, stack)
-            else:
-                base = _get_control_text(control, schema, state, None, stack)
-            return Segment(text=_append_supplements(base, control, schema, state, stack), weight=own_weight)
-        selected = _selected_options(control, cs, state, disabled)
-        if not selected:
-            return None
-        combined = ", ".join(_rendered_options(control, selected, schema, state, stack)).strip()
-        return _supplemented_segment(combined, control, schema, state, stack, own_weight)
-
-    if control.kind == "global-selector":
+    if not isinstance(cs.selected_options, bool):
+        return _render_every_selected_option(control, cs, schema, state, stack, disabled)
+    # A toggle with no options of its own says one thing: its first option's
+    # text, or the control's, unless it exists only to drive a substitution.
+    if not control.options and control.global_substitutions:
         return None
+    if control.options:
+        base = get_option_text(control.options[0], is_subject_plural(state), schema, state, stack)
+    else:
+        base = _get_control_text(control, schema, state, None, stack)
+    # The one renderer that answers with a segment either way, empty text and
+    # all. `TestASegmentWithNothingInIt` pins what the difference does.
+    return Segment(
+        text=_append_supplements(base, control, schema, state, stack),
+        weight=cs.weight,
+    )
 
-    if control.kind == "required":
-        selected = _selected_options(control, cs, state, disabled)
-        if not selected:
-            return None
-        combined = ", ".join(_rendered_options(control, selected, schema, state, stack)).strip()
-        return _supplemented_segment(combined, control, schema, state, stack, own_weight)
 
-    if control.kind == "hidden-opposite":
-        if not is_triggered_by(state, control.hidden_opposite_bys) or disabled:
-            return None
-        selected = _selected_options(control, cs, state, disabled)
-        if not selected:
-            return None
-        combined = ", ".join(_rendered_options(control, selected, schema, state, stack)).strip()
-        return _supplemented_segment(combined, control, schema, state, stack, own_weight)
+def _render_hidden_opposite(
+    control: Control,
+    cs: ControlState,
+    schema: Schema,
+    state: State,
+    stack: ResolutionStack,
+    disabled: bool,
+) -> Segment | None:
+    if not is_triggered_by(state, control.hidden_opposite_bys) or disabled:
+        return None
+    return _render_every_selected_option(control, cs, schema, state, stack, disabled)
 
-    radio_kinds = {"or", "or-adv", "or-adj", "or-prefix"}
-    if control.kind in radio_kinds:
-        sel_id = cs.selected_options if not disabled and isinstance(cs.selected_options, str) else None
-        option = _option_by_id(control, sel_id) if sel_id else None
-        if not option or is_hidden(state, option.hidden_bys, option.revealed_bys) or is_disabled(state, option.disabled_bys):
-            return None
-        text = _render_option_with_modifiers(control.id, option, schema, state, stack)
-        if control.kind == "or-adv":
-            text = f"{_get_control_text(control, schema, state, option, stack)} {text}"
-        if control.kind == "or-adj":
-            text = f"{text} {_get_control_text(control, schema, state, option, stack)}"
-        return _supplemented_segment(text, control, schema, state, stack, own_weight)
 
-    # and-commas, and-commas-adj, and-commas-adv, and-spaces-adj
+def _render_radio(
+    control: Control,
+    cs: ControlState,
+    schema: Schema,
+    state: State,
+    stack: ResolutionStack,
+    disabled: bool,
+) -> Segment | None:
+    sel_id = cs.selected_options if not disabled and isinstance(cs.selected_options, str) else None
+    option = _option_by_id(control, sel_id) if sel_id else None
+    if not option or is_hidden(state, option.hidden_bys, option.revealed_bys) or is_disabled(state, option.disabled_bys):
+        return None
+    text = _render_option_with_modifiers(control.id, option, schema, state, stack)
+    if control.kind == "or-adv":
+        text = f"{_get_control_text(control, schema, state, option, stack)} {text}"
+    if control.kind == "or-adj":
+        text = f"{text} {_get_control_text(control, schema, state, option, stack)}"
+    return _supplemented_segment(text, control, schema, state, stack, cs.weight)
+
+
+def _render_and_list(
+    control: Control,
+    cs: ControlState,
+    schema: Schema,
+    state: State,
+    stack: ResolutionStack,
+    disabled: bool,
+) -> Segment | None:
+    """and-commas, and-commas-adj, and-commas-adv, and-spaces-adj.
+
+    The four differ only in where the control's own text goes: nowhere, after
+    each option, before each option, or once at the end.
+    """
     selected = _selected_options(control, cs, state, disabled)
     if not selected:
         return None
@@ -542,7 +569,38 @@ def _render_control_segment(
     else:  # and-commas
         combined = ", ".join(option_values)
 
-    return _supplemented_segment(combined.strip(), control, schema, state, stack, own_weight)
+    return _supplemented_segment(combined.strip(), control, schema, state, stack, cs.weight)
+
+
+def _render_control_segment(
+    control: Control,
+    schema: Schema,
+    state: State,
+    stack: ResolutionStack | None = None,
+) -> Segment | None:
+    """Which of the twelve kinds this control is, and nothing else."""
+    if stack is None:
+        stack = set()
+    if is_hidden(state, control.hidden_bys, control.revealed_bys):
+        return None
+    cs = state.controls.get(control.id)
+    if not cs:
+        return None
+    disabled = is_disabled(state, control.disabled_bys)
+
+    if control.kind == "toggle":
+        return _render_toggle(control, cs, schema, state, stack, disabled)
+    if control.kind == "global-selector":
+        # It sets the other controls; it contributes no text of its own.
+        return None
+    if control.kind == "required":
+        return _render_every_selected_option(control, cs, schema, state, stack, disabled)
+    if control.kind == "hidden-opposite":
+        return _render_hidden_opposite(control, cs, schema, state, stack, disabled)
+    radio_kinds = {"or", "or-adv", "or-adj", "or-prefix"}
+    if control.kind in radio_kinds:
+        return _render_radio(control, cs, schema, state, stack, disabled)
+    return _render_and_list(control, cs, schema, state, stack, disabled)
 
 
 def _merge_segments(segments: list[Segment]) -> list[Segment]:
