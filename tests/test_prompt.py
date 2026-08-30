@@ -1,8 +1,19 @@
 import copy
 
+import pytest
+
 from promptcrafter.runtime import build_prompt
 from promptcrafter.state import create_initial_state
-from promptcrafter.types import Control, GlobalSubstitution, Option, PluralText, SupplementedBy
+from promptcrafter.types import (
+    Control,
+    DisabledOrHiddenBy,
+    GlobalSubstitution,
+    Option,
+    PluralText,
+    Schema,
+    Section,
+    SupplementedBy,
+)
 from tests.fixtures.test_schema import TEST_SCHEMA
 
 
@@ -161,6 +172,141 @@ class TestControlKinds:
         state.controls["safety mode"].selected_options = True
 
         assert build_prompt(schema, state, "positive") == "space robo dino demon monster, keep safe"
+
+
+# Every kind below picks its options out of a list, and each does it with its
+# own copy of the same comprehension -- four copies, of which two fold the
+# control's own disabled state into the filter and two do not. These say what
+# each one keeps, so that collapsing them to one cannot change any of them.
+# `kind`, what it renders with both options selected, and with only `korth` left.
+_LIST_KINDS = [
+    ("toggle", "zeta, korth", "korth"),
+    ("required", "zeta, korth", "korth"),
+    ("hidden-opposite", "zeta, korth", "korth"),
+    ("and-commas", "zeta, korth", "korth"),
+    ("and-commas-adj", "zeta probe, korth probe", "korth probe"),
+    ("and-commas-adv", "probe zeta, probe korth", "probe korth"),
+    ("and-spaces-adj", "zeta korth probe", "korth probe"),
+]
+_KINDS = [kind for kind, _, _ in _LIST_KINDS]
+_KINDS_KEEPING_BOTH = [(kind, both) for kind, both, _ in _LIST_KINDS]
+_KINDS_KEEPING_ONE = [(kind, one) for kind, _, one in _LIST_KINDS]
+
+
+def _a_control_of_kind(kind, *, control_disabled=False, option_disabled=False,
+                       option_hidden=False):
+    """One control of `kind` between two switches, both of them on.
+
+    Two are needed rather than one. `ward` fires the `hidden_opposite_bys` that
+    the `hidden-opposite` kind needs before it will render at all; `gale` fires
+    whichever of the three rules a test is asking about, and has to be able to
+    fire without disabling the control it is meant to leave alone.
+    """
+    gale = [DisabledOrHiddenBy(control_id="gale")]
+    probe = Control(
+        id="probe", text="probe", kind=kind,
+        options=[
+            Option(id="zeta", text="zeta",
+                   disabled_bys=gale if option_disabled else [],
+                   hidden_bys=gale if option_hidden else []),
+            Option(id="korth", text="korth"),
+        ],
+        disabled_bys=gale if control_disabled else [],
+        hidden_opposite_bys=[DisabledOrHiddenBy(control_id="ward")],
+    )
+    return Schema(sections=[Section(id="glade", text="glade", controls=[
+        Control(id="ward", text="ward", kind="toggle", initially_selected_options=True,
+                options=[Option(id="warded", text="warded")]),
+        Control(id="gale", text="gale", kind="toggle",
+                options=[Option(id="gusting", text="gusting")]),
+        probe,
+    ])])
+
+
+def _state_with(schema, selected):
+    state = create_initial_state(schema)
+    state.controls["gale"].selected_options = True
+    state.controls["probe"].selected_options = selected
+    state.controls["probe"].enabled = True
+    return state
+
+
+class TestWhatEachKindKeeps:
+    """The option filter, per kind, under each of the three rules that drop one.
+
+    The four copies of it are not written the same way, so before they become
+    one this says what each of them does. They agree: the difference between
+    the copies is which of them folds the control's own disabled state into the
+    filter, and the two that do not are the two whose branch has already
+    returned by then.
+    """
+
+    @pytest.mark.parametrize(("kind", "expected"), _KINDS_KEEPING_BOTH)
+    def test_it_renders_the_options_that_are_selected(self, kind, expected):
+        schema = _a_control_of_kind(kind)
+        state = _state_with(schema, ["zeta", "korth"])
+
+        assert build_prompt(schema, state, "positive") == f"warded, gusting, {expected}"
+
+    @pytest.mark.parametrize("kind", _KINDS)
+    def test_a_control_a_rule_disables_renders_nothing(self, kind):
+        schema = _a_control_of_kind(kind, control_disabled=True)
+        state = _state_with(schema, ["zeta", "korth"])
+
+        assert build_prompt(schema, state, "positive") == "warded, gusting"
+
+    @pytest.mark.parametrize(("kind", "expected"), _KINDS_KEEPING_ONE)
+    def test_an_option_a_rule_disables_drops_out_and_the_rest_stay(self, kind, expected):
+        schema = _a_control_of_kind(kind, option_disabled=True)
+        state = _state_with(schema, ["zeta", "korth"])
+
+        assert build_prompt(schema, state, "positive") == f"warded, gusting, {expected}"
+
+    @pytest.mark.parametrize(("kind", "expected"), _KINDS_KEEPING_ONE)
+    def test_an_option_a_rule_hides_drops_out_and_the_rest_stay(self, kind, expected):
+        schema = _a_control_of_kind(kind, option_hidden=True)
+        state = _state_with(schema, ["zeta", "korth"])
+
+        assert build_prompt(schema, state, "positive") == f"warded, gusting, {expected}"
+
+    @pytest.mark.parametrize("kind", _KINDS)
+    def test_a_control_with_nothing_selected_renders_nothing(self, kind):
+        schema = _a_control_of_kind(kind)
+        state = _state_with(schema, [])
+
+        assert build_prompt(schema, state, "positive") == "warded, gusting"
+
+
+class TestASegmentWithNothingInIt:
+    """The one place the kinds part company on what "renders to nothing" means.
+
+    Six of the seven end with `return the segment if there is any text, else
+    nothing`. The toggle's single-option arm does not: it returns a segment
+    whose text is empty. Nothing downstream prints an empty segment -- the merge
+    step drops it -- except the `or-prefix` pairing, which asks only whether the
+    control beside it rendered *something*. So an empty toggle is a partner and
+    an empty and-commas is not, and the prefix survives in one case and is
+    dropped in the other.
+    """
+
+    def _prefix_then(self, kind, selected):
+        schema = Schema(sections=[Section(id="glade", text="glade", controls=[
+            Control(id="lead", text="lead", kind="or-prefix",
+                    options=[Option(id="alpha", text="alpha")]),
+            Control(id="mute", text="", kind=kind,
+                    options=[Option(id="beta", text="")]),
+        ])])
+        state = create_initial_state(schema)
+        state.controls["lead"].selected_options = "alpha"
+        state.controls["mute"].selected_options = selected
+        state.controls["mute"].enabled = True
+        return build_prompt(schema, state, "positive")
+
+    def test_an_empty_toggle_counts_as_the_prefixs_partner(self):
+        assert self._prefix_then("toggle", True) == "alpha"
+
+    def test_an_empty_and_commas_does_not_and_takes_the_prefix_with_it(self):
+        assert self._prefix_then("and-commas", ["beta"]) == ""
 
 
 class TestControlCustomText:
