@@ -44,6 +44,7 @@ from shared_ui.spacing import GAP_MEDIUM, GAP_SMALL  # noqa: E402
 from shared_ui.check_box import CheckBox  # noqa: E402
 from shared_ui.icons import glyph_pixmap  # noqa: E402
 
+from promptcrafter.kinds import is_or_prefixed_kind, is_radio_submenu_kind  # noqa: E402
 from promptcrafter.runtime import (  # noqa: E402
     apply_substitutions,
     build_prompt,
@@ -505,7 +506,7 @@ class PromptCrafterWindow(QMainWindow):
             self._build_toggle_control(vlayout, control, cs, disabled)
         elif control.kind == "global-selector":
             self._build_global_selector_control(vlayout, control, cs, disabled)
-        elif control.kind.startswith("or"):
+        elif is_or_prefixed_kind(control.kind):
             self._build_radio_control(vlayout, control, cs, disabled)
         else:
             self._build_checkbox_control(vlayout, control, cs, disabled)
@@ -699,7 +700,7 @@ class PromptCrafterWindow(QMainWindow):
         if not submenu_state:
             return
         plural = is_subject_plural(self.state)
-        is_radio = option.submenu.kind.startswith("or")
+        is_radio = is_radio_submenu_kind(option.submenu.kind)
 
         indent = QWidget()
         indent.setObjectName("submenu_indent")
