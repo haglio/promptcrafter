@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import QApplication
 from promptcrafter.app import PromptCrafterWindow
 from promptcrafter.paths import icon_path
 from promptcrafter.process_name import name_this_process
-from promptcrafter.schema import schema
+from promptcrafter.schema_overlay import load_schema
 from promptcrafter.win32 import set_app_user_model_id
 
 # Both before the first window exists: the id decides which taskbar button the
@@ -24,6 +24,6 @@ app = QApplication(sys.argv)
 icon = icon_path()
 if icon.is_file():
     app.setWindowIcon(QIcon(str(icon)))
-window = PromptCrafterWindow(schema)
+window = PromptCrafterWindow(load_schema())
 window.show()
 sys.exit(app.exec())

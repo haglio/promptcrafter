@@ -30,7 +30,8 @@ LAYERS = {
     "kinds": 1,        # which control kinds mean what
     "toggle_state": 1,
     "process_name": 1,
-    "schema": 1,       # the shipped config
+    "schema": 1,       # the shipped demo config
+    "schema_overlay": 2,  # reads the private one beside the checkout, else the demo
     "style": 1,        # the stylesheet and the copy button's mark
     "state": 2,        # builds the state dict from a schema
     "runtime": 2,      # renders a prompt from schema plus state
@@ -40,16 +41,17 @@ LAYERS = {
     "__init__": 0,
 }
 
-# Every intra-package edge that exists. 21 of them.
+# Every intra-package edge that exists. 30 of them.
 EDGES = {
     ("__main__", "app"), ("__main__", "paths"), ("__main__", "process_name"),
-    ("__main__", "schema"), ("__main__", "win32"),
+    ("__main__", "schema_overlay"), ("__main__", "win32"),
     ("app", "kinds"), ("app", "paths"), ("app", "runtime"), ("app", "state"),
     ("app", "style"), ("app", "toggle_state"), ("app", "transitions"), ("app", "types"),
     ("kinds", "types"),
     ("process_name", "paths"),
     ("runtime", "kinds"), ("runtime", "toggle_state"), ("runtime", "types"),
     ("schema", "types"),
+    ("schema_overlay", "paths"), ("schema_overlay", "schema"), ("schema_overlay", "types"),
     ("state", "kinds"), ("state", "toggle_state"), ("state", "types"),
     ("style", "paths"),
     ("toggle_state", "types"),
