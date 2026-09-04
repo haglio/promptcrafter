@@ -45,6 +45,28 @@ pytest (rootdir goes on the path), which is why the suite never sees this.
 on purpose once and check the harness notices. A comparison tool that cannot
 fail is not evidence.
 
+## The committed schema is a demo, and the app does not run it
+
+`promptcrafter/schema.py` is three fabricated sections -- heroes, villains,
+pigeons. It is not what the user sees. The real schema is their own prompt
+vocabulary, which is exactly what `app_support.sanitize` refuses to let near a
+commit, so it lives in a git-ignored `schema.local.json` beside the checkout and
+`promptcrafter/schema_overlay.py` reads it at launch. No overlay, no problem: a
+public clone, CI, and every worktree fall back to the demo, which is what keeps
+the suite deterministic wherever it runs.
+
+Two things follow. **The demo may never grow toward the real one** -- not one
+real option, not one real section name, however much more useful a realistic
+demo would be to read. And **the overlay is where the user's edits go**: an
+agent asked to add a control is almost always being asked about their schema,
+not about the three sections in the tree, so ask which before editing
+`schema.py`.
+
+The overlay's JSON keeps the **camelCase** spelling the schema was authored in
+(`promptTarget`, `initiallySelectedOptions`, `supplementedBys`) rather than the
+snake_case of the dataclasses; `schema_from_document` is the single place the
+two vocabularies meet, and `tests/test_schema_overlay.py` pins every key.
+
 ## Test fixtures must be fabricated, never copied from the real library
 
 Every fixture value that stands in for library data — a video title, a filename,

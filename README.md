@@ -6,7 +6,8 @@ A config-driven prompt crafting desktop app built with PyQt6, using `shared_ui` 
 
 - PyQt6 desktop app
 - pytest + pytest-qt for testing
-- Config-driven prompt schema in `promptcrafter/schema.py`
+- Config-driven prompt schema in `promptcrafter/schema.py` (a demo; the real one
+  is a git-ignored `schema.local.json` -- see `promptcrafter/schema_overlay.py`)
 
 ## Run
 

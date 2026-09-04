@@ -19,6 +19,11 @@ output/*.json
 
 # Claude Code local config
 
+# Private overlay — the real schema is the user's own prompt vocabulary, which
+# is exactly what the sanitize blocklist exists to keep out of this repo. The
+# committed promptcrafter/schema.py is a fabricated demo; see schema_overlay.py.
+/schema.local.json
+
 # pCloud conflict copies (this dir syncs via pCloud). Never our files; an
 # untracked one dirties main and blocks merges. '[' escaped to match literally.
 *\[conflicted*
