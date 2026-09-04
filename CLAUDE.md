@@ -92,6 +92,40 @@ already uses. The near miss that still counts: taking a real filename and
 changing a character or two — it is still that clip, still that performer. Make
 it up from scratch, don't lightly edit a real one.
 
+## Judging a branch before it lands
+
+Every worktree carries `launch_preview_branch.vbs` (tracked). Double-clicking it
+runs THAT worktree's code as its own app instance: the primary checkout's venv,
+the worktree as the working directory, and the worktree's own
+`schema.local.json`. Two things to do before handing one over: **copy the
+primary's `schema.local.json` into the worktree root**, or the preview comes up
+on the fabricated demo and shows three sections of heroes and pigeons rather
+than the thing under review; and check the launch windowlessly with
+`python -m pytest tests/test_launch_smoke.py`, which replays the whole import
+phase in a fresh interpreter under the launcher's own working directory and
+`PYTHONPATH`.
+
+The working directory is the part that fails silently. The venv carries an
+editable install pointing at the primary, so a preview started anywhere else
+resolves `import promptcrafter` to `main`: the app comes up, looks fine, and
+reviews the wrong code. The launcher moves to its own folder first for that
+reason — see the import trap under Repo-specific gotchas.
+
+**Never start it yourself. Hand the link and stop.** Any command that runs the
+vbs, or a bare `python -m promptcrafter`, puts a window over whatever the user
+is doing and takes their focus; a preview that appears unannounced gets closed
+in irritation, and whatever else they had running of that app usually goes with
+it. Starting it is theirs, on their schedule, and the launcher is named
+distinctly from `PromptCrafter.lnk` so a review cycle cannot run against the
+live app by mistake.
+
+The preview is part of delivering any user-facing change, not an extra: the user
+judges mergability by clicking through the real app. **It comes BEFORE the pull
+request, and their verdict is what opens one** — see Landing below, where opening
+a non-draft PR here merges the work hands-off. Push it with `gh pr create --fill
+--draft` if the branch should be visible first, and `gh pr ready` once they say
+it is good.
+
 ## Landing — GitHub merge queue, not local ff-merge
 
 This repo is public at `github.com/haglio/promptcrafter` with a merge-queue ruleset on
