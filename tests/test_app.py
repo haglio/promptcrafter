@@ -10,14 +10,14 @@ from PyQt6.QtWidgets import (
     QSlider,
     QWidget,
 )
+from shared_ui.check_box import CheckBox
 
 from promptcrafter.app import PromptCrafterWindow
 from promptcrafter.types import Control, Option, Schema, Section, Submenu
-from shared_ui.check_box import CheckBox
 from tests.fixtures.test_schema import TEST_SCHEMA
 
 
-@pytest.fixture()
+@pytest.fixture
 def app(qtbot):
     window = PromptCrafterWindow(TEST_SCHEMA)
     qtbot.addWidget(window)
@@ -25,7 +25,7 @@ def app(qtbot):
     return window
 
 
-@pytest.fixture()
+@pytest.fixture
 def window_with_a_toggle(qtbot):
     """Build a window whose second section leads with a multi-option toggle.
 

@@ -63,7 +63,7 @@ class TestTheDeclaredKinds:
 
     def test_single_select_is_exactly_the_or_named_kinds(self):
         """The naming convention the schema already follows, stated once."""
-        assert RADIO_CONTROL_KINDS == {"or", "or-adv", "or-adj", "or-prefix"}
+        assert {"or", "or-adv", "or-adj", "or-prefix"} == RADIO_CONTROL_KINDS
         assert {k for k in DECLARED_SUBMENU_KINDS if is_or_prefixed_kind(k)} == {"or-adv", "or-adj"}
 
 
@@ -119,4 +119,4 @@ class TestTheSubmenuQuestionsAreNotOneQuestion:
         }
 
     def test_the_adverb_set_is_drawn_from_the_declared_submenu_kinds(self):
-        assert ADVERB_SUBMENU_KINDS <= set(DECLARED_SUBMENU_KINDS)
+        assert set(DECLARED_SUBMENU_KINDS) >= ADVERB_SUBMENU_KINDS
