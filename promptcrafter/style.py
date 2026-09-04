@@ -35,7 +35,6 @@ from shared_ui.colors import (  # noqa: E402
 from shared_ui.fonts import FONT_UI, SIZE_BODY, SIZE_HEADING  # noqa: E402
 from shared_ui.icons import glyph_pixmap  # noqa: E402
 
-
 # The copy button's mark, at the size its 22px square leaves room for.
 _COPY_ICON = 14
 

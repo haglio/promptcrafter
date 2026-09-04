@@ -50,9 +50,7 @@ def get_toggle_selections_for_next_state(
         return control_state.selected_options
 
     return (
-        control_state.selected_options
-        if control_state.selected_options
-        else _get_toggle_default_selections(control)
+        control_state.selected_options or _get_toggle_default_selections(control)
     )
 
 

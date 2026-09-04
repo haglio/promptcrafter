@@ -25,7 +25,6 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
-
 from pathlib import Path
 
 from app_support.launch_smoke import (

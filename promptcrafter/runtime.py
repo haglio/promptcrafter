@@ -281,9 +281,8 @@ def _get_supplemental_texts(
         if sb.control_id:
             if not _is_by_condition_matched(state, DisabledOrHiddenBy(control_id=sb.control_id)):
                 continue
-        else:
-            if not _is_option_id_selected(state, sb.option_id):
-                continue
+        elif not _is_option_id_selected(state, sb.option_id):
+            continue
         text = get_text_value(sb.supplemental_text, plural, schema, state, stack).strip()
         if text:
             result.append(SupplementalText(text=text, side=sb.side or "adv"))

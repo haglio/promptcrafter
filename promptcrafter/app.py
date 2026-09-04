@@ -24,9 +24,9 @@ from promptcrafter.paths import ensure_shared_ui_on_path
 # regardless of checkout depth (normal clone vs .claude/worktrees/<name>).
 ensure_shared_ui_on_path()
 
+from shared_ui.check_box import CheckBox  # noqa: E402
 from shared_ui.fonts import FONT_UI, SIZE_HEADING  # noqa: E402
 from shared_ui.spacing import GAP_MEDIUM, GAP_SMALL  # noqa: E402
-from shared_ui.check_box import CheckBox  # noqa: E402
 
 from promptcrafter.kinds import is_or_prefixed_kind  # noqa: E402
 from promptcrafter.runtime import (  # noqa: E402
@@ -34,7 +34,6 @@ from promptcrafter.runtime import (  # noqa: E402
     build_prompt,
     build_section_prompt,
     control_has_at_least_one_selected_option,
-    find_section,
     get_active_substitutions,
     get_text_value,
     is_disabled,

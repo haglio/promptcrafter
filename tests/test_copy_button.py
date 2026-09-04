@@ -10,10 +10,10 @@ from __future__ import annotations
 
 from PyQt6.QtCore import QSize
 from PyQt6.QtGui import QIcon
-
-from promptcrafter.style import _COPY_ICON, copy_button
 from shared_ui.colors import TEXT_MUTED, TEXT_SECONDARY
 from shared_ui.icons import glyph_pixmap
+
+from promptcrafter.style import _COPY_ICON, copy_button
 
 
 def _size() -> QSize:
