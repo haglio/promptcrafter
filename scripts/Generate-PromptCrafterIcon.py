@@ -14,7 +14,7 @@ from PySide6.QtGui import (
 
 
 def main() -> int:
-    app = QGuiApplication([])
+    _app = QGuiApplication([])  # held while the icon renders
     root = Path(__file__).resolve().parent.parent
     icon_path = root / "icon.ico"
     png_path = root / "icon.png"
