@@ -9,7 +9,7 @@ requires-python = ">=3.10"
 dependencies = ["PyQt6"]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-qt", "pytest-timeout", "vulture"]
+dev = ["pytest", "pytest-qt", "pytest-timeout", "vulture", "ruff==0.16.6"]
 
 [tool.pytest.ini_options]
 # The content guard's enforcement check, taken from app_support rather than
