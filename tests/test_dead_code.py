@@ -1,27 +1,53 @@
-"""Dead-code detection — fails if vulture finds unreferenced code.
+"""This repo's dead-code gate. Every check it runs is `app_support.dead_code` or
+`app_support.unread`, the family's one shape."""
+from __future__ import annotations
 
-Vulture is pointed at the production packages explicitly (``promptcrafter`` and
-``scripts``) instead of scanning ``.`` with an ``--exclude`` list.  Agents run
-from a ``.claude/worktrees/<name>`` checkout whose own root path contains
-``.claude``; an ``--exclude .claude`` pattern then matches the worktree root and
-silently excludes *everything*, turning the scan into a no-op that always
-passes.  Naming the production directories keeps the scan honest in every
-checkout, and makes the old ``.venv``/``tests``/``node_modules`` excludes
-unnecessary since nothing else is ever scanned.
-"""
-
-import subprocess
-import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+from app_support import unread
+from app_support.dead_code import (
+    assert_every_package_is_scanned,
+    assert_no_dead_code,
+    assert_no_function_takes_an_argument_it_never_reads,
+    assert_nothing_is_imported_or_assigned_and_left_unread,
+)
+
+ROOT = Path(__file__).resolve().parent.parent
+PACKAGES = (ROOT / "promptcrafter",)
+SCANNED = (*PACKAGES, ROOT / "scripts", ROOT / "tools")
 
 
 def test_no_dead_code():
-    result = subprocess.run(
-        [sys.executable, "-m", "vulture", "promptcrafter", "scripts"],
-        capture_output=True,
-        text=True,
-        cwd=str(PROJECT_ROOT),
-    )
-    assert result.returncode == 0, f"Vulture found dead code:\n{result.stdout}"
+    assert_no_dead_code(*SCANNED)
+
+
+def test_every_package_in_the_tree_is_scanned():
+    assert_every_package_is_scanned(ROOT, ("promptcrafter",))
+
+
+def test_nothing_is_imported_or_assigned_and_left_unread():
+    assert_nothing_is_imported_or_assigned_and_left_unread(ROOT, *SCANNED, ROOT / "tests")
+
+
+def test_no_function_takes_an_argument_it_never_reads():
+    assert_no_function_takes_an_argument_it_never_reads(ROOT, *SCANNED)
+
+
+def test_no_module_level_constant_goes_unread():
+    unread.assert_no_module_constant_goes_unread(ROOT, SCANNED)
+
+
+def test_no_constructor_parameter_is_stored_and_never_read():
+    unread.assert_no_constructor_parameter_is_stored_and_never_read(ROOT, SCANNED)
+
+
+def test_no_dataclass_field_goes_unread():
+    unread.assert_no_dataclass_field_goes_unread(ROOT, SCANNED)
+
+
+def test_every_declared_command_line_option_is_read():
+    unread.assert_every_argparse_option_is_read(ROOT, SCANNED)
+
+
+def test_no_test_helper_is_written_and_never_called():
+    unread.assert_no_test_helper_is_written_and_never_called(ROOT, ROOT / "tests")
