@@ -28,15 +28,10 @@ def namer():
 
 
 def name_this_process() -> None:
-    """Make the copy the shortcut should start through next time.
-
-    Never fatal: a read-only venv or an antivirus hold costs the name in the
-    task list and nothing else.
-    """
-    try:
-        namer().prepare_launcher(ROLE)
-    except Exception:
-        pass
+    """Make the copy the shortcut should start through next time; why it is one
+    launch behind, and why it can never cost the launch, is
+    :meth:`ProcessNamer.name_this_process`'s to say."""
+    namer().name_this_process(ROLE)
 
 
 def named_exe_name() -> str:
