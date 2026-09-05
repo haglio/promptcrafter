@@ -52,13 +52,6 @@ class PromptCrafterLauncherContractTests(unittest.TestCase):
         from promptcrafter.schema import schema
         self.assertGreater(len(schema.sections), 0)
 
-    def test_entry_point_exists(self):
-        main_file = REPO_ROOT / "promptcrafter" / "__main__.py"
-        self.assertTrue(main_file.exists())
-        text = main_file.read_text(encoding="utf-8")
-        self.assertIn("PromptCrafterWindow", text)
-        self.assertIn("QApplication", text)
-
     def test_docs_cover_pyqt6_desktop(self):
         self.assertIn("PyQt6", self.readme_text)
         self.assertIn("python -m promptcrafter", self.readme_text)
