@@ -616,6 +616,20 @@ class TestPromptMode:
         assert app.state.modes["positive"] == "manual"
         assert not app.positive_prompt.isReadOnly()
 
+    def test_the_button_names_the_mode_it_switches_to_after_a_switch(self, app):
+        """It kept the label and object name it was built with, so after a
+        switch to manual it still read "manual" and stayed styled as the
+        auto-mode button (bug 78)."""
+        button = find_mode_button(app.positive_prompt)
+
+        button.click()
+
+        assert button.text() == "auto"
+        assert button.objectName() == "mode_toggle_manual"
+        button.click()
+        assert button.text() == "manual"
+        assert button.objectName() == "mode_toggle_auto"
+
     def test_manual_leaves_what_was_typed_alone(self, app):
         find_mode_button(app.positive_prompt).click()
         app.positive_prompt.setPlainText("a prompt of my own")

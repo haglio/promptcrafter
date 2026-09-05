@@ -68,6 +68,8 @@ class PromptCrafterWindow(QMainWindow):
         super().__init__()
         self.schema = schema
         self.state = create_initial_state(schema)
+        # The auto/manual button beside each prompt, re-dressed on a switch.
+        self._mode_buttons: dict[PromptTarget, QPushButton] = {}
         self.setWindowTitle("PromptCrafter")
         self.setStyleSheet(build_stylesheet())
 
@@ -136,11 +138,10 @@ class PromptCrafterWindow(QMainWindow):
         copy_btn.clicked.connect(lambda: self._copy_to_clipboard(text_edit.toPlainText()))
         hlayout.addWidget(copy_btn)
 
-        mode = self.state.modes[target]
-        mode_btn = QPushButton("manual" if mode == "auto" else "auto")
-        mode_btn.setObjectName(f"mode_toggle_{mode}")
-        mode_btn.setAccessibleName("manual" if mode == "auto" else "auto")
+        mode_btn = QPushButton()
         mode_btn.clicked.connect(lambda: self._toggle_prompt_mode(target))
+        self._mode_buttons[target] = mode_btn
+        self._dress_mode_button(target)
         hlayout.addWidget(mode_btn)
 
         lbl = QLabel(f"<b>{label}</b>")
@@ -152,9 +153,27 @@ class PromptCrafterWindow(QMainWindow):
         layout.addWidget(text_edit)
         return area
 
+    def _dress_mode_button(self, target: PromptTarget) -> None:
+        """Label and style the button for the mode it switches *to*.
+
+        Built once and never re-dressed, it went on naming the mode the user
+        had just left, in that mode's color.
+        """
+        button = self._mode_buttons[target]
+        mode = self.state.modes[target]
+        other = "manual" if mode == "auto" else "auto"
+        button.setText(other)
+        button.setAccessibleName(other)
+        button.setObjectName(f"mode_toggle_{mode}")
+        # The sheet colors it by object name, which the style reads when it
+        # polishes the widget -- so a renamed one is polished again.
+        button.style().unpolish(button)
+        button.style().polish(button)
+
     def _toggle_prompt_mode(self, target: PromptTarget) -> None:
         new_mode = "manual" if self.state.modes[target] == "auto" else "auto"
         self.state.modes[target] = new_mode
+        self._dress_mode_button(target)
         prompt_widget = self.positive_prompt if target == "positive" else self.negative_prompt
         if new_mode == "auto":
             prompt_widget.setReadOnly(True)
