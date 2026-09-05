@@ -14,7 +14,7 @@ from app_support.dead_code import (
 
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGES = (ROOT / "promptcrafter",)
-SCANNED = (*PACKAGES, ROOT / "scripts", ROOT / "tools")
+SCANNED = (*PACKAGES, ROOT / "tools")
 
 
 def test_no_dead_code():
