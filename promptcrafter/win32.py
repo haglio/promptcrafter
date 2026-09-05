@@ -18,9 +18,10 @@ from ``__main__`` rather than from the window's constructor.
 """
 from __future__ import annotations
 
-import ctypes
 import logging
 import sys
+
+from app_support.win32 import set_app_user_model_id as claim_taskbar_identity
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +41,6 @@ def set_app_user_model_id(app_id: str = APP_USER_MODEL_ID) -> None:
     if sys.platform != "win32":
         return
     try:
-        result = ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
-    except (AttributeError, OSError):
+        claim_taskbar_identity(app_id)
+    except OSError:
         logger.warning("Could not set the AppUserModelID", exc_info=True)
-        return
-    if result < 0:
-        logger.warning("SetCurrentProcessExplicitAppUserModelID failed: 0x%08x", result & 0xFFFFFFFF)
