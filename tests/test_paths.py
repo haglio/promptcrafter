@@ -3,26 +3,29 @@ import subprocess
 import sys
 from pathlib import Path
 
-from promptcrafter.paths import ensure_shared_ui_on_path, shared_ui_checkout
+from app_support.siblings import sibling_checkout
 
-
-def test_the_shared_ui_checkout_contains_the_shared_ui_package():
-    root = shared_ui_checkout()
-    assert (root / "shared_ui" / "__init__.py").exists()
+from promptcrafter import paths
+from promptcrafter.paths import ensure_shared_ui_on_path
 
 
 def test_ensure_shared_ui_on_path_makes_it_importable_and_is_idempotent():
     ensure_shared_ui_on_path()
-    root = str(shared_ui_checkout())
-    assert root in sys.path
 
+    import shared_ui  # importable now, whichever checkout answered for it
+
+    assert shared_ui.__file__ is not None
     before = list(sys.path)
     ensure_shared_ui_on_path()
     assert sys.path == before  # second call adds nothing
 
-    import shared_ui  # importable now that the root is on the path
 
-    assert shared_ui.__file__ is not None
+def test_the_checkout_the_walk_finds_holds_the_package():
+    # The walk is app_support's; what is this repo's is that it is asked from
+    # here, so a worktree of this repo lands on the same primary shared_ui.
+    root = sibling_checkout("shared_ui", near=Path(paths.__file__))
+
+    assert (root / "shared_ui" / "__init__.py").exists()
 
 
 def test_app_module_imports_in_fresh_interpreter():
