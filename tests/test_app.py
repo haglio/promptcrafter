@@ -678,23 +678,20 @@ class TestCopying:
 
         assert QApplication.clipboard().text() == "no clutter, blurry"
 
-    def test_a_sections_copy_button_copies_nothing(self, app):
-        """What the section copy buttons do today: clear the clipboard.
-
-        ``clicked`` carries a bool, and the lambda behind these buttons names
-        the section id as its first parameter with a default, so Qt's
-        ``checked`` lands there instead: the handler is called with ``False``,
-        matches no section, and copies an empty string. Recorded 2026-08-25 and
-        held unfixed. The two tests below pin the copy itself, which is sound.
+    def test_a_sections_copy_button_copies_that_sections_prompt(self, app):
+        """``clicked`` carries a bool, and the lambda behind these buttons
+        named the section id as its first parameter with a default, so Qt's
+        ``checked`` landed there: the handler was called with ``False``,
+        matched no section, and the click cleared the clipboard (bug 77).
         """
         find_copy_button(find_section(app, "negative modes")).click()
 
-        assert QApplication.clipboard().text() == ""
+        assert QApplication.clipboard().text() == "no clutter"
 
     def test_the_section_copy_takes_its_target_from_the_section(self, app):
-        # Called with the id the button above fails to pass. This section
-        # renders into the negative prompt, so a copy that assumed positive
-        # would come back empty.
+        # Called directly with the id the button passes. This section renders
+        # into the negative prompt, so a copy that assumed positive would come
+        # back empty.
         app._copy_section_prompt("negative modes")
 
         assert QApplication.clipboard().text() == "no clutter"
