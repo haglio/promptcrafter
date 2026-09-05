@@ -7,10 +7,13 @@ And a process that does not claim the AppUserModelID its pinned shortcut
 carries is treated as a different application, so its window opens beside the
 pin instead of in it.
 
-Asserted on the entry point's source as well as on the helpers, because both
-calls have to happen before the first window exists: correct helpers that the
-entry point never reaches leave the app looking exactly as broken.
+Asserted on the entry point's syntax tree as well as on the helpers, because
+both calls have to happen before the first window exists: correct helpers that
+the entry point never reaches leave the app looking exactly as broken.  The
+tree rather than the text, so a line wrap cannot turn this red with the launch
+unchanged.
 """
+import ast
 import unittest
 from pathlib import Path
 
@@ -18,7 +21,17 @@ from promptcrafter.paths import icon_path, project_root
 from promptcrafter.win32 import APP_USER_MODEL_ID, set_app_user_model_id
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-ENTRY_POINT = (REPO_ROOT / "promptcrafter" / "__main__.py").read_text(encoding="utf-8")
+ENTRY_POINT = ast.parse((REPO_ROOT / "promptcrafter" / "__main__.py").read_text(encoding="utf-8"))
+
+
+def _calls() -> list[str]:
+    """Every call the entry point makes, as it is spelled, in source order."""
+    return [ast.unparse(node.func) for node in ast.walk(ENTRY_POINT) if isinstance(node, ast.Call)]
+
+
+def _first_line_calling(name: str) -> int:
+    return min(node.lineno for node in ast.walk(ENTRY_POINT)
+               if isinstance(node, ast.Call) and ast.unparse(node.func).endswith(name))
 
 
 class IconTests(unittest.TestCase):
@@ -32,8 +45,9 @@ class IconTests(unittest.TestCase):
         self.assertEqual(project_root(), REPO_ROOT)
 
     def test_the_entry_point_gives_the_icon_to_the_application(self):
-        self.assertIn("setWindowIcon", ENTRY_POINT)
-        self.assertIn("icon_path", ENTRY_POINT)
+        calls = _calls()
+        self.assertIn("app.setWindowIcon", calls)
+        self.assertIn("icon_path", calls)
 
 
 class TaskbarIdentityTests(unittest.TestCase):
@@ -42,9 +56,9 @@ class TaskbarIdentityTests(unittest.TestCase):
         self.assertIn(f"$AppUserModelId = '{APP_USER_MODEL_ID}'", script)
 
     def test_the_entry_point_claims_it_before_opening_a_window(self):
-        self.assertIn("set_app_user_model_id()", ENTRY_POINT)
+        self.assertIn("set_app_user_model_id", _calls())
         self.assertLess(
-            ENTRY_POINT.index("set_app_user_model_id()"), ENTRY_POINT.index("QApplication(sys.argv)"),
+            _first_line_calling("set_app_user_model_id"), _first_line_calling("QApplication"),
             "the id has to be claimed before the first window exists")
 
     def test_setting_it_never_takes_the_app_down(self):
