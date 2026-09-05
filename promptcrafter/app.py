@@ -210,8 +210,10 @@ class PromptCrafterWindow(QMainWindow):
         actions_layout.setSpacing(GAP_MEDIUM)
 
         copy_btn = copy_button("Copy section")
+        # ``clicked`` hands over its ``checked`` bool first; named, it cannot
+        # land in the section id.
         copy_btn.clicked.connect(
-            lambda sid=section.id: self._copy_section_prompt(sid)
+            lambda _checked=False, sid=section.id: self._copy_section_prompt(sid)
         )
         actions_layout.addWidget(copy_btn)
         actions_layout.addStretch()
