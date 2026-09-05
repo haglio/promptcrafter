@@ -137,26 +137,19 @@ def build_stylesheet() -> str:
     QRadioButton:disabled, QCheckBox:disabled {{
         color: {t_muted};
     }}
-    QPushButton {{
-        background: {bg_key};
-        color: {t2};
-        border: none;
-        border-radius: 6px;
-        padding: 4px 8px;
-        font-size: {sz}pt;
-    }}
-    QPushButton:hover {{
-        background: {bg_btn};
-    }}
+    /* A plain button is the family's, from the application's sheet.  The
+       named ones below keep their own shapes, borderless as they were. */
     QPushButton#primary_button {{
         background: {blue};
         color: {t1};
+        border: none;
         border-radius: 8px;
         padding: 8px 12px;
     }}
     QPushButton#copy_button {{
         background: transparent;
         color: {t_muted};
+        border: none;
         padding: 2px;
         min-width: 22px;
         max-width: 22px;
@@ -170,6 +163,7 @@ def build_stylesheet() -> str:
     QPushButton#weight_reset {{
         background: {bg_key};
         color: {t2};
+        border: none;
         font-size: 12px;
         padding: 2px 6px;
         border-radius: 4px;
@@ -177,12 +171,17 @@ def build_stylesheet() -> str:
     QPushButton#mode_toggle_auto {{
         background: {bg_key};
         color: {t2};
+        border: none;
         border-radius: 6px;
         padding: 4px 8px;
     }}
+    /* Manual mode is a state that means more than "engaged", and the family
+       spends its one blue on those; the teal it wore was a hue no other app
+       has. */
     QPushButton#mode_toggle_manual {{
-        background: #0f766e;
+        background: {blue};
         color: {t1};
+        border: none;
         border-radius: 6px;
         padding: 4px 8px;
     }}

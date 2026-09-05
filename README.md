@@ -24,11 +24,11 @@ PromptCrafter launches from a Windows Taskbar shortcut:
 
 The shortcut runs `pythonw.exe -m promptcrafter` so no console window appears.
 
-## Refresh The Icon
+## The Icon
 
-```powershell
-py -3 ".\scripts\Generate-PromptCrafterIcon.py"
-```
+`icon.ico` is the family's block-letter P -- one PINK letter on the 5x5 grid every app
+in the family draws its own on.  The spec lives in `shared_ui.app_icon`; there is no
+generator here (the one that was here drew a different icon and needed PySide6).
 
 ## Rebuild The Shortcut
 
