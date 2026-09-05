@@ -16,6 +16,8 @@ UI showing the state from before the click.
 
 from __future__ import annotations
 
+import re
+
 from promptcrafter.runtime import find_control
 from promptcrafter.toggle_state import get_toggle_selections_for_next_state
 from promptcrafter.types import Schema, State
@@ -102,6 +104,20 @@ def choose_global_selector_option(
         _apply_matches(schema, state, control_id, option_id)
 
 
+def _names(option_id: str, candidate: str) -> bool:
+    """Whether ``candidate`` is ``option_id``, or has it in it as a word.
+
+    A global selector's choice reaches every other control offering the same
+    id, and the ids that carry it as a word -- ``green`` reaches ``green
+    tinted``, which is the reach the schemas are written for.  It was a
+    substring test, so ``green`` also reached ``evergreen``, and released it
+    (bugs 20 and 58).
+    """
+    if candidate == option_id:
+        return True
+    return re.search(rf"(?<!\w){re.escape(option_id)}(?!\w)", candidate) is not None
+
+
 def _clear_matches(
     schema: Schema, state: State, source_control_id: str, option_id: str
 ) -> None:
@@ -115,8 +131,8 @@ def _clear_matches(
     released; with one selector in the schema the two guards pick the same
     control and nothing showed.
 
-    Held as found (2026-08-25, bug 20): the match is a substring test, so
-    releasing ``green`` also releases ``green tinted``.
+    Releases what :func:`_names` reaches: ``green`` and ``green tinted``, never
+    ``evergreen``.
     """
     for section in schema.sections:
         for control in section.controls:
@@ -126,10 +142,10 @@ def _clear_matches(
             if not cs:
                 continue
             if isinstance(cs.selected_options, str):
-                if cs.selected_options == option_id or option_id in cs.selected_options:
+                if _names(option_id, cs.selected_options):
                     cs.selected_options = ""
             elif isinstance(cs.selected_options, list):
-                filtered = [s for s in cs.selected_options if s != option_id and option_id not in s]
+                filtered = [s for s in cs.selected_options if not _names(option_id, s)]
                 if len(filtered) != len(cs.selected_options):
                     cs.selected_options = filtered
 
@@ -137,8 +153,8 @@ def _clear_matches(
 def _apply_matches(schema: Schema, state: State, source_control_id: str, option_id: str) -> None:
     """Tick ``option_id`` in every other control that offers it.
 
-    Held as found (2026-08-25, bug 20): ``option_id in o.id`` is a substring
-    test, so choosing ``green`` also ticks ``green tinted``.
+    Offers it by :func:`_names`; a control that holds one choice takes the
+    exact id where it lists one, whatever is listed ahead of it.
     """
     for section in schema.sections:
         for control in section.controls:
@@ -148,14 +164,13 @@ def _apply_matches(schema: Schema, state: State, source_control_id: str, option_
             if not cs:
                 continue
             if isinstance(cs.selected_options, str):
-                match = next(
-                    (o for o in control.options if o.id == option_id or option_id in o.id),
-                    None,
+                match = next((o for o in control.options if o.id == option_id), None) or next(
+                    (o for o in control.options if _names(option_id, o.id)), None,
                 )
                 if match:
                     cs.selected_options = match.id
             elif isinstance(cs.selected_options, list):
-                matching = [o.id for o in control.options if o.id == option_id or option_id in o.id]
+                matching = [o.id for o in control.options if _names(option_id, o.id)]
                 if matching:
                     # `dict.fromkeys`, not `set`: the TypeScript merged these
                     # with `Array.from(new Set([...]))` (`src/App.tsx:239`) and a

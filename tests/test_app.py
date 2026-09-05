@@ -575,11 +575,10 @@ class TestGlobalSelector:
             "space robo dino demon monster, green, green tinted render style"
         )
 
-    def test_reaches_options_that_merely_contain_the_chosen_id(self, app):
-        # Matching is a substring test rather than an id comparison, so
-        # choosing "green" also ticks "green tinted". Held as a finding at the
-        # owner's decision (2026-08-25); this pins what it does today so the
-        # decision to change it has to be a deliberate one.
+    def test_reaches_options_that_contain_the_chosen_id_as_a_word(self, app):
+        # An id with the choice in it as a word follows the choice, so
+        # choosing "green" also ticks "green tinted" -- though never an id that
+        # merely contains the letters (bug 20; tests/test_transitions.py).
         self._click_the_toggle(app)
         self._choose(app, "green")
 

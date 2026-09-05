@@ -27,11 +27,26 @@ def a_state():
     return create_initial_state(TEST_SCHEMA)
 
 
+def _evergreen_schema():
+    """A selector offering ``green`` beside controls that list ``evergreen``
+    ahead of it: the letters of the choice, but not the word."""
+    return Schema(sections=[Section(id="garden", text="garden", controls=[
+        Control(id="shade", text="shade", kind="global-selector",
+                options=[Option(id="green", text="green"), Option(id="black", text="black")]),
+        Control(id="foliage", text="foliage", kind="or",
+                options=[Option(id="evergreen", text="evergreen"),
+                         Option(id="green", text="green")]),
+        Control(id="mulch", text="mulch", kind="and-spaces-adj",
+                options=[Option(id="evergreen bark", text="evergreen bark"),
+                         Option(id="green moss", text="green moss")]),
+    ])])
+
+
 def _two_selector_schema():
     """Two global selectors and one ordinary radio, all offering the same ids.
 
-    `hue`'s option id contains the selector's rather than equalling it, which is
-    what the substring half of the match reaches.
+    `hue`'s option id contains the selector's as a word rather than equalling
+    it, which is what the containment half of the match reaches.
     """
     return Schema(sections=[Section(id="palette", text="palette", controls=[
         Control(id="tint", text="tint", kind="global-selector",
@@ -172,12 +187,11 @@ class TestTheGlobalSelector:
 
         assert state.controls["eye color"].selected_options == "green"
 
-    def test_choosing_reaches_options_that_merely_contain_the_id(self):
-        """Held as found (2026-08-25, bug 20): the match is a substring test.
-
-        `render style` offers `green tinted`, which contains `green`, so it is
-        ticked too. The window test of the same name pins the widget side; this
-        one pins the rule.
+    def test_choosing_reaches_options_that_contain_the_id_as_a_word(self):
+        """`render style` offers `green tinted`, which has `green` in it as a
+        word, so it is ticked too -- the reach the schemas are written for. The
+        window test of the same name pins the widget side; this one pins the
+        rule.
         """
         state = a_state()
         set_global_selector_enabled(TEST_SCHEMA, state, "colorize", True)
@@ -185,6 +199,34 @@ class TestTheGlobalSelector:
         choose_global_selector_option(TEST_SCHEMA, state, "colorize", "green")
 
         assert "green tinted" in state.controls["render style"].selected_options
+
+    def test_choosing_does_not_reach_an_id_that_merely_contains_the_letters(self):
+        """The match was a substring test, so `green` reached `evergreen`; and
+        where `evergreen` was listed first it was the one picked, and the exact
+        `green` beside it was skipped (bug 20)."""
+        schema = _evergreen_schema()
+        state = create_initial_state(schema)
+        set_global_selector_enabled(schema, state, "shade", True)
+
+        choose_global_selector_option(schema, state, "shade", "green")
+
+        assert state.controls["foliage"].selected_options == "green"
+        assert state.controls["mulch"].selected_options == ["green moss"]
+
+    def test_releasing_does_not_reach_an_id_that_merely_contains_the_letters(self):
+        """The release side of the same rule (bug 58): what the selector never
+        set, it does not take back."""
+        schema = _evergreen_schema()
+        state = create_initial_state(schema)
+        choose_option(state, "foliage", "evergreen")
+        state.controls["mulch"].selected_options = ["evergreen bark"]
+        set_global_selector_enabled(schema, state, "shade", True)
+        choose_global_selector_option(schema, state, "shade", "green")
+
+        set_global_selector_enabled(schema, state, "shade", False)
+
+        assert state.controls["foliage"].selected_options == ""
+        assert state.controls["mulch"].selected_options == ["evergreen bark"]
 
     def test_choosing_a_second_option_releases_the_first(self):
         state = a_state()
@@ -224,11 +266,11 @@ class TestTheGlobalSelector:
 
         assert state.controls["colorize"].selected_options == "green"
 
-    def test_releasing_also_reaches_ids_that_merely_contain_the_choice(self):
-        """The release side of the substring match, held with it (bug 20).
+    def test_releasing_also_reaches_ids_that_contain_the_choice_as_a_word(self):
+        """The release side of the word match.
 
-        `hue` was never set to `amber`; it was set to `amber glazed`, which
-        contains it -- and switching the selector off takes that back out.
+        `hue` was never set to `amber`; it was set to `amber glazed`, which has
+        it as a word -- and switching the selector off takes that back out.
         """
         schema = _two_selector_schema()
         state = create_initial_state(schema)
