@@ -12,24 +12,9 @@ parents, keeps this working whether the app is a normal clone or a
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
-
-def shared_ui_checkout() -> Path:
-    """The ``shared_ui`` checkout dir; its ``shared_ui/`` child is the package.
-
-    It was ``projects_root``, eighteen lines above :func:`project_root`, which
-    returns something else entirely -- and the docstring had to correct the name
-    on its first line. Anyone who read the name and not the docstring got the
-    wrong idea about both.
-    """
-    here = Path(__file__).resolve()
-    for parent in here.parents:
-        checkout = parent / "shared_ui"
-        if (checkout / "shared_ui" / "__init__.py").exists():
-            return checkout
-    raise RuntimeError(f"Could not locate the shared_ui package above {here}")
+from app_support.siblings import ensure_sibling_importable
 
 
 def ensure_shared_ui_on_path() -> None:
@@ -40,9 +25,7 @@ def ensure_shared_ui_on_path() -> None:
     app's ``tests`` package.  Appending lets the app's own packages win while
     still making ``shared_ui`` resolvable (nothing else provides it).
     """
-    root = str(shared_ui_checkout())
-    if root not in sys.path:
-        sys.path.append(root)
+    ensure_sibling_importable("shared_ui", near=Path(__file__))
 
 
 def project_root() -> Path:
@@ -54,6 +37,6 @@ def icon_path() -> Path:
     """PromptCrafter's mark, beside the checkout root.
 
     Named here rather than at the one call site so a worktree finds its own copy
-    -- the same reason :func:`shared_ui_checkout` walks instead of counting parents.
+    -- the same reason ``app_support.siblings`` walks instead of counting parents.
     """
     return project_root() / "icon.ico"
