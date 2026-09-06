@@ -13,7 +13,7 @@ confirmed on 2026-08-30 that they should stand.
 What this module changes is only where they live: six inline spellings across
 three modules became two named functions here, each site still asking the one it
 always asked. They give the same answer for every kind that exists -- all twelve
-``ControlKind`` members and all four ``SubmenuKind`` members -- so the only way
+``ControlKind`` values and all four ``SubmenuKind`` values -- so the only way
 to make them differ is to declare a thirteenth kind starting with ``or`` and not
 add it to :data:`RADIO_CONTROL_KINDS`. ``tests/test_kinds.py`` reds if that
 happens, because such a control gets a string state and radio buttons from the

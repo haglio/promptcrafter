@@ -34,7 +34,7 @@ DECLARED_SUBMENU_KINDS = get_args(SubmenuKind)
 
 class TestTheDeclaredKinds:
     def test_the_twelve_are_the_ones_the_owner_kept(self):
-        """Membership is a decision, not a convenience (Q15).
+        """Which kinds are declared is a decision, not a convenience (Q15).
 
         Adding or removing a kind has to move this line, which is the point:
         `ControlKind` is the schema format the README points users at.
