@@ -26,7 +26,7 @@ The shortcut runs `pythonw.exe -m promptcrafter` so no console window appears.
 
 ## The Icon
 
-`icon.ico` is the family's block-letter P -- one PINK letter on the 5x5 grid every app
+`icon.ico` is the family's block-letter P -- one MAGENTA letter on the 5x5 grid every app
 in the family draws its own on.  The spec lives in `shared_ui.app_icon`; there is no
 generator here (the one that was here drew a different icon and needed PySide6).
 
