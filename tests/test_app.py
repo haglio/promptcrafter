@@ -454,7 +454,7 @@ class TestWeights:
         assert app.negative_prompt.toPlainText() == "(no clutter:2.5), blurry"
 
     def test_the_control_slider_sets_the_controls_weight(self, qtbot, app):
-        """The slider itself, not the state behind it.
+        """The slider itself, not the state backing it.
 
         The other weight tests here assign to ``state`` and rebuild, and the
         reset button only ever asks for 1.0 -- so the one number the slider is
@@ -692,7 +692,7 @@ class TestCopying:
         assert QApplication.clipboard().text() == "no clutter, blurry"
 
     def test_a_sections_copy_button_copies_that_sections_prompt(self, app):
-        """``clicked`` carries a bool, and the lambda behind these buttons
+        """``clicked`` carries a bool, and the lambda backing these buttons
         named the section id as its first parameter with a default, so Qt's
         ``checked`` landed there: the handler was called with ``False``,
         matched no section, and the click cleared the clipboard (bug 77).

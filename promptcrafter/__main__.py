@@ -19,7 +19,7 @@ from shared_ui.chrome import family_stylesheet  # noqa: E402
 set_app_user_model_id()
 
 # And leave the shortcut an interpreter that says so in the task list -- see
-# promptcrafter.process_name.  One run behind, because writing the copy takes
+# promptcrafter.process_name.  One run late, because writing the copy takes
 # the very interpreter being named.
 name_this_process()
 
