@@ -24,9 +24,9 @@ from promptcrafter.paths import ensure_shared_ui_on_path
 # regardless of checkout depth (normal clone vs .claude/worktrees/<name>).
 ensure_shared_ui_on_path()
 
-from shared_ui.check_box import CheckBox  # noqa: E402
 from shared_ui.fonts import FONT_UI, SIZE_HEADING  # noqa: E402
 from shared_ui.spacing import GAP_MEDIUM, GAP_SMALL  # noqa: E402
+from shared_ui.tick_control import TickControl  # noqa: E402
 
 from promptcrafter.kinds import is_or_prefixed_kind  # noqa: E402
 from promptcrafter.runtime import (  # noqa: E402
@@ -221,7 +221,7 @@ class PromptCrafterWindow(QMainWindow):
         layout = QVBoxLayout(group)
         layout.setSpacing(0)
 
-        # Section header actions: copy button + weight slider (inside the groupbox)
+        # Section header actions: copy button + weight slider (inside the group frame)
         actions = QWidget()
         actions.setObjectName("section-header-actions")
         actions_layout = QHBoxLayout(actions)
@@ -327,7 +327,7 @@ class PromptCrafterWindow(QMainWindow):
         elif is_or_prefixed_kind(control.kind):
             self._build_radio_control(vlayout, control, cs, disabled)
         else:
-            self._build_checkbox_control(vlayout, control, cs, disabled)
+            self._build_tick_control(vlayout, control, cs, disabled)
 
         return container
 
@@ -369,11 +369,11 @@ class PromptCrafterWindow(QMainWindow):
                     continue
                 opt_disabled = disabled or is_disabled(self.state, option.disabled_bys)
                 opt_label = self._display_text(option.text, plural)
-                cb = CheckBox(opt_label)
+                cb = TickControl(opt_label)
                 cb.setChecked(isinstance(cs.selected_options, list) and option.id in cs.selected_options)
                 cb.setEnabled(not opt_disabled)
                 cb.clicked.connect(
-                    lambda _, cid=control.id, oid=option.id: self._on_checkbox(cid, oid)
+                    lambda _, cid=control.id, oid=option.id: self._on_tick(cid, oid)
                 )
                 opts_layout.addWidget(cb)
 
@@ -468,7 +468,7 @@ class PromptCrafterWindow(QMainWindow):
 
         layout.addWidget(options_row)
 
-    def _build_checkbox_control(
+    def _build_tick_control(
         self, layout: QVBoxLayout, control: Control, cs: ControlState, disabled: bool
     ) -> None:
         plural = is_subject_plural(self.state)
@@ -493,11 +493,11 @@ class PromptCrafterWindow(QMainWindow):
             stack_layout.setContentsMargins(0, 0, 0, 0)
             stack_layout.setSpacing(GAP_SMALL)
 
-            cb = CheckBox(opt_label)
+            cb = TickControl(opt_label)
             cb.setChecked(isinstance(cs.selected_options, list) and option.id in cs.selected_options)
             cb.setEnabled(not opt_disabled)
             cb.clicked.connect(
-                lambda _, cid=control.id, oid=option.id: self._on_checkbox(cid, oid)
+                lambda _, cid=control.id, oid=option.id: self._on_tick(cid, oid)
             )
             stack_layout.addWidget(cb)
 
@@ -542,11 +542,11 @@ class PromptCrafterWindow(QMainWindow):
                 )
                 indent_layout.addWidget(rb)
             else:
-                cb = CheckBox(child_label)
+                cb = TickControl(child_label)
                 cb.setChecked(isinstance(submenu_state.selected_options, list) and child.id in submenu_state.selected_options)
                 cb.setEnabled(not child_disabled)
                 cb.clicked.connect(
-                    lambda _, k=key, oid=child.id: self._on_checkbox(k, oid)
+                    lambda _, k=key, oid=child.id: self._on_tick(k, oid)
                 )
                 indent_layout.addWidget(cb)
 
@@ -579,7 +579,7 @@ class PromptCrafterWindow(QMainWindow):
     # --- State mutation handlers ---
 
     # Each one reads two ids off the widget that was clicked, hands them to the
-    # rule in `transitions`, and rebuilds. The submenu radios and checkboxes go
+    # rule in `transitions`, and rebuilds. The submenu radios and tick controls go
     # through the same two as the top-level ones: submenu state lives in the
     # same flat dict under a composite key, so the rules never had to differ.
 
@@ -587,7 +587,7 @@ class PromptCrafterWindow(QMainWindow):
         choose_option(self.state, control_key, option_id)
         self._rebuild()
 
-    def _on_checkbox(self, control_key: str, option_id: str) -> None:
+    def _on_tick(self, control_key: str, option_id: str) -> None:
         toggle_option(self.state, control_key, option_id)
         self._rebuild()
 

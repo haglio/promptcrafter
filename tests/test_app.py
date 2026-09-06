@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
     QSlider,
     QWidget,
 )
-from shared_ui.check_box import CheckBox
+from shared_ui.tick_control import TickControl
 
 from promptcrafter.app import PromptCrafterWindow
 from promptcrafter.types import Control, Option, Schema, Section, Submenu
@@ -53,7 +53,7 @@ def window_with_a_toggle(qtbot):
 # loop written twice.
 
 
-def find_checkbox(container, label, *, required=True):
+def find_tick(container, label, *, required=True):
     for cb in container.findChildren(QCheckBox):
         if cb.text() == label or cb.accessibleName() == label:
             return cb
@@ -62,8 +62,8 @@ def find_checkbox(container, label, *, required=True):
     return None
 
 
-def query_checkbox(container, label):
-    return find_checkbox(container, label, required=False)
+def query_tick(container, label):
+    return find_tick(container, label, required=False)
 
 
 def find_radio(container, label, *, required=True):
@@ -156,7 +156,7 @@ class TestUpdatingPrompts:
     def test_updates_positive_prompt_when_controls_change(self, qtbot, app):
         find_radio(app, "bone").click()
         find_radio(app, "towering").click()
-        find_checkbox(app, "wings").click()
+        find_tick(app, "wings").click()
         find_radio(app, "mechanical").click()
 
         assert app.positive_prompt.toPlainText() == (
@@ -164,7 +164,7 @@ class TestUpdatingPrompts:
         )
 
     def test_updates_negative_prompt_when_controls_change(self, qtbot, app):
-        find_checkbox(app, "extra limbs").click()
+        find_tick(app, "extra limbs").click()
 
         assert app.negative_prompt.toPlainText() == "no clutter, blurry, extra limbs"
 
@@ -192,40 +192,40 @@ class TestToggleControls:
     def test_keeps_multi_option_toggles_off_initially(self, window_with_a_toggle):
         window = window_with_a_toggle(initially_selected_options=["oak"])
 
-        toggle = find_checkbox(window, "texture pack")
+        toggle = find_tick(window, "texture pack")
         assert not toggle.isChecked()
-        assert query_checkbox(window, "oak") is None
+        assert query_tick(window, "oak") is None
         assert window.positive_prompt.toPlainText() == "space robo dino demon monster"
 
     def test_shows_options_when_toggle_turned_on(self, window_with_a_toggle):
         window = window_with_a_toggle()
 
-        assert query_checkbox(window, "oak") is None
-        find_checkbox(window, "texture pack").click()
+        assert query_tick(window, "oak") is None
+        find_tick(window, "texture pack").click()
 
-        assert find_checkbox(window, "oak").isChecked()
-        assert find_checkbox(window, "pine").isChecked()
+        assert find_tick(window, "oak").isChecked()
+        assert find_tick(window, "pine").isChecked()
         assert window.positive_prompt.toPlainText() == "space robo dino demon monster, oak, pine"
 
     def test_uses_initial_option_defaults_when_turned_on(self, window_with_a_toggle):
         window = window_with_a_toggle(initially_selected_options=["oak"])
 
-        find_checkbox(window, "texture pack").click()
+        find_tick(window, "texture pack").click()
 
-        assert find_checkbox(window, "oak").isChecked()
-        assert not find_checkbox(window, "pine").isChecked()
+        assert find_tick(window, "oak").isChecked()
+        assert not find_tick(window, "pine").isChecked()
         assert window.positive_prompt.toPlainText() == "space robo dino demon monster, oak"
 
     def test_preserves_narrowed_selection_across_off_on(self, window_with_a_toggle):
         window = window_with_a_toggle()
 
-        find_checkbox(window, "texture pack").click()
-        find_checkbox(window, "pine").click()
-        find_checkbox(window, "texture pack").click()
-        find_checkbox(window, "texture pack").click()
+        find_tick(window, "texture pack").click()
+        find_tick(window, "pine").click()
+        find_tick(window, "texture pack").click()
+        find_tick(window, "texture pack").click()
 
-        assert find_checkbox(window, "oak").isChecked()
-        assert not find_checkbox(window, "pine").isChecked()
+        assert find_tick(window, "oak").isChecked()
+        assert not find_tick(window, "pine").isChecked()
         assert window.positive_prompt.toPlainText() == "space robo dino demon monster, oak"
 
 
@@ -257,13 +257,13 @@ class TestRebuilding:
 class TestSubmenus:
     """The second row an option opens under itself.
 
-    A submenu's radios and checkboxes go through their own handlers, and the
-    suite reached only one of the two: the checkbox handler had never been
+    A submenu's radios and tick controls go through their own handlers, and the
+    suite reached only one of the two: the tick handler had never been
     called by any test, and neither deselect branch had ever run.
     """
 
     def test_clicking_the_chosen_submenu_radio_again_clears_it(self, qtbot, app):
-        find_checkbox(app, "wings").click()
+        find_tick(app, "wings").click()
         find_radio(app, "mechanical").click()
         assert app.positive_prompt.toPlainText() == (
             "space robo dino demon monster, mechanical wings"
@@ -273,16 +273,16 @@ class TestSubmenus:
 
         assert app.positive_prompt.toPlainText() == "space robo dino demon monster, wings"
 
-    def test_a_submenu_checkbox_ticks_and_unticks(self, qtbot, app):
-        find_checkbox(app, "tail").click()
+    def test_a_submenu_option_ticks_and_unticks(self, qtbot, app):
+        find_tick(app, "tail").click()
         assert app.positive_prompt.toPlainText() == "space robo dino demon monster, tail"
 
-        find_checkbox(app, "barbed").click()
+        find_tick(app, "barbed").click()
         assert app.positive_prompt.toPlainText() == (
             "space robo dino demon monster, barbed tail"
         )
 
-        find_checkbox(app, "barbed").click()
+        find_tick(app, "barbed").click()
 
         assert app.positive_prompt.toPlainText() == "space robo dino demon monster, tail"
 
@@ -292,7 +292,7 @@ class TestSubmenus:
         `_build_submenu` asks whether the kind begins with `or`, not whether it
         is one of the two declared `or` submenu kinds. Nothing validates a
         submenu kind, so a schema can carry `or` here and it builds radios;
-        narrowing the test to a closed set would silently make them checkboxes.
+        narrowing the test to a closed set would silently make them tick controls.
         """
         schema = Schema(sections=[Section(id="grove", text="grove", controls=[
             Control(id="bough", text="bough", kind="and-commas",
@@ -305,14 +305,14 @@ class TestSubmenus:
         qtbot.addWidget(window)
 
         assert query_radio(window, "burl") is not None
-        assert query_checkbox(window, "burl") is None
+        assert query_tick(window, "burl") is None
 
     def test_a_submenu_keeps_the_options_the_click_did_not_touch(self, qtbot, app):
-        find_checkbox(app, "antennae").click()
-        find_checkbox(app, "arched").click()
-        find_checkbox(app, "flared").click()
+        find_tick(app, "antennae").click()
+        find_tick(app, "arched").click()
+        find_tick(app, "flared").click()
 
-        find_checkbox(app, "arched").click()
+        find_tick(app, "arched").click()
 
         assert app.positive_prompt.toPlainText() == (
             "space robo dino demon monster, antennae flared"
@@ -324,7 +324,7 @@ class TestDisablingAndHiding:
         section = find_section(app, "section disabled target")
         assert section.isEnabled()
 
-        find_checkbox(app, "is portrait").click()
+        find_tick(app, "is portrait").click()
 
         section = find_section(app, "section disabled target")
         assert not section.isEnabled()
@@ -333,7 +333,7 @@ class TestDisablingAndHiding:
         modes = find_section(app, "modes")
         assert find_radio(modes, "low").isEnabled()
 
-        find_checkbox(app, "is portrait").click()
+        find_tick(app, "is portrait").click()
 
         modes = find_section(app, "modes")
         assert not find_radio(modes, "low").isEnabled()
@@ -342,7 +342,7 @@ class TestDisablingAndHiding:
         modes = find_section(app, "modes")
         assert find_radio(modes, "floating").isEnabled()
 
-        find_checkbox(app, "is portrait").click()
+        find_tick(app, "is portrait").click()
 
         modes = find_section(app, "modes")
         assert not find_radio(modes, "floating").isEnabled()
@@ -350,7 +350,7 @@ class TestDisablingAndHiding:
     def test_hidden_bys_at_section_level(self, qtbot, app):
         assert query_section(app, "section hidden target") is not None
 
-        find_checkbox(app, "is portrait").click()
+        find_tick(app, "is portrait").click()
 
         assert query_section(app, "section hidden target") is None
 
@@ -358,7 +358,7 @@ class TestDisablingAndHiding:
         modes = find_section(app, "modes")
         assert find_label_widget(modes, "portrait focus") is not None
 
-        find_checkbox(app, "is portrait").click()
+        find_tick(app, "is portrait").click()
 
         modes = find_section(app, "modes")
         assert find_label_widget(modes, "portrait focus") is None
@@ -367,7 +367,7 @@ class TestDisablingAndHiding:
         modes = find_section(app, "modes")
         assert query_radio(modes, "airborne") is not None
 
-        find_checkbox(app, "is portrait").click()
+        find_tick(app, "is portrait").click()
 
         modes = find_section(app, "modes")
         assert query_radio(modes, "airborne") is None
@@ -375,7 +375,7 @@ class TestDisablingAndHiding:
     def test_revealed_bys_at_section_level(self, qtbot, app):
         assert query_section(app, "portrait extras") is None
 
-        find_checkbox(app, "is portrait").click()
+        find_tick(app, "is portrait").click()
 
         assert query_section(app, "portrait extras") is not None
 
@@ -383,7 +383,7 @@ class TestDisablingAndHiding:
         modes = find_section(app, "modes")
         assert find_label_widget(modes, "portrait pose") is None
 
-        find_checkbox(app, "is portrait").click()
+        find_tick(app, "is portrait").click()
 
         modes = find_section(app, "modes")
         assert find_label_widget(modes, "portrait pose") is not None
@@ -392,7 +392,7 @@ class TestDisablingAndHiding:
         modes = find_section(app, "modes")
         assert query_radio(modes, "close crop") is None
 
-        find_checkbox(app, "is portrait").click()
+        find_tick(app, "is portrait").click()
 
         modes = find_section(app, "modes")
         assert query_radio(modes, "close crop") is not None
@@ -418,18 +418,18 @@ class TestPluralityInLabels:
     def test_global_substitutions_in_labels(self, qtbot, app):
         section = find_section(app, "torso references")
         assert find_label_widget(section, "torso mentions") is not None
-        assert find_checkbox(section, "torso badge") is not None
+        assert find_tick(section, "torso badge") is not None
 
-        find_checkbox(app, "thorax mode").click()
+        find_tick(app, "thorax mode").click()
 
         section = find_section(app, "thorax references")
         assert query_section(app, "torso references") is None
         assert find_label_widget(section, "thorax mentions") is not None
-        assert find_checkbox(section, "thorax badge") is not None
-        assert find_checkbox(section, "thoraces") is not None
+        assert find_tick(section, "thorax badge") is not None
+        assert find_tick(section, "thoraces") is not None
 
-        find_checkbox(section, "thorax badge").click()
-        find_checkbox(section, "thoraces").click()
+        find_tick(section, "thorax badge").click()
+        find_tick(section, "thoraces").click()
 
         assert app.positive_prompt.toPlainText() == (
             "space robo dino demon monster, replace thorax terminology, thorax badge, thoraces"
@@ -546,7 +546,7 @@ class TestGlobalSelector:
     """
 
     def _click_the_toggle(self, app):
-        find_checkbox(find_control(app, "colorize"), "colorize").click()
+        find_tick(find_control(app, "colorize"), "colorize").click()
 
     def _choose(self, app, option_label):
         find_radio(find_control(app, "colorize"), option_label).click()
@@ -554,7 +554,7 @@ class TestGlobalSelector:
     def test_hides_options_while_off(self, app):
         colorize = find_control(app, "colorize")
 
-        assert not find_checkbox(colorize, "colorize").isChecked()
+        assert not find_tick(colorize, "colorize").isChecked()
         assert query_radio(colorize, "green") is None
         assert query_radio(colorize, "black") is None
 
@@ -562,7 +562,7 @@ class TestGlobalSelector:
         self._click_the_toggle(app)
 
         colorize = find_control(app, "colorize")
-        assert find_checkbox(colorize, "colorize").isChecked()
+        assert find_tick(colorize, "colorize").isChecked()
         assert find_radio(colorize, "green").isEnabled()
         assert find_radio(colorize, "black").isEnabled()
 
@@ -582,7 +582,7 @@ class TestGlobalSelector:
         self._click_the_toggle(app)
         self._choose(app, "green")
 
-        assert find_checkbox(find_control(app, "render style"), "green tinted").isChecked()
+        assert find_tick(find_control(app, "render style"), "green tinted").isChecked()
 
     def test_choosing_another_option_releases_the_first(self, app):
         self._click_the_toggle(app)
@@ -591,7 +591,7 @@ class TestGlobalSelector:
 
         assert find_radio(find_control(app, "eye color"), "black").isChecked()
         assert not find_radio(find_control(app, "eye color"), "green").isChecked()
-        assert not find_checkbox(find_control(app, "render style"), "green tinted").isChecked()
+        assert not find_tick(find_control(app, "render style"), "green tinted").isChecked()
         assert app.positive_prompt.toPlainText() == (
             "space robo dino demon monster, black, black and white render style"
         )
@@ -602,7 +602,7 @@ class TestGlobalSelector:
         self._click_the_toggle(app)
 
         assert not find_radio(find_control(app, "eye color"), "green").isChecked()
-        assert not find_checkbox(find_control(app, "render style"), "green tinted").isChecked()
+        assert not find_tick(find_control(app, "render style"), "green tinted").isChecked()
         assert app.positive_prompt.toPlainText() == "space robo dino demon monster"
 
 
@@ -746,13 +746,13 @@ class TestCopying:
         assert QApplication.clipboard().text() == "space robo dino demon monster, bone armor"
 
 
-def test_option_checkboxes_use_the_shared_ticked_checkbox(app):
-    # Every option checkbox must be the shared CheckBox (a real ticked box),
+def test_option_ticks_use_the_shared_tick_control(app):
+    # Every option tick must be the shared TickControl (a real ticked square),
     # not a plain QCheckBox whose styled indicator renders as a down-caret.
     # The QSS pill toggles (objectName "toggle_switch") stay QCheckBox.
-    option_boxes = [
+    option_ticks = [
         cb for cb in app.findChildren(QCheckBox)
         if cb.objectName() != "toggle_switch"
     ]
-    assert option_boxes  # the test schema renders checkbox options
-    assert all(isinstance(cb, CheckBox) for cb in option_boxes)
+    assert option_ticks  # the test schema renders tick options
+    assert all(isinstance(cb, TickControl) for cb in option_ticks)

@@ -101,7 +101,7 @@ class TestTheStateShapeMatchesWhatTheRendererReads:
 class TestTheSubmenuQuestionsAreNotOneQuestion:
     """Arity and word order look alike where they sit, and are not the same.
 
-    Arity — radios or checkboxes, a string state or a list — is
+    Arity — radios or tick controls, a string state or a list — is
     `is_or_prefixed_kind`, the same spelling the control sites use. Word order is
     `is_adverb_submenu_kind`. They agree on two of the four submenu kinds and
     differ on the other two, so merging them would be wrong.
