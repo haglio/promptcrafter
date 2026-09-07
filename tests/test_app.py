@@ -168,10 +168,26 @@ class TestUpdatingPrompts:
 
         assert app.negative_prompt.toPlainText() == "no clutter, blurry, extra limbs"
 
+    def test_updates_positive_prompt_from_an_and_commas_adj_control(self, qtbot, app):
+        find_tick(find_control(app, "material vibe"), "crystalline").click()
+
+        assert app.positive_prompt.toPlainText() == (
+            "space robo dino demon monster, crystalline material vibe"
+        )
+
     def test_updates_negative_prompt_when_hidden_opposite_source_selected(self, qtbot, app):
         assert app.negative_prompt.toPlainText() == "no clutter, blurry"
         find_radio(app, "hot").click()
         assert app.negative_prompt.toPlainText() == "no clutter, blurry, cold"
+
+    def test_a_hidden_opposite_control_builds_no_widget_of_its_own(self, app):
+        """It has no row: the negative prompt is the only place it appears.
+
+        Its options are still state the selector and the rules reach, so the
+        control is not absent -- only unbuilt.
+        """
+        assert query_tick(app, "cold") is None
+        assert "neg-temperature-opposite" in app.state.controls
 
     def test_clicking_the_chosen_radio_again_clears_it(self, qtbot, app):
         """A radio is the only control here that can be emptied by one click.

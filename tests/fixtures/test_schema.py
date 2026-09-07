@@ -219,6 +219,25 @@ TEST_SCHEMA = Schema(sections=[
                 ],
             ),
             Control(
+                id="material vibe",
+                text="material vibe",
+                kind="and-commas-adj",
+                options=[
+                    Option(id="crystalline", text="crystalline"),
+                    Option(id="molten", text="molten"),
+                ],
+            ),
+            Control(
+                id="surface mood",
+                text="surface mood",
+                kind="and-commas-adj",
+                custom_text="patina",
+                options=[
+                    Option(id="gleaming", text="gleaming"),
+                    Option(id="weathered", text="weathered"),
+                ],
+            ),
+            Control(
                 id="stance",
                 text=PluralText(singular="stance", plural="stances"),
                 kind="and-commas-adv",
