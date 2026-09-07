@@ -101,7 +101,6 @@ class Option:
     hidden_bys: list[DisabledOrHiddenBy] = field(default_factory=list)
     revealed_bys: list[DisabledOrHiddenBy] = field(default_factory=list)
     disabled_bys: list[DisabledOrHiddenBy] = field(default_factory=list)
-    supplemented_bys: list[SupplementedBy] = field(default_factory=list)
 
 
 @dataclass
@@ -129,7 +128,6 @@ class Section:
     hidden_bys: list[DisabledOrHiddenBy] = field(default_factory=list)
     revealed_bys: list[DisabledOrHiddenBy] = field(default_factory=list)
     disabled_bys: list[DisabledOrHiddenBy] = field(default_factory=list)
-    supplemented_bys: list[SupplementedBy] = field(default_factory=list)
 
 
 @dataclass

@@ -127,7 +127,6 @@ def _option(doc: dict) -> Option:
         hidden_bys=_conditions(doc, "hiddenBys"),
         revealed_bys=_conditions(doc, "revealedBys"),
         disabled_bys=_conditions(doc, "disabledBys"),
-        supplemented_bys=[_supplement(s) for s in doc.get("supplementedBys", [])],
     )
 
 
@@ -157,7 +156,6 @@ def _section(doc: dict) -> Section:
         hidden_bys=_conditions(doc, "hiddenBys"),
         revealed_bys=_conditions(doc, "revealedBys"),
         disabled_bys=_conditions(doc, "disabledBys"),
-        supplemented_bys=[_supplement(s) for s in doc.get("supplementedBys", [])],
     )
 
 
