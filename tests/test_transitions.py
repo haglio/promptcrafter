@@ -19,7 +19,14 @@ from promptcrafter.transitions import (
     set_toggle_enabled,
     toggle_option,
 )
-from promptcrafter.types import Control, ControlState, Option, Schema, Section
+from promptcrafter.types import (
+    Control,
+    ControlState,
+    DisabledOrHiddenBy,
+    Option,
+    Schema,
+    Section,
+)
 from tests.fixtures.test_schema import TEST_SCHEMA
 
 
@@ -56,6 +63,24 @@ def _two_selector_schema():
         Control(id="hue", text="hue", kind="or",
                 options=[Option(id="amber glazed", text="amber glazed"),
                          Option(id="slate washed", text="slate washed")]),
+    ])])
+
+
+def _opposite_schema():
+    """A selector beside a ``hidden-opposite`` control offering the same id.
+
+    The window builds no row for a ``hidden-opposite`` control, so the only
+    thing that ever writes to one is a rule -- and the selector's two loops
+    walk every control that holds a list, this kind included.
+    """
+    return Schema(sections=[Section(id="weather", text="weather", controls=[
+        Control(id="shade", text="shade", kind="global-selector",
+                options=[Option(id="frost", text="frost")]),
+        Control(id="warmth", text="warmth", kind="or",
+                options=[Option(id="frost", text="frost")]),
+        Control(id="chill", text="chill", kind="hidden-opposite",
+                hidden_opposite_bys=[DisabledOrHiddenBy(control_id="warmth")],
+                options=[Option(id="frost", text="frost")]),
     ])])
 
 
@@ -281,6 +306,25 @@ class TestTheGlobalSelector:
         set_global_selector_enabled(schema, state, "tint", False)
 
         assert state.controls["hue"].selected_options == ""
+
+    def test_choosing_reaches_a_hidden_opposite_control(self):
+        schema = _opposite_schema()
+        state = create_initial_state(schema)
+        set_global_selector_enabled(schema, state, "shade", True)
+
+        choose_global_selector_option(schema, state, "shade", "frost")
+
+        assert state.controls["chill"].selected_options == ["frost"]
+
+    def test_switching_it_off_releases_a_hidden_opposite_control(self):
+        schema = _opposite_schema()
+        state = create_initial_state(schema)
+        set_global_selector_enabled(schema, state, "shade", True)
+        choose_global_selector_option(schema, state, "shade", "frost")
+
+        set_global_selector_enabled(schema, state, "shade", False)
+
+        assert state.controls["chill"].selected_options == []
 
     def test_a_second_selector_is_released_like_any_other_control(self):
         """Both loops skip the control the choice came from, and only that one.

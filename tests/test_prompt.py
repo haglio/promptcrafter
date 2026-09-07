@@ -60,21 +60,12 @@ class TestControlKinds:
         )
 
     def test_renders_and_commas_adj_control_kind(self):
-        schema = copy.deepcopy(TEST_SCHEMA)
-        schema.sections[1].controls.insert(5, Control(
-            id="material vibe",
-            text="material vibe",
-            kind="and-commas-adj",
-            options=[
-                Option(id="crystalline", text="crystalline"),
-                Option(id="molten", text="molten"),
-            ],
-        ))
-
-        state = create_initial_state(schema)
+        state = create_initial_state(TEST_SCHEMA)
         state.controls["material vibe"].selected_options = ["crystalline", "molten"]
 
-        assert "crystalline material vibe, molten material vibe" in build_prompt(schema, state, "positive")
+        assert build_prompt(TEST_SCHEMA, state, "positive") == (
+            "space robo dino demon monster, crystalline material vibe, molten material vibe"
+        )
 
     def test_renders_and_spaces_adj_control_kind(self):
         state = create_initial_state(TEST_SCHEMA)
@@ -331,22 +322,12 @@ class TestControlCustomText:
         )
 
     def test_renders_custom_text_for_and_commas_adj(self):
-        schema = copy.deepcopy(TEST_SCHEMA)
-        schema.sections[1].controls.insert(5, Control(
-            id="surface mood",
-            text="surface mood",
-            custom_text="finish",
-            kind="and-commas-adj",
-            options=[
-                Option(id="gleaming", text="gleaming"),
-                Option(id="weathered", text="weathered"),
-            ],
-        ))
-
-        state = create_initial_state(schema)
+        state = create_initial_state(TEST_SCHEMA)
         state.controls["surface mood"].selected_options = ["gleaming", "weathered"]
 
-        assert "gleaming finish, weathered finish" in build_prompt(schema, state, "positive")
+        assert build_prompt(TEST_SCHEMA, state, "positive") == (
+            "space robo dino demon monster, gleaming patina, weathered patina"
+        )
 
     def test_renders_custom_text_for_and_spaces_adj(self):
         state = create_initial_state(TEST_SCHEMA)
