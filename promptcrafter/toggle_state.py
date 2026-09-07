@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from promptcrafter.types import Control, ControlState, ManyOf, Selection, Switch
 
 

@@ -6,6 +6,7 @@ been handed, 38 times across four modules, several of them re-testing inside a
 comprehension that already knew. The three meanings are three types now, and
 they answer the same questions as each other.
 """
+from __future__ import annotations
 
 from promptcrafter.types import ManyOf, OneOf, Switch
 

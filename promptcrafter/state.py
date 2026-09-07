@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from promptcrafter.kinds import is_or_prefixed_kind
 from promptcrafter.toggle_state import create_initial_toggle_state
 from promptcrafter.types import (

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from promptcrafter.state import create_initial_state, submenu_state_key

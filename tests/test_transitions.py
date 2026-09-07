@@ -5,6 +5,7 @@ build a Qt window and send it a fake click, so the two that mattered most --
 the global selector's reach across the other controls -- were pinned by four
 window tests and nothing else. Here they are ordinary function calls.
 """
+from __future__ import annotations
 
 import copy
 
