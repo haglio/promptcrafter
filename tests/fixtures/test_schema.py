@@ -390,6 +390,16 @@ TEST_SCHEMA = Schema(sections=[
                 ],
             ),
             Control(
+                id="heat haze",
+                text="heat haze",
+                kind="and-commas",
+                revealed_bys=[DisabledOrHiddenBy(option_id="hot")],
+                supplemented_bys=[
+                    SupplementedBy(option_id="molten", supplemental_text="glowing"),
+                ],
+                options=[Option(id="shimmer", text="shimmer")],
+            ),
+            Control(
                 id="portrait pose",
                 text="portrait pose",
                 kind="or",

@@ -412,6 +412,18 @@ class TestSupplements:
 
         assert "plasma runed plating" in build_prompt(TEST_SCHEMA, state, "positive")
 
+    def test_a_supplement_naming_no_side_follows_the_text_it_supplements(self):
+        """`side` is optional, and an absent one reads as `adv` -- so the
+        supplement lands after the control's text, not before it."""
+        state = create_initial_state(TEST_SCHEMA)
+        state.controls["temperature"].selected_options = "hot"
+        state.controls["material vibe"].selected_options = ["molten"]
+        state.controls["heat haze"].selected_options = ["shimmer"]
+
+        assert build_prompt(TEST_SCHEMA, state, "positive") == (
+            "space robo dino demon monster, hot, molten material vibe, shimmer glowing"
+        )
+
     def test_controls_apply_adj_supplements(self):
         state = create_initial_state(TEST_SCHEMA)
         state.controls["movement"].selected_options = "heavily"
@@ -496,6 +508,23 @@ class TestRevealedBys:
         state.controls["portrait pose"].selected_options = "close crop"
 
         assert build_prompt(TEST_SCHEMA, state, "positive") == "space robo dino demon monster"
+
+    def test_a_control_revealed_by_an_option_stays_out_until_it_is_chosen(self):
+        """A condition naming an option and no control matches wherever that
+        option is selected, rather than in one control the rule points at."""
+        state = create_initial_state(TEST_SCHEMA)
+        state.controls["heat haze"].selected_options = ["shimmer"]
+
+        assert build_prompt(TEST_SCHEMA, state, "positive") == "space robo dino demon monster"
+
+    def test_a_control_revealed_by_an_option_renders_once_it_is_chosen(self):
+        state = create_initial_state(TEST_SCHEMA)
+        state.controls["temperature"].selected_options = "hot"
+        state.controls["heat haze"].selected_options = ["shimmer"]
+
+        assert build_prompt(TEST_SCHEMA, state, "positive") == (
+            "space robo dino demon monster, hot, shimmer"
+        )
 
     def test_renders_revealed_items_when_trigger_active(self):
         state = create_initial_state(TEST_SCHEMA)
