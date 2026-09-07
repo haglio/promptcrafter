@@ -5,11 +5,18 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "promptcrafter"
 version = "0.1.0"
-requires-python = ">=3.10"
-dependencies = ["PyQt6"]
+# 3.12, not 3.10: every gate in the family runs 3.12 and nothing has ever
+# collected a suite on anything older, so >=3.10 was a promise no run backed.
+requires-python = ">=3.12"
+# Every requirement carries a ceiling. Without one each run installs whatever
+# PyPI served that morning, which is how this family's gates came to run a major
+# version of the imaging stack past the one the machines have. Floors are what
+# this repo's venv holds today.
+dependencies = ["PyQt6>=6,<7"]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-qt", "pytest-timeout", "vulture", "ruff==0.16.6"]
+dev = ["pytest>=9,<10", "pytest-qt>=4,<5", "pytest-timeout>=2.4,<3", "vulture>=2.16,<3",
+       "ruff==0.16.6"]
 
 [tool.pytest.ini_options]
 # The content guard's enforcement check, taken from app_support rather than
@@ -30,6 +37,15 @@ dev = ["pytest", "pytest-qt", "pytest-timeout", "vulture", "ruff==0.16.6"]
 addopts = "-p app_support.sanitize.pytest_plugin --timeout=60 --timeout-method=thread"
 testpaths = ["tests"]
 qt_api = "pyqt6"
+
+# The family checkouts this one is installed beside. app_support was imported at
+# every launch -- `process_name` reaches for `ProcessNamer` -- and named nowhere
+# in this file, so anyone installing the declared way got an app whose process
+# naming quietly did nothing. Neither sibling is published, so neither can go in
+# [project.dependencies]; tests/test_dependencies.py holds this list against the
+# tree instead.
+[tool.haglio]
+siblings = ["app_support", "shared_ui"]
 
 [tool.setuptools.packages.find]
 include = ["promptcrafter*"]
