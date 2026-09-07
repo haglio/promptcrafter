@@ -4,6 +4,8 @@ Every fixture here is fabricated. The overlay's whole reason for existing is
 that a real schema may not enter this repo, so a test that made one "realistic"
 would be the leak the feature exists to prevent.
 """
+from __future__ import annotations
+
 import json
 
 import pytest

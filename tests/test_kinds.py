@@ -12,6 +12,7 @@ control gets a `OneOf` state and radio buttons from the four, falls past the
 radio branch in the fifth into one that wants a list, and renders nothing at
 all with no error anywhere.
 """
+from __future__ import annotations
 
 from typing import get_args
 

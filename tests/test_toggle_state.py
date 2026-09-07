@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from promptcrafter.toggle_state import (
     create_initial_toggle_state,
     get_toggle_selections_for_next_state,

@@ -13,6 +13,8 @@ the entry point never reaches leave the app looking exactly as broken.  The
 tree rather than the text, so a line wrap cannot turn this red with the launch
 unchanged.
 """
+from __future__ import annotations
+
 import ast
 import unittest
 from pathlib import Path
