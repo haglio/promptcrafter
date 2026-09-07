@@ -162,15 +162,15 @@ def test_camel_case_keys_arrive_as_the_snake_case_fields():
                 "globalSubstitutions": [{"from": "gamma", "to": "delta"}],
                 "hiddenOppositeBys": [{"controlId": "epsilon"}],
                 "revealedBys": [{"controlId": "zeta"}],
+                "supplementedBys": [
+                    {"optionId": "kappa", "supplementalText": "kappaish", "side": "adj"},
+                ],
                 "options": [{
                     "id": "gamma",
                     "text": "gamma",
                     "customControlText": "gammaing",
                     "hiddenBys": [{"optionId": "eta"}],
                     "disabledBys": [{"controlId": "theta", "optionId": "iota"}],
-                    "supplementedBys": [
-                        {"optionId": "kappa", "supplementalText": "kappaish", "side": "adj"},
-                    ],
                     "submenu": {
                         "kind": "and-adj",
                         "options": [{"id": "lambda", "text": "lambda"}],
@@ -191,13 +191,13 @@ def test_camel_case_keys_arrive_as_the_snake_case_fields():
     assert control.global_substitutions[0].from_plural is None
     assert control.hidden_opposite_bys[0].control_id == "epsilon"
     assert control.revealed_bys[0].control_id == "zeta"
+    assert control.supplemented_bys[0].supplemental_text == "kappaish"
+    assert control.supplemented_bys[0].side == "adj"
+    assert control.supplemented_bys[0].option_id == "kappa"
     assert option.custom_control_text == "gammaing"
     assert option.hidden_bys[0].option_id == "eta"
     assert option.disabled_bys[0].control_id == "theta"
     assert option.disabled_bys[0].option_id == "iota"
-    assert option.supplemented_bys[0].supplemental_text == "kappaish"
-    assert option.supplemented_bys[0].side == "adj"
-    assert option.supplemented_bys[0].option_id == "kappa"
     assert option.submenu.kind == "and-adj"
     assert option.submenu.options[0].id == "lambda"
 
