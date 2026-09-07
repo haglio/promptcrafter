@@ -1,11 +1,12 @@
-"""Every schema this checkout can load leans only on what the fixture declares.
+"""Every schema this checkout can load, held against what the fixture declares.
 
 `tests/fixtures/test_schema.py` is what the renderer, the rules and the window
 are tested against, so a schema feature that reaches the app without reaching
 that fixture is a feature no test has ever run. Two schemas can reach the app:
 the shipped demo, and the private overlay beside the checkout where there is
 one -- a public clone, CI and a worktree have none, and there the demo is the
-whole of the comparison.
+whole of the comparison. The same pair is walked once more through the state
+builder, which is the loader's output meeting the rest of the app.
 
 A feature here is a shape the types can carry, never a value: which control and
 submenu kinds are declared, which optional fields are filled in, which form each
@@ -20,16 +21,20 @@ import dataclasses
 
 from promptcrafter.schema import schema as demo_schema
 from promptcrafter.schema_overlay import load_schema, overlay_path
+from promptcrafter.state import create_initial_state
 from promptcrafter.types import (
     Control,
     DisabledOrHiddenBy,
     GlobalSubstitution,
+    ManyOf,
+    OneOf,
     Option,
     PluralText,
     Schema,
     Section,
     Submenu,
     SupplementedBy,
+    Switch,
     TemplateText,
     TextRef,
     TextReference,
@@ -150,6 +155,39 @@ def test_no_schema_this_checkout_can_load_reaches_past_the_test_schema():
     for name, schema in _schemas_this_checkout_can_load():
         beyond = sorted(schema_features(schema) - covered)
         assert not beyond, f"{name} uses {beyond}, which the test schema does not"
+
+
+# Which of the three shapes a control's state may arrive in, by kind. A toggle
+# and a global selector each have two: a toggle with at most one option of its
+# own is a plain on/off, and a selector that is off is too.
+_SHAPES_BY_KIND = {
+    "or": (OneOf,), "or-adv": (OneOf,), "or-adj": (OneOf,), "or-prefix": (OneOf,),
+    "and-commas": (ManyOf,), "and-commas-adj": (ManyOf,), "and-commas-adv": (ManyOf,),
+    "and-spaces-adj": (ManyOf,), "required": (ManyOf,), "hidden-opposite": (ManyOf,),
+    "toggle": (Switch, ManyOf), "global-selector": (Switch, OneOf),
+}
+
+
+def test_every_schema_this_checkout_can_load_opens_a_state_the_renderer_can_read():
+    """The loader's output is what the rest of the app takes.
+
+    Each kind's renderer reads one of the three selection shapes, and the state
+    builder is what decides which one a control arrives holding; a schema that
+    opened with the wrong shape would render nothing and say nothing. Only kinds
+    reach the failure message -- never an id out of a private schema.
+    """
+    for name, schema in _schemas_this_checkout_can_load():
+        state = create_initial_state(schema)
+        wrong = sorted({
+            control.kind
+            for section in schema.sections
+            for control in section.controls
+            if not isinstance(
+                getattr(state.controls.get(control.id), "selected_options", None),
+                _SHAPES_BY_KIND[control.kind],
+            )
+        })
+        assert not wrong, f"{name} opens {wrong} controls holding a shape they cannot render"
 
 
 def _one_control_of(kind: str) -> Schema:

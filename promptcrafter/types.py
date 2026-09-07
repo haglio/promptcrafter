@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Literal, Union
 
@@ -137,9 +138,128 @@ class Schema:
 
 # --- State types ---
 
+# What one control has picked. Three shapes, one set of questions: readers ask
+# rather than test which of the three they were handed, which is what the field
+# below used to make every one of them do.
+
+
+@dataclass(frozen=True)
+class Switch:
+    """A control that is only ever on or off.
+
+    A ``toggle`` whose control offers at most one option of its own, and a
+    ``global-selector`` that is switched off. The selector is the one control
+    that changes which of these three it holds, because "off" and "on with
+    nothing picked" have to stay tellable apart.
+    """
+
+    on: bool = False
+
+    def has_selection(self) -> bool:
+        return self.on
+
+    def contains(self, option_id: str) -> bool:
+        return False
+
+    def single_choice(self) -> str:
+        return ""
+
+    def is_switched_on(self) -> bool:
+        return self.on
+
+    def is_engaged(self, enabled: bool | None) -> bool:
+        return self.on
+
+    def with_toggled(self, option_id: str) -> Selection:
+        return self
+
+    def without(self, reaches: Callable[[str], bool]) -> Selection:
+        return self
+
+    def with_reach_of(self, option_id: str, offered: list[str]) -> Selection:
+        return self
+
+
+@dataclass(frozen=True)
+class OneOf:
+    """One option id, or nothing: every ``or`` kind, an ``or`` submenu, and a
+    ``global-selector`` that is switched on."""
+
+    chosen: str = ""
+
+    def has_selection(self) -> bool:
+        return bool(self.chosen)
+
+    def contains(self, option_id: str) -> bool:
+        return self.chosen == option_id
+
+    def single_choice(self) -> str:
+        return self.chosen
+
+    def is_switched_on(self) -> bool:
+        return True
+
+    def is_engaged(self, enabled: bool | None) -> bool:
+        return self.has_selection() if enabled is None else enabled
+
+    def with_toggled(self, option_id: str) -> Selection:
+        """Choosing what is already chosen empties the control, which is the
+        only way to put a radio group back to nothing."""
+        return OneOf("" if self.chosen == option_id else option_id)
+
+    def without(self, reaches: Callable[[str], bool]) -> Selection:
+        return OneOf() if reaches(self.chosen) else self
+
+    def with_reach_of(self, option_id: str, offered: list[str]) -> Selection:
+        if not offered:
+            return self
+        return OneOf(option_id if option_id in offered else offered[0])
+
+
+@dataclass(frozen=True)
+class ManyOf:
+    """Every option ticked in a control that holds a list."""
+
+    chosen: tuple[str, ...] = ()
+
+    def has_selection(self) -> bool:
+        return bool(self.chosen)
+
+    def contains(self, option_id: str) -> bool:
+        return option_id in self.chosen
+
+    def single_choice(self) -> str:
+        return ""
+
+    def is_switched_on(self) -> bool:
+        return True
+
+    def is_engaged(self, enabled: bool | None) -> bool:
+        return self.has_selection() if enabled is None else enabled
+
+    def with_toggled(self, option_id: str) -> Selection:
+        if option_id in self.chosen:
+            return ManyOf(tuple(o for o in self.chosen if o != option_id))
+        return ManyOf((*self.chosen, option_id))
+
+    def without(self, reaches: Callable[[str], bool]) -> Selection:
+        return ManyOf(tuple(o for o in self.chosen if not reaches(o)))
+
+    def with_reach_of(self, option_id: str, offered: list[str]) -> Selection:
+        # `dict.fromkeys`, not `set`: the TypeScript merged these with
+        # `Array.from(new Set([...]))` (`src/App.tsx:239`) and a JS Set keeps
+        # insertion order, so the list was stable. A Python set is hash-ordered
+        # and string hashing is salted per process, so the port made this come
+        # out differently run to run.
+        return ManyOf(tuple(dict.fromkeys([*self.chosen, *offered])))
+
+
+Selection = Union[Switch, OneOf, ManyOf]
+
+
 @dataclass
 class ControlState:
-    selected_options: bool | str | list[str]
+    selected_options: Selection
     weight: float = 1.0
     enabled: bool | None = None
 

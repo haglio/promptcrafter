@@ -17,7 +17,7 @@ from promptcrafter.schema_overlay import (
     schema_from_document,
 )
 from promptcrafter.state import create_initial_state
-from promptcrafter.types import PluralText, TemplateText, TextRef
+from promptcrafter.types import OneOf, PluralText, TemplateText, TextRef
 
 MINIMAL = {
     "sections": [
@@ -253,5 +253,5 @@ def test_a_submenu_nests_to_any_depth():
 def test_a_built_schema_can_open_the_app_state():
     """The point of the loader: what it returns is what the rest of the app takes."""
     state = create_initial_state(schema_from_document(MINIMAL))
-    assert state.controls["beta"].selected_options == ""
+    assert state.controls["beta"].selected_options == OneOf()
     assert list(state.sections) == ["alpha"]

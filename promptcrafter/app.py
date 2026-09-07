@@ -42,7 +42,10 @@ from promptcrafter.runtime import (  # noqa: E402
 )
 from promptcrafter.state import create_initial_state  # noqa: E402
 from promptcrafter.style import build_stylesheet, copy_button  # noqa: E402
-from promptcrafter.toggle_state import is_toggle_enabled  # noqa: E402
+from promptcrafter.toggle_state import (  # noqa: E402
+    is_toggle_enabled,
+    toggle_holds_an_option_list,
+)
 from promptcrafter.transitions import (  # noqa: E402
     choose_global_selector_option,
     choose_option,
@@ -356,7 +359,7 @@ class PromptCrafterWindow(QMainWindow):
         layout.addWidget(options_row)
 
         # Multi-option toggles show options when enabled
-        has_option_list = len(control.options) > 1 and isinstance(cs.selected_options, list)
+        has_option_list = len(control.options) > 1 and toggle_holds_an_option_list(cs)
         if is_toggle_enabled(cs) and has_option_list:
             opts_row = QWidget()
             opts_layout = QHBoxLayout(opts_row)
@@ -370,7 +373,7 @@ class PromptCrafterWindow(QMainWindow):
                 opt_disabled = disabled or is_disabled(self.state, option.disabled_bys)
                 opt_label = self._display_text(option.text, plural)
                 cb = TickControl(opt_label)
-                cb.setChecked(isinstance(cs.selected_options, list) and option.id in cs.selected_options)
+                cb.setChecked(cs.selected_options.contains(option.id))
                 cb.setEnabled(not opt_disabled)
                 cb.clicked.connect(
                     lambda _, cid=control.id, oid=option.id: self._on_tick(cid, oid)
@@ -384,7 +387,7 @@ class PromptCrafterWindow(QMainWindow):
     ) -> None:
         plural = is_subject_plural(self.state)
         label = self._display_text(control.text, plural)
-        is_on = cs.selected_options is not False
+        is_on = cs.selected_options.is_switched_on()
 
         # Toggle row
         toggle_row = QWidget()
@@ -406,7 +409,6 @@ class PromptCrafterWindow(QMainWindow):
         layout.addWidget(toggle_row)
 
         if is_on:
-            selected = cs.selected_options if isinstance(cs.selected_options, str) else ""
             opts_row = QWidget()
             opts_layout = QHBoxLayout(opts_row)
             opts_layout.setContentsMargins(0, 0, 0, 0)
@@ -419,7 +421,7 @@ class PromptCrafterWindow(QMainWindow):
                 opt_disabled = disabled or is_disabled(self.state, option.disabled_bys)
                 opt_label = self._display_text(option.text, plural)
                 rb = QRadioButton(opt_label)
-                rb.setChecked(selected == option.id)
+                rb.setChecked(cs.selected_options.contains(option.id))
                 rb.setEnabled(not opt_disabled)
                 rb.clicked.connect(
                     lambda _, cid=control.id, oid=option.id: self._on_global_selector_option(cid, oid)
@@ -432,7 +434,6 @@ class PromptCrafterWindow(QMainWindow):
         self, layout: QVBoxLayout, control: Control, cs: ControlState, disabled: bool
     ) -> None:
         plural = is_subject_plural(self.state)
-        selected = cs.selected_options if isinstance(cs.selected_options, str) else ""
 
         options_row = QWidget()
         options_layout = QHBoxLayout(options_row)
@@ -454,14 +455,14 @@ class PromptCrafterWindow(QMainWindow):
 
             rb = QRadioButton(opt_label)
             rb.setAutoExclusive(False)
-            rb.setChecked(selected == option.id)
+            rb.setChecked(cs.selected_options.contains(option.id))
             rb.setEnabled(not opt_disabled)
             rb.clicked.connect(
                 lambda _, cid=control.id, oid=option.id: self._on_radio(cid, oid)
             )
             stack_layout.addWidget(rb)
 
-            if selected == option.id and option.submenu:
+            if cs.selected_options.contains(option.id) and option.submenu:
                 self._build_submenu(stack_layout, control.id, option, disabled)
 
             options_layout.addWidget(opt_stack)
@@ -494,14 +495,14 @@ class PromptCrafterWindow(QMainWindow):
             stack_layout.setSpacing(GAP_SMALL)
 
             cb = TickControl(opt_label)
-            cb.setChecked(isinstance(cs.selected_options, list) and option.id in cs.selected_options)
+            cb.setChecked(cs.selected_options.contains(option.id))
             cb.setEnabled(not opt_disabled)
             cb.clicked.connect(
                 lambda _, cid=control.id, oid=option.id: self._on_tick(cid, oid)
             )
             stack_layout.addWidget(cb)
 
-            if isinstance(cs.selected_options, list) and option.id in cs.selected_options and option.submenu:
+            if cs.selected_options.contains(option.id) and option.submenu:
                 self._build_submenu(stack_layout, control.id, option, disabled)
 
             options_layout.addWidget(opt_stack)
@@ -535,7 +536,7 @@ class PromptCrafterWindow(QMainWindow):
             if is_radio:
                 rb = QRadioButton(child_label)
                 rb.setAutoExclusive(False)
-                rb.setChecked(isinstance(submenu_state.selected_options, str) and submenu_state.selected_options == child.id)
+                rb.setChecked(submenu_state.selected_options.contains(child.id))
                 rb.setEnabled(not child_disabled)
                 rb.clicked.connect(
                     lambda _, k=key, oid=child.id: self._on_radio(k, oid)
@@ -543,7 +544,7 @@ class PromptCrafterWindow(QMainWindow):
                 indent_layout.addWidget(rb)
             else:
                 cb = TickControl(child_label)
-                cb.setChecked(isinstance(submenu_state.selected_options, list) and child.id in submenu_state.selected_options)
+                cb.setChecked(submenu_state.selected_options.contains(child.id))
                 cb.setEnabled(not child_disabled)
                 cb.clicked.connect(
                     lambda _, k=key, oid=child.id: self._on_tick(k, oid)
