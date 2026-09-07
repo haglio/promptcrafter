@@ -452,6 +452,17 @@ class TestPluralityInLabels:
         )
 
 
+class TestTemplateLabels:
+    def test_an_option_label_follows_the_control_its_template_references(self, qtbot, app):
+        """A label built from a template is rebuilt with the rest of the window,
+        so the control it quotes shows up in it as soon as it has an answer."""
+        assert query_radio(find_control(app, "echoes"), "loud as") is not None
+
+        find_radio(app, "hero").click()
+
+        assert query_radio(find_control(app, "echoes"), "loud as hero") is not None
+
+
 class TestWeights:
     def test_control_weight_lowers_below_1(self, qtbot, app):
         find_radio(app, "bone").click()

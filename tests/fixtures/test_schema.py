@@ -8,7 +8,14 @@ from promptcrafter.types import (
     Section,
     Submenu,
     SupplementedBy,
+    TemplateText,
+    TextRef,
+    TextReference,
 )
+
+
+def _the_alignment_control():
+    return TextRef(ref=TextReference(kind="control", id="alignment"))
 
 TEST_SCHEMA = Schema(sections=[
     Section(
@@ -216,6 +223,25 @@ TEST_SCHEMA = Schema(sections=[
                     Option(id="fetchings", text="fetchings"),
                     Option(id="fscars", text="fscars"),
                     Option(id="fglow", text="fglow"),
+                ],
+            ),
+            Control(
+                id="echoes",
+                text="echoes",
+                kind="or-adv",
+                custom_text=TemplateText(
+                    singular=["echoing ", _the_alignment_control()],
+                    plural=["echoing the ", _the_alignment_control()],
+                ),
+                options=[
+                    Option(id="faintly", text="faintly"),
+                    Option(
+                        id="loudly",
+                        text=TemplateText(
+                            singular=["loud as ", _the_alignment_control()],
+                            plural=["loud as the ", _the_alignment_control()],
+                        ),
+                    ),
                 ],
             ),
             Control(

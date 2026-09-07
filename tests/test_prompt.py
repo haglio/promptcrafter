@@ -336,6 +336,52 @@ class TestControlCustomText:
         assert build_prompt(TEST_SCHEMA, state, "positive") == "space robo dino demon monster, matte pearlescent finish"
 
 
+class TestTemplateText:
+    """Text built out of literals and a reference to another control.
+
+    The reference resolves by rendering the control it names, so a schema can
+    show what the user picked somewhere else; an unpicked control resolves to
+    nothing and the literals close up around the gap.
+    """
+
+    def test_an_option_text_quotes_the_control_its_template_references(self):
+        state = create_initial_state(TEST_SCHEMA)
+        state.controls["alignment"].selected_options = "hero"
+        state.controls["echoes"].selected_options = "loudly"
+
+        assert build_prompt(TEST_SCHEMA, state, "positive") == (
+            "space robo dino demon monster, hero, echoing hero loud as hero"
+        )
+
+    def test_a_custom_control_text_quotes_the_control_its_template_references(self):
+        state = create_initial_state(TEST_SCHEMA)
+        state.controls["alignment"].selected_options = "villain"
+        state.controls["echoes"].selected_options = "faintly"
+
+        assert build_prompt(TEST_SCHEMA, state, "positive") == (
+            "space robo dino demon monster, villain, echoing villain faintly"
+        )
+
+    def test_a_reference_to_a_control_holding_nothing_resolves_to_nothing(self):
+        state = create_initial_state(TEST_SCHEMA)
+        state.controls["echoes"].selected_options = "faintly"
+
+        assert build_prompt(TEST_SCHEMA, state, "positive") == (
+            "space robo dino demon monster, echoing faintly"
+        )
+
+    def test_a_template_takes_its_plural_from_the_subject(self):
+        state = create_initial_state(TEST_SCHEMA)
+        state.controls["count"].selected_options = "two"
+        state.controls["alignment"].selected_options = "hero"
+        state.controls["echoes"].selected_options = "loudly"
+
+        assert build_prompt(TEST_SCHEMA, state, "positive") == (
+            "space robo dino demon monster, two heroes, "
+            "echoing the heroes loud as the heroes"
+        )
+
+
 class TestOptionCustomControlText:
     def test_options_can_override_control_text(self):
         state = create_initial_state(TEST_SCHEMA)
