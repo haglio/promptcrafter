@@ -2,12 +2,8 @@ from __future__ import annotations
 
 import re
 
-from promptcrafter.kinds import (
-    is_adverb_submenu_kind,
-    is_or_prefixed_kind,
-    is_radio_kind,
-)
-from promptcrafter.toggle_state import is_toggle_enabled
+from promptcrafter.kinds import is_adverb_submenu_kind, is_radio_kind
+from promptcrafter.toggle_state import is_toggle_enabled, toggle_holds_an_option_list
 from promptcrafter.types import (
     Control,
     ControlState,
@@ -45,7 +41,7 @@ def _replace_whole_word(input_text: str, from_text: str, to_text: str) -> str:
 
 def is_subject_plural(state: State) -> bool:
     count = state.controls.get("count")
-    return count is not None and count.selected_options == "two"
+    return count is not None and count.selected_options.contains("two")
 
 
 def control_has_at_least_one_selected_option(control: Control, state: State) -> bool:
@@ -57,27 +53,12 @@ def control_has_at_least_one_selected_option(control: Control, state: State) -> 
     if control.kind == "toggle":
         return is_toggle_enabled(cs)
     if control.kind == "global-selector":
-        return cs.selected_options is not False
-    if is_or_prefixed_kind(control.kind):
-        return bool(cs.selected_options) if isinstance(cs.selected_options, str) else False
-    return isinstance(cs.selected_options, list) and len(cs.selected_options) > 0
-
-
-def _has_any_selection(selected_options: bool | str | list[str]) -> bool:
-    if isinstance(selected_options, bool):
-        return selected_options
-    if isinstance(selected_options, str):
-        return bool(selected_options)
-    return len(selected_options) > 0
+        return cs.selected_options.is_switched_on()
+    return cs.selected_options.has_selection()
 
 
 def _is_option_id_selected(state: State, option_id: str) -> bool:
-    for cs in state.controls.values():
-        if isinstance(cs.selected_options, str) and cs.selected_options == option_id:
-            return True
-        if isinstance(cs.selected_options, list) and option_id in cs.selected_options:
-            return True
-    return False
+    return any(cs.selected_options.contains(option_id) for cs in state.controls.values())
 
 
 def _is_by_condition_matched(state: State, by: DisabledOrHiddenBy) -> bool:
@@ -88,18 +69,9 @@ def _is_by_condition_matched(state: State, by: DisabledOrHiddenBy) -> bool:
     if not control_state:
         return False
 
-    selected = control_state.selected_options
-
     if not by.option_id:
-        if isinstance(selected, bool):
-            return is_toggle_enabled(control_state)
-        return control_state.enabled if control_state.enabled is not None else _has_any_selection(selected)
-
-    if isinstance(selected, str):
-        return selected == by.option_id
-    if isinstance(selected, list):
-        return by.option_id in selected
-    return False
+        return control_state.selected_options.is_engaged(control_state.enabled)
+    return control_state.selected_options.contains(by.option_id)
 
 
 def _is_triggered_by(state: State, conditions: list[DisabledOrHiddenBy] | None) -> bool:
@@ -320,33 +292,16 @@ def _render_submenu(
         return ""
     plural = is_subject_plural(state)
 
-    # "and" submenus: check for list selections
+    # An "and" submenu joins every child it holds; an "or" submenu holds at
+    # most one, so the same walk answers for both.
     checked = [
         child
         for child in option.submenu.options
-        if isinstance(submenu_state.selected_options, list)
-        and child.id in submenu_state.selected_options
+        if submenu_state.selected_options.contains(child.id)
         and not is_hidden(state, child.hidden_bys, child.revealed_bys)
         and not is_disabled(state, child.disabled_bys)
     ]
-    if checked:
-        return " ".join(_get_option_text(child, plural, schema, state, stack) for child in checked)
-
-    # "or" submenus: check for string selection
-    if isinstance(submenu_state.selected_options, str):
-        selected = next(
-            (
-                child
-                for child in option.submenu.options
-                if child.id == submenu_state.selected_options
-                and not is_hidden(state, child.hidden_bys, child.revealed_bys)
-                and not is_disabled(state, child.disabled_bys)
-            ),
-            None,
-        )
-        return _get_option_text(selected, plural, schema, state, stack) if selected else ""
-
-    return ""
+    return " ".join(_get_option_text(child, plural, schema, state, stack) for child in checked)
 
 
 def _render_option_with_modifiers(
@@ -414,13 +369,11 @@ def _selected_options(
     time they reach it if the control is disabled at all. So the four agreed;
     folding ``disabled`` in for every caller is what all four already did.
     """
-    if not isinstance(cs.selected_options, list):
-        return []
     return [
         opt for opt in control.options
         if not is_hidden(state, opt.hidden_bys, opt.revealed_bys)
         and not (is_disabled(state, opt.disabled_bys) or disabled)
-        and opt.id in cs.selected_options
+        and cs.selected_options.contains(opt.id)
     ]
 
 
@@ -486,7 +439,7 @@ def _render_toggle(
 ) -> Segment | None:
     if disabled or not is_toggle_enabled(cs):
         return None
-    if not isinstance(cs.selected_options, bool):
+    if toggle_holds_an_option_list(cs):
         return _render_every_selected_option(control, cs, schema, state, stack, disabled)
     # A toggle with no options of its own says one thing: its first option's
     # text, or the control's, unless it exists only to drive a substitution.
@@ -525,7 +478,7 @@ def _render_radio(
     stack: ResolutionStack,
     disabled: bool,
 ) -> Segment | None:
-    sel_id = cs.selected_options if not disabled and isinstance(cs.selected_options, str) else None
+    sel_id = cs.selected_options.single_choice() if not disabled else ""
     option = _option_by_id(control, sel_id) if sel_id else None
     if not option or is_hidden(state, option.hidden_bys, option.revealed_bys) or is_disabled(state, option.disabled_bys):
         return None

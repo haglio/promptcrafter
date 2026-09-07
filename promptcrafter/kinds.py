@@ -1,23 +1,23 @@
-"""What a control's kind means, gathered from the six places that asked.
+"""What a control's kind means, gathered from the places that asked.
 
-Six sites ask whether a kind is single-select: the state builder twice (controls
-and submenus), the widget builder twice the same way, the has-a-selection query,
-and the render dispatch. Five of them spell it ``kind.startswith("or")``; the
-sixth uses an explicit set of the four ``or`` kinds. **That is how the original
-was written and it is kept that way deliberately** -- the two came across from
-the TypeScript this was ported from (``src/lib/state.ts:24``, ``:38``,
-``src/components/Control.tsx:298``, ``src/components/Submenu.tsx:113``,
-``src/lib/runtime.ts:55``, against ``src/lib/runtime.ts:522``), and the owner
-confirmed on 2026-08-30 that they should stand.
+Five sites ask whether a kind is single-select: the state builder twice
+(controls and submenus), the widget builder twice the same way, and the render
+dispatch. Four of them spell it ``kind.startswith("or")``; the fifth uses an
+explicit set of the four ``or`` kinds. **That is how the original was written
+and it is kept that way deliberately** -- the two came across from the
+TypeScript this was ported from (``src/lib/state.ts:24``, ``:38``,
+``src/components/Control.tsx:298``, ``src/components/Submenu.tsx:113``, against
+``src/lib/runtime.ts:522``), and the owner confirmed on 2026-08-30 that they
+should stand.
 
-What this module changes is only where they live: six inline spellings across
+What this module changes is only where they live: the inline spellings across
 three modules became two named functions here, each site still asking the one it
 always asked. They give the same answer for every kind that exists -- all twelve
 ``ControlKind`` values and all four ``SubmenuKind`` values -- so the only way
 to make them differ is to declare a thirteenth kind starting with ``or`` and not
 add it to :data:`RADIO_CONTROL_KINDS`. ``tests/test_kinds.py`` reds if that
-happens, because such a control gets a string state and radio buttons from the
-five, falls past the radio branch in the sixth, and renders nothing at all.
+happens, because such a control gets a ``OneOf`` state and radio buttons from
+the four, falls past the radio branch in the fifth, and renders nothing at all.
 """
 
 from __future__ import annotations

@@ -1,6 +1,6 @@
 """The two spellings of "is this kind single-select?", kept as the original had them.
 
-Five sites ask `kind.startswith("or")` and the sixth, the render dispatch, uses
+Four sites ask `kind.startswith("or")` and the fifth, the render dispatch, uses
 an explicit set of four. Both came across from the TypeScript and the owner
 confirmed on 2026-08-30 that the split stands; this module gathers them into two
 named functions without moving any site off the one it always asked.
@@ -8,8 +8,8 @@ named functions without moving any site off the one it always asked.
 They give the same answer for every kind that exists. The one way to make them
 differ is to declare a thirteenth kind starting with `or` and not add it to
 `RADIO_CONTROL_KINDS` — so that is what these tests watch, because such a
-control gets a string state and radio buttons from the five, falls past the
-radio branch in the sixth into one that wants a list, and renders nothing at
+control gets a `OneOf` state and radio buttons from the four, falls past the
+radio branch in the fifth into one that wants a list, and renders nothing at
 all with no error anywhere.
 """
 
@@ -26,7 +26,16 @@ from promptcrafter.kinds import (
 )
 from promptcrafter.runtime import build_prompt
 from promptcrafter.state import create_initial_state
-from promptcrafter.types import Control, ControlKind, Option, Schema, Section, SubmenuKind
+from promptcrafter.types import (
+    Control,
+    ControlKind,
+    ManyOf,
+    OneOf,
+    Option,
+    Schema,
+    Section,
+    SubmenuKind,
+)
 
 DECLARED_CONTROL_KINDS = get_args(ControlKind)
 DECLARED_SUBMENU_KINDS = get_args(SubmenuKind)
@@ -54,8 +63,8 @@ class TestTheDeclaredKinds:
         """The one maintenance rule the split carries.
 
         Declare `or-something` in `ControlKind` and leave `RADIO_CONTROL_KINDS`
-        alone, and the five prefix sites call it single-select while the render
-        dispatch does not: the control gets a string state, builds radio
+        alone, and the four prefix sites call it single-select while the render
+        dispatch does not: the control gets a `OneOf` state, builds radio
         buttons, takes clicks, and contributes nothing to the prompt. Adding the
         kind to the set is the whole fix, and this is the test that says so.
         """
@@ -81,27 +90,29 @@ class TestTheStateShapeMatchesWhatTheRendererReads:
         selected = state.controls["bough"].selected_options
 
         # These two pick their own shape and never ask the radio question: a
-        # toggle is a bool or a list depending on how many options it has
-        # (`toggle_state.create_initial_toggle_state`) and a global selector is
-        # `False` or a string (`state._create_control_state`). Both are covered
-        # in test_state.py and test_prompt.py.
+        # toggle is a `Switch` or a `ManyOf` depending on how many options it
+        # has (`toggle_state.create_initial_toggle_state`) and a global selector
+        # is a `Switch` or a `OneOf` (`state._create_control_state`). Both are
+        # covered in test_state.py and test_prompt.py.
         if kind in ("toggle", "global-selector"):
             return
-        assert isinstance(selected, str) == is_radio_kind(kind)
+        assert isinstance(selected, OneOf) == is_radio_kind(kind)
 
         # `hidden-opposite` renders only while its `hidden_opposite_bys` fires,
         # which this one-control schema has nothing to fire; it is rendered in
         # full in test_prompt.py.
         if kind == "hidden-opposite":
             return
-        state.controls["bough"].selected_options = "oak" if is_radio_kind(kind) else ["oak"]
+        state.controls["bough"].selected_options = (
+            OneOf("oak") if is_radio_kind(kind) else ManyOf(("oak",))
+        )
         assert "oak" in build_prompt(schema, state, "positive")
 
 
 class TestTheSubmenuQuestionsAreNotOneQuestion:
     """Arity and word order look alike where they sit, and are not the same.
 
-    Arity — radios or tick controls, a string state or a list — is
+    Arity — radios or tick controls, a `OneOf` state or a `ManyOf` — is
     `is_or_prefixed_kind`, the same spelling the control sites use. Word order is
     `is_adverb_submenu_kind`. They agree on two of the four submenu kinds and
     differ on the other two, so merging them would be wrong.

@@ -17,10 +17,11 @@ UI showing the state from before the click.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 
 from promptcrafter.runtime import find_control
 from promptcrafter.toggle_state import get_toggle_selections_for_next_state
-from promptcrafter.types import Schema, State
+from promptcrafter.types import Control, ControlState, ManyOf, OneOf, Schema, State, Switch
 
 
 def choose_option(state: State, control_key: str, option_id: str) -> None:
@@ -33,21 +34,19 @@ def choose_option(state: State, control_key: str, option_id: str) -> None:
     cs = state.controls.get(control_key)
     if not cs:
         return
-    if cs.selected_options == option_id:
-        cs.selected_options = ""
-    else:
-        cs.selected_options = option_id
+    cs.selected_options = cs.selected_options.with_toggled(option_id)
 
 
 def toggle_option(state: State, control_key: str, option_id: str) -> None:
-    """Add ``option_id`` to a control that holds a list, or take it back out."""
+    """Add ``option_id`` to a control that holds a list, or take it back out.
+
+    A control holding one selection is left alone: a tick control is built for
+    no such control, and this is the rule its clicks arrive at.
+    """
     cs = state.controls.get(control_key)
-    if not cs or not isinstance(cs.selected_options, list):
+    if not cs or not isinstance(cs.selected_options, ManyOf):
         return
-    if option_id in cs.selected_options:
-        cs.selected_options = [o for o in cs.selected_options if o != option_id]
-    else:
-        cs.selected_options = [*cs.selected_options, option_id]
+    cs.selected_options = cs.selected_options.with_toggled(option_id)
 
 
 def set_toggle_enabled(schema: Schema, state: State, control_id: str, enabled: bool) -> None:
@@ -79,8 +78,8 @@ def set_global_selector_enabled(
     cs = state.controls.get(control_id)
     if not cs:
         return
-    previous = cs.selected_options if isinstance(cs.selected_options, str) else ""
-    cs.selected_options = "" if enabled else False
+    previous = cs.selected_options.single_choice()
+    cs.selected_options = OneOf() if enabled else Switch(False)
     if not enabled and previous:
         _clear_matches(schema, state, control_id, previous)
 
@@ -96,10 +95,10 @@ def choose_global_selector_option(
     cs = state.controls.get(control_id)
     if not cs:
         return
-    previous = cs.selected_options if isinstance(cs.selected_options, str) else ""
+    previous = cs.selected_options.single_choice()
     if previous and previous != option_id:
         _clear_matches(schema, state, control_id, previous)
-    cs.selected_options = option_id
+    cs.selected_options = OneOf(option_id)
     if option_id:
         _apply_matches(schema, state, control_id, option_id)
 
@@ -118,36 +117,40 @@ def _names(option_id: str, candidate: str) -> bool:
     return re.search(rf"(?<!\w){re.escape(option_id)}(?!\w)", candidate) is not None
 
 
-def _clear_matches(
-    schema: Schema, state: State, source_control_id: str, option_id: str
-) -> None:
-    """Release ``option_id`` from every control the selector could have set.
+def _every_other_control(
+    schema: Schema, state: State, source_control_id: str
+) -> Iterator[tuple[Control, ControlState]]:
+    """Every control the selector can reach, with the state that holds it.
 
-    Skips the control the choice came from and nothing else, which is what
-    :func:`_apply_matches` does and what the TypeScript this was ported from did
-    in both loops (``src/App.tsx:204`` and ``:226``, ``schemaCtrl.id ===
-    controlId``).  The port turned this one into a test on the *kind*, so a
-    second selector was written to like any other control and then never
-    released; with one selector in the schema the two guards pick the same
-    control and nothing showed.
-
-    Releases what :func:`_names` reaches: ``green`` and ``green tinted``, never
-    ``evergreen``.
+    Skips the control the choice came from and nothing else -- the same walk for
+    releasing and for applying, which is what the TypeScript this was ported
+    from did in both loops (``src/App.tsx:204`` and ``:226``, ``schemaCtrl.id
+    === controlId``). The port turned the releasing one into a test on the
+    *kind*, so a second selector was written to like any other control and then
+    never released; with one selector in the schema the two guards picked the
+    same control and nothing showed.
     """
     for section in schema.sections:
         for control in section.controls:
             if control.id == source_control_id:
                 continue
             cs = state.controls.get(control.id)
-            if not cs:
-                continue
-            if isinstance(cs.selected_options, str):
-                if _names(option_id, cs.selected_options):
-                    cs.selected_options = ""
-            elif isinstance(cs.selected_options, list):
-                filtered = [s for s in cs.selected_options if not _names(option_id, s)]
-                if len(filtered) != len(cs.selected_options):
-                    cs.selected_options = filtered
+            if cs:
+                yield control, cs
+
+
+def _clear_matches(
+    schema: Schema, state: State, source_control_id: str, option_id: str
+) -> None:
+    """Release ``option_id`` from every control the selector could have set.
+
+    Releases what :func:`_names` reaches: ``green`` and ``green tinted``, never
+    ``evergreen``.
+    """
+    for _control, cs in _every_other_control(schema, state, source_control_id):
+        cs.selected_options = cs.selected_options.without(
+            lambda candidate: _names(option_id, candidate)
+        )
 
 
 def _apply_matches(schema: Schema, state: State, source_control_id: str, option_id: str) -> None:
@@ -156,33 +159,9 @@ def _apply_matches(schema: Schema, state: State, source_control_id: str, option_
     Offers it by :func:`_names`; a control that holds one choice takes the
     exact id where it lists one, whatever is listed ahead of it.
     """
-    for section in schema.sections:
-        for control in section.controls:
-            if control.id == source_control_id:
-                continue
-            cs = state.controls.get(control.id)
-            if not cs:
-                continue
-            if isinstance(cs.selected_options, str):
-                match = next((o for o in control.options if o.id == option_id), None) or next(
-                    (o for o in control.options if _names(option_id, o.id)), None,
-                )
-                if match:
-                    cs.selected_options = match.id
-            elif isinstance(cs.selected_options, list):
-                matching = [o.id for o in control.options if _names(option_id, o.id)]
-                if matching:
-                    # `dict.fromkeys`, not `set`: the TypeScript merged these
-                    # with `Array.from(new Set([...]))` (`src/App.tsx:239`) and a
-                    # JS Set keeps insertion order, so the list was stable. A
-                    # Python set is hash-ordered, and string hashing is salted
-                    # per process -- the port made this list come out in a
-                    # different order run to run. Nothing reads it in order
-                    # today, because the renderer and the widget builder both
-                    # walk `control.options`, so it never showed in a prompt.
-                    cs.selected_options = list(
-                        dict.fromkeys([*cs.selected_options, *matching])
-                    )
+    for control, cs in _every_other_control(schema, state, source_control_id):
+        offered = [o.id for o in control.options if _names(option_id, o.id)]
+        cs.selected_options = cs.selected_options.with_reach_of(option_id, offered)
 
 
 def set_section_weight(state: State, section_id: str, weight: float) -> None:

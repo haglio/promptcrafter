@@ -23,9 +23,12 @@ from promptcrafter.types import (
     Control,
     ControlState,
     DisabledOrHiddenBy,
+    ManyOf,
+    OneOf,
     Option,
     Schema,
     Section,
+    Switch,
 )
 from tests.fixtures.test_schema import TEST_SCHEMA
 
@@ -90,7 +93,7 @@ class TestChoosingOneOfMany:
 
         choose_option(state, "alignment", "hero")
 
-        assert state.controls["alignment"].selected_options == "hero"
+        assert state.controls["alignment"].selected_options == OneOf("hero")
 
     def test_choosing_what_is_already_chosen_empties_the_control(self):
         state = a_state()
@@ -98,7 +101,7 @@ class TestChoosingOneOfMany:
 
         choose_option(state, "alignment", "hero")
 
-        assert state.controls["alignment"].selected_options == ""
+        assert state.controls["alignment"].selected_options == OneOf()
 
     def test_choosing_a_second_option_replaces_the_first(self):
         state = a_state()
@@ -106,7 +109,7 @@ class TestChoosingOneOfMany:
 
         choose_option(state, "alignment", "villain")
 
-        assert state.controls["alignment"].selected_options == "villain"
+        assert state.controls["alignment"].selected_options == OneOf("villain")
 
     def test_a_submenu_is_chosen_by_its_composite_key(self):
         """Submenu state is in the same dict, so it needs no rule of its own."""
@@ -133,7 +136,7 @@ class TestTickingSeveral:
 
         toggle_option(state, "appendages", "wings")
 
-        assert state.controls["appendages"].selected_options == ["wings"]
+        assert state.controls["appendages"].selected_options == ManyOf(("wings",))
 
     def test_an_option_inside_the_list_comes_out(self):
         state = a_state()
@@ -142,16 +145,17 @@ class TestTickingSeveral:
 
         toggle_option(state, "appendages", "wings")
 
-        assert state.controls["appendages"].selected_options == ["horns"]
+        assert state.controls["appendages"].selected_options == ManyOf(("horns",))
 
     def test_a_control_holding_one_selection_is_left_alone(self):
-        """A radio's state is a string, and this rule only edits lists."""
+        """A radio holds one choice, and this rule only edits the ones that
+        hold a list."""
         state = a_state()
         choose_option(state, "alignment", "hero")
 
         toggle_option(state, "alignment", "villain")
 
-        assert state.controls["alignment"].selected_options == "hero"
+        assert state.controls["alignment"].selected_options == OneOf("hero")
 
 
 class TestFlippingAToggle:
@@ -161,7 +165,7 @@ class TestFlippingAToggle:
         set_toggle_enabled(TEST_SCHEMA, state, "is portrait", True)
 
         assert state.controls["is portrait"].enabled is True
-        assert state.controls["is portrait"].selected_options is True
+        assert state.controls["is portrait"].selected_options == Switch(True)
 
     def test_turning_a_toggle_off_keeps_the_narrowed_selection(self):
         schema = copy.deepcopy(TEST_SCHEMA)
@@ -176,7 +180,7 @@ class TestFlippingAToggle:
         set_toggle_enabled(schema, state, "texture pack", False)
 
         assert state.controls["texture pack"].enabled is False
-        assert state.controls["texture pack"].selected_options == ["oak"]
+        assert state.controls["texture pack"].selected_options == ManyOf(("oak",))
 
     def test_a_state_key_the_schema_has_no_control_for_is_left_alone(self):
         """The guard that stops a stale key reaching the toggle rules.
@@ -186,23 +190,24 @@ class TestFlippingAToggle:
         control at all.
         """
         state = a_state()
-        state.controls["orphaned"] = ControlState(selected_options=False)
+        state.controls["orphaned"] = ControlState(selected_options=Switch(False))
 
         set_toggle_enabled(TEST_SCHEMA, state, "orphaned", True)
 
-        assert state.controls["orphaned"].selected_options is False
+        assert state.controls["orphaned"].selected_options == Switch(False)
         assert state.controls["orphaned"].enabled is None
 
 
 class TestTheGlobalSelector:
     def test_switching_it_on_leaves_it_with_nothing_chosen(self):
-        """Off is False and on-with-nothing-chosen is "" -- not the same value."""
+        """Off is a `Switch` and on-with-nothing-chosen is an empty `OneOf` --
+        two states, not one."""
         state = a_state()
-        assert state.controls["colorize"].selected_options is False
+        assert state.controls["colorize"].selected_options == Switch(False)
 
         set_global_selector_enabled(TEST_SCHEMA, state, "colorize", True)
 
-        assert state.controls["colorize"].selected_options == ""
+        assert state.controls["colorize"].selected_options == OneOf()
 
     def test_choosing_an_option_ticks_it_in_the_other_controls(self):
         state = a_state()
@@ -210,7 +215,7 @@ class TestTheGlobalSelector:
 
         choose_global_selector_option(TEST_SCHEMA, state, "colorize", "green")
 
-        assert state.controls["eye color"].selected_options == "green"
+        assert state.controls["eye color"].selected_options == OneOf("green")
 
     def test_choosing_reaches_options_that_contain_the_id_as_a_word(self):
         """`render style` offers `green tinted`, which has `green` in it as a
@@ -223,7 +228,7 @@ class TestTheGlobalSelector:
 
         choose_global_selector_option(TEST_SCHEMA, state, "colorize", "green")
 
-        assert "green tinted" in state.controls["render style"].selected_options
+        assert state.controls["render style"].selected_options.contains("green tinted")
 
     def test_choosing_does_not_reach_an_id_that_merely_contains_the_letters(self):
         """The match was a substring test, so `green` reached `evergreen`; and
@@ -235,8 +240,8 @@ class TestTheGlobalSelector:
 
         choose_global_selector_option(schema, state, "shade", "green")
 
-        assert state.controls["foliage"].selected_options == "green"
-        assert state.controls["mulch"].selected_options == ["green moss"]
+        assert state.controls["foliage"].selected_options == OneOf("green")
+        assert state.controls["mulch"].selected_options == ManyOf(("green moss",))
 
     def test_releasing_does_not_reach_an_id_that_merely_contains_the_letters(self):
         """The release side of the same rule (bug 58): what the selector never
@@ -244,14 +249,14 @@ class TestTheGlobalSelector:
         schema = _evergreen_schema()
         state = create_initial_state(schema)
         choose_option(state, "foliage", "evergreen")
-        state.controls["mulch"].selected_options = ["evergreen bark"]
+        state.controls["mulch"].selected_options = ManyOf(("evergreen bark",))
         set_global_selector_enabled(schema, state, "shade", True)
         choose_global_selector_option(schema, state, "shade", "green")
 
         set_global_selector_enabled(schema, state, "shade", False)
 
-        assert state.controls["foliage"].selected_options == ""
-        assert state.controls["mulch"].selected_options == ["evergreen bark"]
+        assert state.controls["foliage"].selected_options == OneOf()
+        assert state.controls["mulch"].selected_options == ManyOf(("evergreen bark",))
 
     def test_choosing_a_second_option_releases_the_first(self):
         state = a_state()
@@ -260,8 +265,8 @@ class TestTheGlobalSelector:
 
         choose_global_selector_option(TEST_SCHEMA, state, "colorize", "black")
 
-        assert state.controls["eye color"].selected_options == "black"
-        assert state.controls["render style"].selected_options == ["black and white"]
+        assert state.controls["eye color"].selected_options == OneOf("black")
+        assert state.controls["render style"].selected_options == ManyOf(("black and white",))
 
     def test_switching_it_off_releases_everything_it_had_set(self):
         state = a_state()
@@ -270,9 +275,9 @@ class TestTheGlobalSelector:
 
         set_global_selector_enabled(TEST_SCHEMA, state, "colorize", False)
 
-        assert state.controls["colorize"].selected_options is False
-        assert state.controls["eye color"].selected_options == ""
-        assert state.controls["render style"].selected_options == []
+        assert state.controls["colorize"].selected_options == Switch(False)
+        assert state.controls["eye color"].selected_options == OneOf()
+        assert state.controls["render style"].selected_options == ManyOf()
 
     def test_switching_it_off_before_anything_was_chosen_releases_nothing(self):
         state = a_state()
@@ -281,7 +286,7 @@ class TestTheGlobalSelector:
 
         set_global_selector_enabled(TEST_SCHEMA, state, "colorize", False)
 
-        assert state.controls["eye color"].selected_options == "green"
+        assert state.controls["eye color"].selected_options == OneOf("green")
 
     def test_the_selector_holds_the_option_it_was_given(self):
         state = a_state()
@@ -289,7 +294,7 @@ class TestTheGlobalSelector:
 
         choose_global_selector_option(TEST_SCHEMA, state, "colorize", "green")
 
-        assert state.controls["colorize"].selected_options == "green"
+        assert state.controls["colorize"].selected_options == OneOf("green")
 
     def test_releasing_also_reaches_ids_that_contain_the_choice_as_a_word(self):
         """The release side of the word match.
@@ -301,11 +306,11 @@ class TestTheGlobalSelector:
         state = create_initial_state(schema)
         set_global_selector_enabled(schema, state, "tint", True)
         choose_global_selector_option(schema, state, "tint", "amber")
-        assert state.controls["hue"].selected_options == "amber glazed"
+        assert state.controls["hue"].selected_options == OneOf("amber glazed")
 
         set_global_selector_enabled(schema, state, "tint", False)
 
-        assert state.controls["hue"].selected_options == ""
+        assert state.controls["hue"].selected_options == OneOf()
 
     def test_choosing_reaches_a_hidden_opposite_control(self):
         schema = _opposite_schema()
@@ -314,7 +319,7 @@ class TestTheGlobalSelector:
 
         choose_global_selector_option(schema, state, "shade", "frost")
 
-        assert state.controls["chill"].selected_options == ["frost"]
+        assert state.controls["chill"].selected_options == ManyOf(("frost",))
 
     def test_switching_it_off_releases_a_hidden_opposite_control(self):
         schema = _opposite_schema()
@@ -324,7 +329,7 @@ class TestTheGlobalSelector:
 
         set_global_selector_enabled(schema, state, "shade", False)
 
-        assert state.controls["chill"].selected_options == []
+        assert state.controls["chill"].selected_options == ManyOf()
 
     def test_a_second_selector_is_released_like_any_other_control(self):
         """Both loops skip the control the choice came from, and only that one.
@@ -343,12 +348,12 @@ class TestTheGlobalSelector:
         set_global_selector_enabled(schema, state, "mood", True)
 
         choose_global_selector_option(schema, state, "tint", "amber")
-        assert state.controls["mood"].selected_options == "amber"
+        assert state.controls["mood"].selected_options == OneOf("amber")
 
         set_global_selector_enabled(schema, state, "tint", False)
 
-        assert state.controls["mood"].selected_options == ""
-        assert state.controls["hue"].selected_options == ""
+        assert state.controls["mood"].selected_options == OneOf()
+        assert state.controls["hue"].selected_options == OneOf()
 
 
 class TestWeights:
@@ -434,4 +439,4 @@ class TestTheSelectorsMergeIsStable:
 
         choose_global_selector_option(schema, state, "tint", "amber")
 
-        assert state.controls["wash"].selected_options == ["slate washed", "amber glazed"]
+        assert state.controls["wash"].selected_options == ManyOf(("slate washed", "amber glazed"))

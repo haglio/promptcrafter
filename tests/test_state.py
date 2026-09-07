@@ -1,7 +1,16 @@
 import pytest
 
 from promptcrafter.state import create_initial_state, submenu_state_key
-from promptcrafter.types import Control, ControlState, Option, Schema, Section, Submenu
+from promptcrafter.types import (
+    Control,
+    ControlState,
+    ManyOf,
+    OneOf,
+    Option,
+    Schema,
+    Section,
+    Submenu,
+)
 
 
 def _build_toggle(**overrides):
@@ -29,7 +38,7 @@ class TestCreateInitialState:
         ]))
 
         assert state.controls["texture pack"] == ControlState(
-            selected_options=["oak"],
+            selected_options=ManyOf(("oak",)),
             enabled=False,
             weight=1,
         )
@@ -47,7 +56,7 @@ def _submenu_of_kind(kind):
 
 
 class TestSubmenuStateShape:
-    """Which submenus start with a string and which with a list.
+    """Which submenus start holding one choice and which start holding a list.
 
     The question is asked with the *open* rival -- does the kind begin with
     `or` -- and not with a closed `{"or-adv", "or-adj"}` set. The two agree on
@@ -57,19 +66,19 @@ class TestSubmenuStateShape:
     """
 
     @pytest.mark.parametrize("kind", ["or-adv", "or-adj"])
-    def test_a_single_select_submenu_starts_with_a_string(self, kind):
+    def test_a_single_select_submenu_starts_holding_one_choice(self, kind):
         state = create_initial_state(_submenu_of_kind(kind))
 
-        assert state.controls[submenu_state_key("bough", "knot")].selected_options == ""
+        assert state.controls[submenu_state_key("bough", "knot")].selected_options == OneOf()
 
     @pytest.mark.parametrize("kind", ["and-adv", "and-adj"])
     def test_a_multi_select_submenu_starts_with_a_list(self, kind):
         state = create_initial_state(_submenu_of_kind(kind))
 
-        assert state.controls[submenu_state_key("bough", "knot")].selected_options == []
+        assert state.controls[submenu_state_key("bough", "knot")].selected_options == ManyOf()
 
     @pytest.mark.parametrize("kind", ["or", "or-prefix", "or-suffix"])
-    def test_any_or_prefixed_kind_starts_with_a_string(self, kind):
+    def test_any_or_prefixed_kind_starts_holding_one_choice(self, kind):
         """Kinds outside the declared four, which nothing stops a schema using.
 
         `SubmenuKind` is a `Literal` erased at runtime, `Submenu` has no
@@ -79,4 +88,4 @@ class TestSubmenuStateShape:
         """
         state = create_initial_state(_submenu_of_kind(kind))
 
-        assert state.controls[submenu_state_key("bough", "knot")].selected_options == ""
+        assert state.controls[submenu_state_key("bough", "knot")].selected_options == OneOf()
