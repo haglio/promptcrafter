@@ -404,6 +404,15 @@ class TestDisablingAndHiding:
         modes = find_section(app, "modes")
         assert find_label_widget(modes, "portrait pose") is not None
 
+    def test_revealed_bys_keyed_by_an_option_rather_than_a_control(self, qtbot, app):
+        modes = find_section(app, "modes")
+        assert find_label_widget(modes, "heat haze") is None
+
+        find_radio(app, "hot").click()
+
+        modes = find_section(app, "modes")
+        assert find_label_widget(modes, "heat haze") is not None
+
     def test_revealed_bys_at_option_level(self, qtbot, app):
         modes = find_section(app, "modes")
         assert query_radio(modes, "close crop") is None
