@@ -4,8 +4,8 @@ Why an app names its processes, and why its own is the one it can only name for
 the run after, is :mod:`app_support.process_identity`'s to say.  What is left
 here is what only this repo can be wrong about: that the app makes the copy its
 shortcut starts it through, run against a throwaway venv rather than read off the
-entry point.  The shortcut's side -- that the ``.ps1`` points at that copy -- is
-``test_launcher_contract``'s.
+entry point.  The shortcut's side -- that it points at that copy -- is
+``test_shortcut``'s.
 """
 from __future__ import annotations
 

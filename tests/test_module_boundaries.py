@@ -36,12 +36,13 @@ LAYERS = {
     "state": 2,        # builds the state dict from a schema
     "runtime": 2,      # renders a prompt from schema plus state
     "transitions": 3,  # what a click does to the state
+    "shortcut": 2,     # writes the shortcut to pin
     "app": 4,          # widgets and wiring
     "__main__": 5,
     "__init__": 0,
 }
 
-# Every intra-package edge that exists. 30 of them.
+# Every intra-package edge that exists. 33 of them.
 EDGES = {
     ("__main__", "app"), ("__main__", "paths"), ("__main__", "process_name"),
     ("__main__", "schema_overlay"), ("__main__", "win32"),
@@ -52,6 +53,7 @@ EDGES = {
     ("runtime", "kinds"), ("runtime", "toggle_state"), ("runtime", "types"),
     ("schema", "types"),
     ("schema_overlay", "paths"), ("schema_overlay", "schema"), ("schema_overlay", "types"),
+    ("shortcut", "paths"), ("shortcut", "process_name"), ("shortcut", "win32"),
     ("state", "kinds"), ("state", "toggle_state"), ("state", "types"),
     ("toggle_state", "types"),
     ("transitions", "runtime"), ("transitions", "toggle_state"), ("transitions", "types"),

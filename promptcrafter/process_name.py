@@ -8,11 +8,9 @@ then the task list is the only way back and cannot say which row is safe to end.
 
 This process cannot be named on the way in: writing the copy takes the very
 interpreter being named.  So each run makes it for the run after, and
-``Update-PromptCrafterShortcut.ps1`` points the shortcut at it once it exists.
+``python -m promptcrafter.shortcut`` points the shortcut at it.
 """
 from __future__ import annotations
-
-import sys
 
 from promptcrafter.paths import icon_path
 
@@ -32,12 +30,3 @@ def name_this_process() -> None:
     launch late, and why it can never cost the launch, is
     :meth:`ProcessNamer.name_this_process`'s to say."""
     namer().name_this_process(ROLE)
-
-
-def named_exe_name() -> str:
-    """The file name the shortcut script looks for."""
-    return namer().exe_name("pythonw.exe", ROLE)
-
-
-if __name__ == "__main__":  # `python -m promptcrafter.process_name` prints it for the shortcut script
-    sys.stdout.write(named_exe_name())

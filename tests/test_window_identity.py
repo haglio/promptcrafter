@@ -20,7 +20,7 @@ import unittest
 from pathlib import Path
 
 from promptcrafter.paths import icon_path, project_root
-from promptcrafter.win32 import APP_USER_MODEL_ID, set_app_user_model_id
+from promptcrafter.win32 import set_app_user_model_id
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ENTRY_POINT = ast.parse((REPO_ROOT / "promptcrafter" / "__main__.py").read_text(encoding="utf-8"))
@@ -53,10 +53,6 @@ class IconTests(unittest.TestCase):
 
 
 class TaskbarIdentityTests(unittest.TestCase):
-    def test_the_id_matches_the_one_the_shortcut_stamps(self):
-        script = (REPO_ROOT / "scripts" / "Update-PromptCrafterShortcut.ps1").read_text(encoding="utf-8")
-        self.assertIn(f"$AppUserModelId = '{APP_USER_MODEL_ID}'", script)
-
     def test_the_entry_point_claims_it_before_opening_a_window(self):
         self.assertIn("set_app_user_model_id", _calls())
         self.assertLess(

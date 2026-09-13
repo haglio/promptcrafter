@@ -36,7 +36,6 @@ from app_support.launch_smoke import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = "promptcrafter"
-SHORTCUT_SCRIPT = REPO_ROOT / "scripts" / "Update-PromptCrafterShortcut.ps1"
 
 # ``pythonw -m promptcrafter`` runs exactly this file, and it holds the whole
 # launch: no main(), just the QApplication and the window at module level.
@@ -51,8 +50,8 @@ _THE_LAUNCH_MUST_REACH = ("promptcrafter.app", "promptcrafter.schema", "PyQt6.Qt
 def _the_launchs_interpreter(repo_root: Path = REPO_ROOT) -> Path:
     """The interpreter to replay the launch under.
 
-    The shortcut's own, where this checkout has one: the ``.ps1`` targets
-    ``.venv\\Scripts\\pythonw.exe`` beside the repo, this project's interpreter
+    The shortcut's own, where this checkout has one: ``promptcrafter.shortcut``
+    targets ``.venv\\Scripts\\pythonw.exe`` beside the repo, this project's interpreter
     and never PATH's, and the named copy it prefers is a copy of that same file
     in that same directory -- so either way the site-packages are this venv's.
     ``pythonw`` has no stdout or stderr to capture, so its console twin next to
@@ -88,7 +87,7 @@ def _run_the_launchs_way(statements: list[str]) -> subprocess.CompletedProcess:
 def test_the_replay_takes_the_venv_the_shortcut_starts(tmp_path):
     """Which interpreter the replay picks is the whole premise of this file, so
     it is pinned here rather than left for a reader to work out -- nothing else
-    goes red when the helper and the shortcut script drift apart."""
+    goes red when the helper and the shortcut drift apart."""
     scripts = tmp_path / ".venv" / "Scripts"
     scripts.mkdir(parents=True)
     (scripts / "python.exe").touch()
@@ -130,13 +129,22 @@ def test_a_launch_import_that_cannot_resolve_fails_here():
         "promptcrafter.app")
 
 
-def test_the_shortcut_runs_the_package_from_the_repo_root():
+def test_the_shortcut_runs_the_package_from_the_repo_root(tmp_path, monkeypatch):
     """The working directory is what makes the repo's own ``promptcrafter``
     package resolve rather than an installed or sibling one, and it is what this
     test's ``cwd`` mirrors -- a shortcut that stopped setting it would leave
     this checking a fiction."""
-    text = SHORTCUT_SCRIPT.read_text(encoding="utf-8")
+    from types import SimpleNamespace
 
-    assert "$LauncherArgs = '-m promptcrafter'" in text
-    assert "SetWorkingDirectory" in text
-    assert "$LauncherRoot" in text
+    from promptcrafter import shortcut
+
+    (tmp_path / ".venv" / "Scripts").mkdir(parents=True)
+    (tmp_path / ".venv" / "Scripts" / "pythonw.exe").write_bytes(b"")
+    monkeypatch.setattr(shortcut, "namer",
+                        lambda: SimpleNamespace(named_exe=lambda source, role: str(source)))
+    written: dict = {}
+
+    shortcut.write(tmp_path, writer=lambda lnk, **fields: written.update(fields))
+
+    assert written["arguments"] == f"-m {PACKAGE}"
+    assert written["working_directory"] == str(tmp_path)
