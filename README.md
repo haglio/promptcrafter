@@ -20,7 +20,7 @@ python -m promptcrafter
 PromptCrafter launches from a Windows Taskbar shortcut:
 
 - `PromptCrafter.lnk` - shortcut to pin to Taskbar
-- `scripts/Update-PromptCrafterShortcut.ps1` - creates/updates the shortcut
+- `python -m promptcrafter.shortcut` - creates/updates the shortcut
 
 The shortcut runs `pythonw.exe -m promptcrafter` so no console window appears.
 
@@ -32,8 +32,8 @@ generator here (the one that was here drew a different icon and needed PySide6).
 
 ## Rebuild The Shortcut
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Update-PromptCrafterShortcut.ps1"
+```bash
+.venv/Scripts/python.exe -m promptcrafter.shortcut
 ```
 
 ## Test
