@@ -1,68 +1,116 @@
-' Launch THIS WORKTREE's PromptCrafter, for judging a branch before it lands.
-' Same shape as the pinned shortcut, with the three things a worktree needs
-' done differently:
-'   - it borrows the primary checkout's .venv (a worktree has none of its own;
-'     the primary is three levels up: <primary>\.claude\worktrees\<name>),
-'     falling back to python on PATH exactly as the shortcut does -- a preview
-'     that refuses to start where the live app starts fine is a review cycle
-'     lost to the launcher,
-'   - it runs with THIS worktree as the working directory, so `-m promptcrafter`
-'     resolves to the branch's code rather than the editable install that points
-'     at the primary. That trap is documented in CLAUDE.md and it fails silently:
-'     the app comes up, on main, looking like the branch works,
-'   - it reads THIS worktree's schema.local.json, so the branch is judged on the
-'     real schema. Copy the primary's in before handing the preview over; without
-'     one the session falls back to the fabricated demo and shows three sections
-'     of heroes and pigeons, which is not the thing under review.
-' Named distinctly from the live app's shortcut on purpose: an identically named
-' launcher once sent a whole review cycle against the old app while the fix sat
-' unlaunched.
+' Rendered from [tool.haglio.launchers."launch_preview_branch.vbs"] in pyproject.toml.
+' Change the spec, then run  python -m app_support.launcher --write  in this
+' folder: the suite fails on a launcher that differs from its spec.
+
+Option Explicit
+
+Dim fso, shell, root, app, interpreter, directory, arguments, primary, logPath
 
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set shell = CreateObject("WScript.Shell")
+root = fso.GetParentFolderName(WScript.ScriptFullName)
+Decide
+If shell.Environment("Process").Item("HAGLIO_LAUNCHER_DRY_RUN") = "1" Then
+  Report
+Else
+  Launch
+End If
 
-projectRoot = fso.GetParentFolderName(WScript.ScriptFullName)
-launcherLog = projectRoot & "\promptcrafter-preview-launcher.log"
+Sub Decide()
+  app = "PromptCrafter (branch preview)"
+  primary = fso.GetParentFolderName(fso.GetParentFolderName(fso.GetParentFolderName(root)))
+  logPath = fso.BuildPath(root, "promptcrafter-preview-launcher.log")
+  arguments = "-m promptcrafter"
+  interpreter = fso.BuildPath(primary, ".venv\Scripts\pythonw.exe")
+  directory = root
+End Sub
 
-Function Quote(s)
-  Quote = Chr(34) & s & Chr(34)
+Sub Report()
+  WScript.Echo "app: " & app
+  WScript.Echo "primary: " & primary
+  WScript.Echo "interpreter: " & interpreter
+  WScript.Echo "directory: " & directory
+  WScript.Echo "arguments: " & arguments
+  WScript.Echo "log: " & logPath
+  WScript.Echo "command: " & Command()
+End Sub
+
+Sub Launch()
+  If Not fso.FileExists(interpreter) Then
+    Refuse "The primary checkout's virtual environment is missing:" & vbCrLf & interpreter, vbCritical
+  End If
+  logPath = FreeLog(logPath)
+  Note logPath, "===== " & Now & " launch: " & Command()
+  shell.Run Command(), 0, False
+End Sub
+
+Function Command()
+  Command = "cmd /c cd /d " & Quote(directory) & " && " & Quote(interpreter) & " " & arguments & " >> " & Quote(logPath) & " 2>&1"
 End Function
 
-' <primary>\.claude\worktrees\<this worktree> -> up three levels to the primary.
-primaryRoot = fso.GetParentFolderName(fso.GetParentFolderName(fso.GetParentFolderName(projectRoot)))
+Function Quote(text)
+  Quote = Chr(34) & text & Chr(34)
+End Function
 
-' The primary's venv when it has one, else whatever python the shortcut would
-' have found. An empty or absent .venv is a normal state of the primary, so
-' refusing to launch there would strand every preview at a dialog for an
-' interpreter the app never needed.
-Function FindPythonCommand()
-  Dim venvPython, candidates, i
-
-  venvPython = primaryRoot & "\.venv\Scripts\pythonw.exe"
-  If fso.FileExists(venvPython) Then
-    FindPythonCommand = Quote(venvPython)
-    Exit Function
+Sub Tell(message, icon)
+  If LCase(fso.GetFileName(WScript.FullName)) = "cscript.exe" Then
+    WScript.Echo "dialog: " & message
+  Else
+    MsgBox message, icon, app
   End If
+End Sub
 
-  candidates = Array( _
-    "pythonw", _
-    "python", _
-    "py -3" _
-  )
-  For i = 0 To UBound(candidates)
-    If shell.Run("cmd /c where " & Split(candidates(i), " ")(0) & " >nul 2>nul", 0, True) = 0 Then
-      FindPythonCommand = candidates(i)
+Sub Refuse(message, icon)
+  Tell message, icon
+  WScript.Quit 1
+End Sub
+
+Function FreeLog(preferred)
+  Dim folder, candidate, index
+  folder = fso.GetParentFolderName(preferred)
+  If Not fso.FolderExists(folder) Then fso.CreateFolder folder
+  For index = 1 To 9
+    candidate = preferred
+    If index > 1 Then
+      candidate = fso.BuildPath(folder, fso.GetBaseName(preferred) & "-" & index & "." & fso.GetExtensionName(preferred))
+    End If
+    RollIfOversize candidate
+    If CanAppend(candidate) Then
+      FreeLog = candidate
       Exit Function
     End If
   Next
-  FindPythonCommand = ""
+  FreeLog = preferred
 End Function
 
-pythonCmd = FindPythonCommand()
-If pythonCmd = "" Then
-  MsgBox "Could not find python or py launcher.", vbCritical, "PromptCrafter (branch preview)"
-  WScript.Quit 1
-End If
+Function CanAppend(path)
+  Dim stream
+  On Error Resume Next
+  Set stream = fso.OpenTextFile(path, 8, True)
+  CanAppend = (Err.Number = 0)
+  If CanAppend Then stream.Close
+  Err.Clear
+  On Error GoTo 0
+End Function
 
-cmd = "cmd /c cd /d " & Quote(projectRoot) & " && " & pythonCmd & " -m promptcrafter 1>>" & Quote(launcherLog) & " 2>&1"
-shell.Run cmd, 0, False
+Sub RollIfOversize(path)
+  On Error Resume Next
+  If fso.FileExists(path) Then
+    If fso.GetFile(path).Size > 1000000 Then
+      If fso.FileExists(path & ".1") Then fso.DeleteFile path & ".1"
+      fso.MoveFile path, path & ".1"
+    End If
+  End If
+  Err.Clear
+  On Error GoTo 0
+End Sub
+
+Sub Note(path, line)
+  Dim stream
+  On Error Resume Next
+  Set stream = fso.OpenTextFile(path, 8, True)
+  stream.WriteLine line
+  stream.Close
+  Err.Clear
+  On Error GoTo 0
+End Sub

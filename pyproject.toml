@@ -56,6 +56,16 @@ qt_api = "pyqt6"
 [tool.haglio]
 siblings = ["app_support", "shared_ui"]
 
+# What launch_preview_branch.vbs starts: a worktree's PromptCrafter on the primary
+# checkout's venv, for judging a branch. Rendered from this by
+# `python -m app_support.launcher --write`.
+[tool.haglio.launchers."launch_preview_branch.vbs"]
+app = "PromptCrafter (branch preview)"
+interpreter = "pythonw.exe"
+venv = "primary"
+run = "-m promptcrafter"
+log = "promptcrafter-preview-launcher.log"
+
 [tool.setuptools.packages.find]
 include = ["promptcrafter*"]
 namespaces = false
