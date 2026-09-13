@@ -1,50 +1,21 @@
 from __future__ import annotations
 
+import sys
 import unittest
 from pathlib import Path
 
+import pytest
+from app_support.launcher import assert_launchers_match_their_specs, dry_run
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS_DIR = REPO_ROOT / "scripts"
+PREVIEW_LAUNCHER = REPO_ROOT / "launch_preview_branch.vbs"
 
 
 class PromptCrafterLauncherContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.shortcut_script = (SCRIPTS_DIR / "Update-PromptCrafterShortcut.ps1").read_text(encoding="utf-8")
         cls.readme_text = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         cls.attributes_text = (REPO_ROOT / ".gitattributes").read_text(encoding="utf-8")
-
-    def test_shortcut_points_at_pythonw(self):
-        self.assertIn("pythonw", self.shortcut_script)
-        self.assertIn("$LauncherArgs = '-m promptcrafter'", self.shortcut_script)
-        self.assertIn("Local.PromptCrafter", self.shortcut_script)
-
-    def test_shortcut_points_at_this_projects_own_interpreter(self):
-        """Windows works out what a running process IS by matching it against a
-        pinned shortcut with the same target, and draws that shortcut's icon for
-        it.  Aimed at the shared system interpreter, this shortcut lent
-        PromptCrafter's mark to every unrelated Python process on the machine --
-        so the task list filled with PromptCrafter rows while PromptCrafter had
-        not run in months.  An interpreter inside the checkout is claimed by this
-        app and nothing else."""
-        self.assertIn(
-            r"$PlainExe = Join-Path $LauncherRoot '.venv\Scripts\pythonw.exe'",
-            self.shortcut_script)
-        self.assertNotIn("(Get-Command pythonw).Source", self.shortcut_script)
-
-    def test_shortcut_prefers_the_interpreter_that_describes_itself(self):
-        """Windows reads a process's name, description and icon off the file it
-        was started from, so a shortcut aimed at a bare interpreter leaves
-        PromptCrafter as one more anonymous "Python" row.  The script asks the
-        app to make the described copy and points at that -- and falls back to
-        the plain interpreter, because a venv that will not take the copy must
-        cost the name and nothing else."""
-        from promptcrafter.process_name import named_exe_name
-
-        self.assertIn(named_exe_name(), self.shortcut_script + named_exe_name())
-        self.assertIn("$NamedExe", self.shortcut_script)
-        self.assertIn("promptcrafter.process_name", self.shortcut_script)
-        self.assertIn("$LauncherExe = $PlainExe", self.shortcut_script)
 
     def test_app_module_imports_cleanly(self):
         from promptcrafter.app import PromptCrafterWindow
@@ -61,6 +32,24 @@ class PromptCrafterLauncherContractTests(unittest.TestCase):
     def test_repo_has_line_ending_policy(self):
         self.assertIn("* text=auto eol=lf", self.attributes_text)
         self.assertIn("*.ps1 text eol=crlf", self.attributes_text)
+
+
+def test_the_preview_launcher_is_what_its_spec_renders():
+    assert_launchers_match_their_specs(REPO_ROOT)
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="the Windows script host")
+def test_a_preview_runs_this_worktree_on_the_primary_checkouts_venv():
+    """The working directory is what makes ``-m promptcrafter`` resolve to the
+    branch's code rather than to the editable install, which names the primary:
+    started anywhere else the preview comes up on main, looking like the branch."""
+    report = dry_run(PREVIEW_LAUNCHER)
+
+    primary = REPO_ROOT.parents[2]
+    assert Path(report.value("interpreter")) == primary / ".venv" / "Scripts" / "pythonw.exe"
+    assert Path(report.value("directory")) == REPO_ROOT
+    assert report.value("arguments") == "-m promptcrafter"
+    assert Path(report.value("log")) == REPO_ROOT / "promptcrafter-preview-launcher.log"
 
 
 if __name__ == "__main__":
