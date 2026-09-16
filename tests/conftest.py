@@ -10,8 +10,6 @@ import os
 # test on a real display.
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from promptcrafter.paths import ensure_shared_ui_on_path
 
 # Make shared_ui importable for tests regardless of checkout depth, before any
 # test module (some import shared_ui directly) is collected.
-ensure_shared_ui_on_path()

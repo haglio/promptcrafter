@@ -4,15 +4,13 @@ import sys
 
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication
+from shared_ui.chrome import family_stylesheet
 
 from promptcrafter.app import PromptCrafterWindow
-from promptcrafter.paths import ensure_shared_ui_on_path, icon_path
+from promptcrafter.paths import icon_path
 from promptcrafter.process_name import name_this_process
 from promptcrafter.schema_overlay import load_schema
 from promptcrafter.win32 import set_app_user_model_id
-
-ensure_shared_ui_on_path()
-from shared_ui.chrome import family_stylesheet  # noqa: E402
 
 # Both before the first window exists: the id decides which taskbar button the
 # window joins, and Qt hands every later window the application icon set here.

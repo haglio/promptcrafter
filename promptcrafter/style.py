@@ -12,13 +12,9 @@ from PyQt6.QtCore import QSize
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QPushButton
 
-from promptcrafter.paths import ensure_shared_ui_on_path
-
 # shared_ui is imported via sys.path rather than installed; make it importable
 # regardless of checkout depth (normal clone vs .claude/worktrees/<name>).
-ensure_shared_ui_on_path()
-
-from shared_ui.colors import (  # noqa: E402
+from shared_ui.colors import (
     BG_BUTTON,
     BG_KEYCAP,
     BG_PRIMARY,
@@ -32,8 +28,8 @@ from shared_ui.colors import (  # noqa: E402
     TOGGLE_OFF,
     TOGGLE_ON,
 )
-from shared_ui.fonts import FONT_UI, SIZE_BODY, SIZE_HEADING  # noqa: E402
-from shared_ui.icons import glyph_pixmap  # noqa: E402
+from shared_ui.fonts import FONT_UI, SIZE_BODY, SIZE_HEADING
+from shared_ui.icons import glyph_pixmap
 
 # The copy button's mark, at the size its 22px square leaves room for.
 _COPY_ICON = 14

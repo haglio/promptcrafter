@@ -18,18 +18,14 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from promptcrafter.paths import ensure_shared_ui_on_path
-
 # shared_ui is imported via sys.path rather than installed; make it importable
 # regardless of checkout depth (normal clone vs .claude/worktrees/<name>).
-ensure_shared_ui_on_path()
+from shared_ui.fonts import FONT_UI, SIZE_HEADING
+from shared_ui.spacing import GAP_MEDIUM, GAP_SMALL
+from shared_ui.tick_control import TickControl
 
-from shared_ui.fonts import FONT_UI, SIZE_HEADING  # noqa: E402
-from shared_ui.spacing import GAP_MEDIUM, GAP_SMALL  # noqa: E402
-from shared_ui.tick_control import TickControl  # noqa: E402
-
-from promptcrafter.kinds import is_or_prefixed_kind  # noqa: E402
-from promptcrafter.runtime import (  # noqa: E402
+from promptcrafter.kinds import is_or_prefixed_kind
+from promptcrafter.runtime import (
     apply_substitutions,
     build_prompt,
     build_section_prompt,
@@ -40,13 +36,13 @@ from promptcrafter.runtime import (  # noqa: E402
     is_hidden,
     is_subject_plural,
 )
-from promptcrafter.state import create_initial_state  # noqa: E402
-from promptcrafter.style import build_stylesheet, copy_button  # noqa: E402
-from promptcrafter.toggle_state import (  # noqa: E402
+from promptcrafter.state import create_initial_state
+from promptcrafter.style import build_stylesheet, copy_button
+from promptcrafter.toggle_state import (
     is_toggle_enabled,
     toggle_holds_an_option_list,
 )
-from promptcrafter.transitions import (  # noqa: E402
+from promptcrafter.transitions import (
     choose_global_selector_option,
     choose_option,
     set_control_weight,
@@ -55,7 +51,7 @@ from promptcrafter.transitions import (  # noqa: E402
     set_toggle_enabled,
     toggle_option,
 )
-from promptcrafter.types import (  # noqa: E402
+from promptcrafter.types import (
     Control,
     ControlState,
     Option,
