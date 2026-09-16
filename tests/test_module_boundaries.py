@@ -45,7 +45,7 @@ LAYERS = {
 EDGES = {
     ("__main__", "app"), ("__main__", "paths"), ("__main__", "process_name"),
     ("__main__", "schema_overlay"), ("__main__", "win32"),
-    ("app", "kinds"), ("app", "paths"), ("app", "runtime"), ("app", "state"),
+    ("app", "kinds"), ("app", "runtime"), ("app", "state"),
     ("app", "style"), ("app", "toggle_state"), ("app", "transitions"), ("app", "types"),
     ("kinds", "types"),
     ("process_name", "paths"),
@@ -53,7 +53,6 @@ EDGES = {
     ("schema", "types"),
     ("schema_overlay", "paths"), ("schema_overlay", "schema"), ("schema_overlay", "types"),
     ("state", "kinds"), ("state", "toggle_state"), ("state", "types"),
-    ("style", "paths"),
     ("toggle_state", "types"),
     ("transitions", "runtime"), ("transitions", "toggle_state"), ("transitions", "types"),
 }
