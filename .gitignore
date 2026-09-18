@@ -30,3 +30,4 @@ output/*.json
 
 # Written by every editable install into the project root; not source.
 *.egg-info/
+.coverage
