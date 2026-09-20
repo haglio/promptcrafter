@@ -16,12 +16,12 @@ from shared_ui.tick_control import TickControl
 
 from promptcrafter.app import PromptCrafterWindow
 from promptcrafter.types import Control, Option, Schema, Section, Submenu
-from tests.fixtures.test_schema import TEST_SCHEMA
+from tests.fixtures.sample_schema import SAMPLE_SCHEMA
 
 
 @pytest.fixture
 def app(qtbot):
-    window = PromptCrafterWindow(TEST_SCHEMA)
+    window = PromptCrafterWindow(SAMPLE_SCHEMA)
     qtbot.addWidget(window)
     window.show()
     return window
@@ -35,7 +35,7 @@ def window_with_a_toggle(qtbot):
     which was being spelled out in full four times.
     """
     def build(initially_selected_options=None):
-        schema = copy.deepcopy(TEST_SCHEMA)
+        schema = copy.deepcopy(SAMPLE_SCHEMA)
         schema.sections[1].controls.insert(0, Control(
             id="texture pack", text="texture pack", kind="toggle",
             initially_selected_options=initially_selected_options,
