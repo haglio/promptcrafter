@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
     QGroupBox,
+    QLabel,
     QPushButton,
     QRadioButton,
     QSlider,
@@ -142,7 +143,6 @@ def find_copy_button(container):
 
 
 def find_label_widget(container, label_text):
-    from PyQt6.QtWidgets import QLabel
     for lbl in container.findChildren(QLabel):
         if label_text in lbl.text():
             return lbl

@@ -18,11 +18,14 @@ class PromptCrafterLauncherContractTests(unittest.TestCase):
         cls.attributes_text = (REPO_ROOT / ".gitattributes").read_text(encoding="utf-8")
 
     def test_app_module_imports_cleanly(self):
-        from promptcrafter.app import PromptCrafterWindow
+        # Local: importing it here is the whole test, so a module that stops
+        # importing fails this rather than the collection of every test.
+        from promptcrafter.app import PromptCrafterWindow  # noqa: PLC0415
         self.assertTrue(callable(PromptCrafterWindow))
 
     def test_schema_module_loads(self):
-        from promptcrafter.schema import schema
+        # Local, for the same reason as above: the import is the test.
+        from promptcrafter.schema import schema  # noqa: PLC0415
         self.assertGreater(len(schema.sections), 0)
 
     def test_docs_cover_pyqt6_desktop(self):
