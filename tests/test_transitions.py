@@ -31,11 +31,11 @@ from promptcrafter.types import (
     Section,
     Switch,
 )
-from tests.fixtures.test_schema import TEST_SCHEMA
+from tests.fixtures.sample_schema import SAMPLE_SCHEMA
 
 
 def a_state():
-    return create_initial_state(TEST_SCHEMA)
+    return create_initial_state(SAMPLE_SCHEMA)
 
 
 def _evergreen_schema():
@@ -119,7 +119,7 @@ class TestChoosingOneOfMany:
 
         choose_option(state, "appendages__wings__submenu", "feathered")
 
-        assert build_prompt(TEST_SCHEMA, state, "positive") == (
+        assert build_prompt(SAMPLE_SCHEMA, state, "positive") == (
             "space robo dino demon monster, feathered wings"
         )
 
@@ -163,13 +163,13 @@ class TestFlippingAToggle:
     def test_turning_a_toggle_on_selects_its_defaults(self):
         state = a_state()
 
-        set_toggle_enabled(TEST_SCHEMA, state, "is portrait", True)
+        set_toggle_enabled(SAMPLE_SCHEMA, state, "is portrait", True)
 
         assert state.controls["is portrait"].enabled is True
         assert state.controls["is portrait"].selected_options == Switch(True)
 
     def test_turning_a_toggle_off_keeps_the_narrowed_selection(self):
-        schema = copy.deepcopy(TEST_SCHEMA)
+        schema = copy.deepcopy(SAMPLE_SCHEMA)
         schema.sections[1].controls.insert(0, Control(
             id="texture pack", text="texture pack", kind="toggle",
             options=[Option(id="oak", text="oak"), Option(id="pine", text="pine")],
@@ -193,7 +193,7 @@ class TestFlippingAToggle:
         state = a_state()
         state.controls["orphaned"] = ControlState(selected_options=Switch(False))
 
-        set_toggle_enabled(TEST_SCHEMA, state, "orphaned", True)
+        set_toggle_enabled(SAMPLE_SCHEMA, state, "orphaned", True)
 
         assert state.controls["orphaned"].selected_options == Switch(False)
         assert state.controls["orphaned"].enabled is None
@@ -206,15 +206,15 @@ class TestTheGlobalSelector:
         state = a_state()
         assert state.controls["colorize"].selected_options == Switch(False)
 
-        set_global_selector_enabled(TEST_SCHEMA, state, "colorize", True)
+        set_global_selector_enabled(SAMPLE_SCHEMA, state, "colorize", True)
 
         assert state.controls["colorize"].selected_options == OneOf()
 
     def test_choosing_an_option_ticks_it_in_the_other_controls(self):
         state = a_state()
-        set_global_selector_enabled(TEST_SCHEMA, state, "colorize", True)
+        set_global_selector_enabled(SAMPLE_SCHEMA, state, "colorize", True)
 
-        choose_global_selector_option(TEST_SCHEMA, state, "colorize", "green")
+        choose_global_selector_option(SAMPLE_SCHEMA, state, "colorize", "green")
 
         assert state.controls["eye color"].selected_options == OneOf("green")
 
@@ -225,9 +225,9 @@ class TestTheGlobalSelector:
         rule.
         """
         state = a_state()
-        set_global_selector_enabled(TEST_SCHEMA, state, "colorize", True)
+        set_global_selector_enabled(SAMPLE_SCHEMA, state, "colorize", True)
 
-        choose_global_selector_option(TEST_SCHEMA, state, "colorize", "green")
+        choose_global_selector_option(SAMPLE_SCHEMA, state, "colorize", "green")
 
         assert state.controls["render style"].selected_options.contains("green tinted")
 
@@ -261,20 +261,20 @@ class TestTheGlobalSelector:
 
     def test_choosing_a_second_option_releases_the_first(self):
         state = a_state()
-        set_global_selector_enabled(TEST_SCHEMA, state, "colorize", True)
-        choose_global_selector_option(TEST_SCHEMA, state, "colorize", "green")
+        set_global_selector_enabled(SAMPLE_SCHEMA, state, "colorize", True)
+        choose_global_selector_option(SAMPLE_SCHEMA, state, "colorize", "green")
 
-        choose_global_selector_option(TEST_SCHEMA, state, "colorize", "black")
+        choose_global_selector_option(SAMPLE_SCHEMA, state, "colorize", "black")
 
         assert state.controls["eye color"].selected_options == OneOf("black")
         assert state.controls["render style"].selected_options == ManyOf(("black and white",))
 
     def test_switching_it_off_releases_everything_it_had_set(self):
         state = a_state()
-        set_global_selector_enabled(TEST_SCHEMA, state, "colorize", True)
-        choose_global_selector_option(TEST_SCHEMA, state, "colorize", "green")
+        set_global_selector_enabled(SAMPLE_SCHEMA, state, "colorize", True)
+        choose_global_selector_option(SAMPLE_SCHEMA, state, "colorize", "green")
 
-        set_global_selector_enabled(TEST_SCHEMA, state, "colorize", False)
+        set_global_selector_enabled(SAMPLE_SCHEMA, state, "colorize", False)
 
         assert state.controls["colorize"].selected_options == Switch(False)
         assert state.controls["eye color"].selected_options == OneOf()
@@ -283,17 +283,17 @@ class TestTheGlobalSelector:
     def test_switching_it_off_before_anything_was_chosen_releases_nothing(self):
         state = a_state()
         choose_option(state, "eye color", "green")
-        set_global_selector_enabled(TEST_SCHEMA, state, "colorize", True)
+        set_global_selector_enabled(SAMPLE_SCHEMA, state, "colorize", True)
 
-        set_global_selector_enabled(TEST_SCHEMA, state, "colorize", False)
+        set_global_selector_enabled(SAMPLE_SCHEMA, state, "colorize", False)
 
         assert state.controls["eye color"].selected_options == OneOf("green")
 
     def test_the_selector_holds_the_option_it_was_given(self):
         state = a_state()
-        set_global_selector_enabled(TEST_SCHEMA, state, "colorize", True)
+        set_global_selector_enabled(SAMPLE_SCHEMA, state, "colorize", True)
 
-        choose_global_selector_option(TEST_SCHEMA, state, "colorize", "green")
+        choose_global_selector_option(SAMPLE_SCHEMA, state, "colorize", "green")
 
         assert state.controls["colorize"].selected_options == OneOf("green")
 
@@ -396,7 +396,7 @@ class TestTheStateObjectsSurviveEveryRule:
         )
 
     def test_no_rule_replaces_a_control_or_section_state(self):
-        schema = copy.deepcopy(TEST_SCHEMA)
+        schema = copy.deepcopy(SAMPLE_SCHEMA)
         schema.sections.append(Section(
             id="spare", text="spare",
             controls=[Control(id="spare", text="spare", kind="and-commas",

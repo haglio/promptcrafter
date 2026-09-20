@@ -1,6 +1,6 @@
 """Every schema this checkout can load, held against what the fixture declares.
 
-`tests/fixtures/test_schema.py` is what the renderer, the rules and the window
+`tests/fixtures/sample_schema.py` is what the renderer, the rules and the window
 are tested against, so a schema feature that reaches the app without reaching
 that fixture is a feature no test has ever run. Two schemas can reach the app:
 the shipped demo, and the private overlay beside the checkout where there is
@@ -39,7 +39,7 @@ from promptcrafter.types import (
     TextRef,
     TextReference,
 )
-from tests.fixtures.test_schema import TEST_SCHEMA
+from tests.fixtures.sample_schema import SAMPLE_SCHEMA
 
 
 def schema_features(schema: Schema) -> set[str]:
@@ -150,7 +150,7 @@ def _schemas_this_checkout_can_load():
 
 
 def test_no_schema_this_checkout_can_load_reaches_past_the_test_schema():
-    covered = schema_features(TEST_SCHEMA)
+    covered = schema_features(SAMPLE_SCHEMA)
 
     for name, schema in _schemas_this_checkout_can_load():
         beyond = sorted(schema_features(schema) - covered)

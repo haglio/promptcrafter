@@ -1,3 +1,7 @@
+"""A whole fabricated schema, for the tests that need one end to end.
+
+Every value in here is invented -- see the fixture rule in CLAUDE.md.
+"""
 from __future__ import annotations
 
 from promptcrafter.types import (
@@ -19,7 +23,7 @@ from promptcrafter.types import (
 def _the_alignment_control():
     return TextRef(ref=TextReference(kind="control", id="alignment"))
 
-TEST_SCHEMA = Schema(sections=[
+SAMPLE_SCHEMA = Schema(sections=[
     Section(
         id="subject-core",
         text="subject-core",
