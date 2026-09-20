@@ -43,8 +43,8 @@ def copy_button(accessible_name: str) -> QPushButton:
     buttons in Origenerator and Fun Time, which the user has open beside this.
 
     Two renderings rather than one: Qt swaps to the Active pixmap while the
-    cursor is over the button, which is how the stylesheet's hover brightening
-    used to reach the glyph back when the glyph was text.
+    cursor is over the button, and a stylesheet hover rule cannot reach into a
+    drawn mark the way it reaches text.
     """
     button = QPushButton()
     button.setObjectName("copy_button")

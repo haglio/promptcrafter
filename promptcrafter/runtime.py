@@ -419,8 +419,8 @@ def _render_every_selected_option(
 ) -> Segment | None:
     """Every ticked option, comma-joined.
 
-    What `required`, `hidden-opposite` and a multi-option toggle all render to;
-    the three used to spell it out one after another.
+    What `required`, `hidden-opposite` and a multi-option toggle all render
+    to, in one place rather than three.
     """
     selected = _selected_options(control, cs, state, disabled)
     if not selected:

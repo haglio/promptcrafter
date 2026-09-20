@@ -1,11 +1,10 @@
 """What a click does to the state, with no window around it.
 
-Every rule here used to be a method on ``PromptCrafterWindow``, which meant the
-app's whole state machine could only be exercised by building a Qt window and
-sending it fake clicks -- and the two hardest rules in it, the global selector's
-reach across the other controls, were the two least reachable that way.  They
-are ordinary functions now: they take the schema and the state, and the window's
-handlers are the wiring that reads two ids off a widget and rebuilds afterwards.
+These are ordinary functions, not methods on ``PromptCrafterWindow``: they
+take the schema and the state, so the app's whole state machine can be
+exercised without building a Qt window and sending it fake clicks.  The
+window's handlers are the wiring that reads two ids off a widget and rebuilds
+afterwards.
 
 Every one of them mutates the ``ControlState`` (or ``SectionState``) that is
 already in the dict rather than putting a new one there.  The window keeps no

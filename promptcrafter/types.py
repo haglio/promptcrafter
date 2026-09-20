@@ -138,9 +138,8 @@ class Schema:
 
 # --- State types ---
 
-# What one control has picked. Three shapes, one set of questions: readers ask
-# rather than test which of the three they were handed, which is what the field
-# below used to make every one of them do.
+# What one control has picked. Three shapes, one set of questions: a reader
+# asks rather than testing which of the three it was handed.
 
 
 @dataclass(frozen=True)
@@ -277,9 +276,9 @@ def _both_prompts_on_auto() -> dict[PromptTarget, PromptMode]:
 class State:
     controls: dict[str, ControlState]
     sections: dict[str, SectionState]
-    # Keyed by target rather than two fields named after their targets: the
-    # window reaches these by the same string it uses to build a prompt, and
-    # it used to do that by assembling the attribute name.
+    # Keyed by target rather than two fields named after their targets, so the
+    # window reaches these by the same string it uses to build a prompt instead
+    # of assembling an attribute name.
     modes: dict[PromptTarget, PromptMode] = field(default_factory=_both_prompts_on_auto)
 
 
