@@ -11,6 +11,8 @@ interpreter being named.  So each run makes it for the run after, and
 """
 from __future__ import annotations
 
+from app_support.process_identity import ProcessNamer
+
 from promptcrafter.paths import icon_path
 
 APP_NAME = "PromptCrafter"
@@ -19,8 +21,6 @@ ROLE = "PromptCrafter"
 
 def namer():
     """The one answer to what this app's copy is called and how it describes itself."""
-    from app_support.process_identity import ProcessNamer
-
     return ProcessNamer(APP_NAME, icon=icon_path())
 
 

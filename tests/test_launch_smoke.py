@@ -26,6 +26,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 from app_support.launch_smoke import (
     assert_an_unresolvable_import_is_caught,
@@ -33,6 +34,8 @@ from app_support.launch_smoke import (
     assert_the_walk_reached,
     launch_imports,
 )
+
+from promptcrafter import shortcut
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = "promptcrafter"
@@ -134,10 +137,6 @@ def test_the_shortcut_runs_the_package_from_the_repo_root(tmp_path, monkeypatch)
     package resolve rather than an installed or sibling one, and it is what this
     test's ``cwd`` mirrors -- a shortcut that stopped setting it would leave
     this checking a fiction."""
-    from types import SimpleNamespace
-
-    from promptcrafter import shortcut
-
     (tmp_path / ".venv" / "Scripts").mkdir(parents=True)
     (tmp_path / ".venv" / "Scripts" / "pythonw.exe").write_bytes(b"")
     monkeypatch.setattr(shortcut, "namer",
