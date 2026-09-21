@@ -9,6 +9,7 @@ from shared_ui.chrome import family_stylesheet
 from promptcrafter.app import PromptCrafterWindow
 from promptcrafter.paths import icon_path
 from promptcrafter.process_name import name_this_process
+from promptcrafter.references import report_dangling_references
 from promptcrafter.schema_overlay import load_schema
 from promptcrafter.win32 import set_app_user_model_id
 
@@ -30,6 +31,11 @@ app.setStyleSheet(family_stylesheet())
 icon = icon_path()
 if icon.is_file():
     app.setWindowIcon(QIcon(str(icon)))
-window = PromptCrafterWindow(load_schema())
+schema = load_schema()
+# Say on the way up which ids this schema points at and does not hold. Each one
+# renders as nothing, so without this a typo is indistinguishable from a blank
+# someone meant; the launcher sends this stream to its log.
+report_dangling_references(schema)
+window = PromptCrafterWindow(schema)
 window.show()
 sys.exit(app.exec())
