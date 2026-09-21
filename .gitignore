@@ -1,33 +1,43 @@
-node_modules/
-dist/
-build/
+# The family's baseline block, byte-identical in every checkout that carries it,
+# so what a routine editable install or test run drops is ignored in the repo
+# that drops it. The eleven files were written independently and covered
+# different subsets of the same artifacts, which left several trees dirty after
+# a plain `pip install -e .` -- and a dirty tree here blocks every agent's merge.
+# This repo's own entries go under the marker below, never in here.
 __pycache__/
 *.py[cod]
-*.log
-*.pid
-*.tsbuildinfo
-PromptCrafter.lnk
-vite.config.js
-vite.config.d.ts
-promptcrafter-window.png
-*-probe.txt
-probe-result.txt
-tmp-electron-probe/
-scripts/_electron_*
-browser-data/
-output/*.json
+.venv/
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.hypothesis/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tmp-pytest-*/
 
-# Claude Code local config
+# Windows shortcuts are machine-specific and embed the real install path.
+*.lnk
+
+# pCloud conflict copies (this dir syncs via pCloud). Never our files; an
+# untracked one dirties main and blocks merges. '[' escaped to match literally.
+*\[conflicted*
+
+# --- promptcrafter's own ---
+
+# The launcher's logs, and what the app writes out.
+*.log
+output/*.json
 
 # Private overlay — the real schema is the user's own prompt vocabulary, which
 # is exactly what the sanitize blocklist exists to keep out of this repo. The
 # committed promptcrafter/schema.py is a fabricated demo; see schema_overlay.py.
 /schema.local.json
 
-# pCloud conflict copies (this dir syncs via pCloud). Never our files; an
-# untracked one dirties main and blocks merges. '[' escaped to match literally.
-*\[conflicted*
-
-# Written by every editable install into the project root; not source.
-*.egg-info/
-.coverage
+# Left by the Node/Electron incarnation this app no longer has. The directory is
+# still on this machine, so un-ignoring it would dirty the tree for good and
+# block every agent's merge; the rest of that era's patterns are gone.
+node_modules/
