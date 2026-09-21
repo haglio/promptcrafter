@@ -28,6 +28,7 @@ LAYERS = {
     "paths": 0,        # filesystem, no schema knowledge
     "win32": 0,        # platform shims
     "kinds": 1,        # which control kinds mean what
+    "references": 1,   # which ids a schema points at, and which are missing
     "toggle_state": 1,
     "process_name": 1,
     "schema": 1,       # the shipped demo config
@@ -45,11 +46,13 @@ LAYERS = {
 # Every intra-package edge that exists. 33 of them.
 EDGES = {
     ("__main__", "app"), ("__main__", "paths"), ("__main__", "process_name"),
-    ("__main__", "schema_overlay"), ("__main__", "win32"),
+    ("__main__", "references"), ("__main__", "schema_overlay"),
+    ("__main__", "win32"),
     ("app", "kinds"), ("app", "runtime"), ("app", "state"),
     ("app", "style"), ("app", "toggle_state"), ("app", "transitions"), ("app", "types"),
     ("kinds", "types"),
     ("process_name", "paths"),
+    ("references", "types"),
     ("runtime", "kinds"), ("runtime", "toggle_state"), ("runtime", "types"),
     ("schema", "types"),
     ("schema_overlay", "paths"), ("schema_overlay", "schema"), ("schema_overlay", "types"),

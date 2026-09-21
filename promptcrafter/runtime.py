@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 
 from promptcrafter.kinds import is_adverb_submenu_kind, is_radio_kind
@@ -26,6 +27,28 @@ from promptcrafter.types import (
 )
 
 ResolutionStack = set[str]
+
+logger = logging.getLogger(__name__)
+
+#: Ids already complained about. A rebuild renders every control again, so an
+#: unguarded warning would repeat per keystroke-equivalent; the author needs to
+#: be told once.
+_UNRESOLVED_ALREADY_SAID: set[str] = set()
+
+
+def _say_it_resolves_to_nothing(ref_kind: str, ref_id: str) -> str:
+    """Report a reference the schema does not hold, and render it as nothing.
+
+    Returning "" is deliberate -- a schema typo must not stop the app rendering
+    the rest of the prompt -- but silence about it is what made a typo
+    indistinguishable from a blank someone meant.
+    """
+    key = f"{ref_kind}:{ref_id}"
+    if key not in _UNRESOLVED_ALREADY_SAID:
+        _UNRESOLVED_ALREADY_SAID.add(key)
+        logger.warning("schema names a %s that is not in it: %r -- it renders as nothing",
+                       ref_kind, ref_id)
+    return ""
 
 
 def _normalize_resolved_text(text: str) -> str:
@@ -139,12 +162,18 @@ def _resolve_reference_value(
 
     if ref_kind == "option":
         option = _find_option(schema, ref_id)
-        return _get_option_text(option, is_plural, schema, state, next_stack) if option else ""
+        if not option:
+            return _say_it_resolves_to_nothing(ref_kind, ref_id)
+        return _get_option_text(option, is_plural, schema, state, next_stack)
     if ref_kind == "control":
         control = find_control(schema, ref_id)
-        return _render_control_value(control, schema, state, next_stack) if control else ""
+        if not control:
+            return _say_it_resolves_to_nothing(ref_kind, ref_id)
+        return _render_control_value(control, schema, state, next_stack)
     section = find_section(schema, ref_id)
-    return _render_section_value(section, schema, state, next_stack) if section else ""
+    if not section:
+        return _say_it_resolves_to_nothing(ref_kind, ref_id)
+    return _render_section_value(section, schema, state, next_stack)
 
 
 def get_text_value(
