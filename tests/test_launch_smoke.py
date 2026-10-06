@@ -26,7 +26,6 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from types import SimpleNamespace
 
 from app_support.launch_smoke import (
     assert_an_unresolvable_import_is_caught,
@@ -34,8 +33,6 @@ from app_support.launch_smoke import (
     assert_the_walk_reached,
     launch_imports,
 )
-
-from promptcrafter import shortcut
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = "promptcrafter"
@@ -53,8 +50,8 @@ _THE_LAUNCH_MUST_REACH = ("promptcrafter.app", "promptcrafter.schema", "PyQt6.Qt
 def _the_launchs_interpreter(repo_root: Path = REPO_ROOT) -> Path:
     """The interpreter to replay the launch under.
 
-    The shortcut's own, where this checkout has one: ``promptcrafter.shortcut``
-    targets ``.venv\\Scripts\\pythonw.exe`` beside the repo, this project's interpreter
+    The launcher's own, where this checkout has one: ``launch_promptcrafter.vbs``
+    starts ``.venv\\Scripts\\pythonw.exe`` beside the repo, this project's interpreter
     and never PATH's, and the named copy it prefers is a copy of that same file
     in that same directory -- so either way the site-packages are this venv's.
     ``pythonw`` has no stdout or stderr to capture, so its console twin next to
@@ -131,19 +128,3 @@ def test_a_launch_import_that_cannot_resolve_fails_here():
         _run_the_launchs_way, launch_imports(PACKAGE, LAUNCH_FILES),
         "promptcrafter.app")
 
-
-def test_the_shortcut_runs_the_package_from_the_repo_root(tmp_path, monkeypatch):
-    """The working directory is what makes the repo's own ``promptcrafter``
-    package resolve rather than an installed or sibling one, and it is what this
-    test's ``cwd`` mirrors -- a shortcut that stopped setting it would leave
-    this checking a fiction."""
-    (tmp_path / ".venv" / "Scripts").mkdir(parents=True)
-    (tmp_path / ".venv" / "Scripts" / "pythonw.exe").write_bytes(b"")
-    monkeypatch.setattr(shortcut, "namer",
-                        lambda: SimpleNamespace(named_exe=lambda source, role: str(source)))
-    written: dict = {}
-
-    shortcut.write(tmp_path, writer=lambda lnk, **fields: written.update(fields))
-
-    assert written["arguments"] == f"-m {PACKAGE}"
-    assert written["working_directory"] == str(tmp_path)

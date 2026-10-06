@@ -8,8 +8,8 @@ of them is the shortcut that started it:
     under a generic fallback -- not even Python's mark, just whatever Windows
     reaches for when an app supplies nothing.
   * the **AppUserModelID**, which decides which taskbar button the window
-    belongs to.  ``python -m promptcrafter.shortcut`` writes the shortcut to pin
-    with ``Local.PromptCrafter``; a process that does not claim the same id is
+    belongs to.  The shortcut to pin, listed in ``pyproject.toml``, carries
+    ``Local.PromptCrafter``; a process that does not claim the same id is
     treated as a different application and gets a second button beside the pin
     it was launched from.
 
