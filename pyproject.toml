@@ -56,6 +56,15 @@ qt_api = "pyqt6"
 [tool.haglio]
 siblings = ["app_support", "shared_ui"]
 
+# What launch_promptcrafter.vbs starts: this checkout's PromptCrafter on its own
+# venv, through the copy of the interpreter named for it once a run has made one.
+# The pinned shortcut runs it.
+[tool.haglio.launchers."launch_promptcrafter.vbs"]
+app = "PromptCrafter"
+interpreter = "pythonw.exe"
+named-interpreter = "PromptCrafter-PromptCrafter.exe"
+run = "-m promptcrafter"
+
 # What launch_preview_branch.vbs starts: a worktree's PromptCrafter on the primary
 # checkout's venv, for judging a branch. Rendered from this by
 # `python -m app_support.launcher --write`.
@@ -65,6 +74,15 @@ interpreter = "pythonw.exe"
 venv = "primary"
 run = "-m promptcrafter"
 log = "promptcrafter-preview-launcher.log"
+
+# What PromptCrafter relies on Windows to keep: the shortcut it is pinned from.
+# `python -m app_support.windows_settings --write` makes this machine match
+# every checkout's list.
+[tool.haglio.shortcuts."PromptCrafter"]
+launcher = "launch_promptcrafter.vbs"
+icon = "icon.ico"
+app-id = "Local.PromptCrafter"
+places = ["taskbar", "checkout"]
 
 [tool.setuptools.packages.find]
 include = ["promptcrafter*"]

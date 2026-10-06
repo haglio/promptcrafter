@@ -17,24 +17,17 @@ python -m promptcrafter
 
 ## Desktop Launcher
 
-PromptCrafter launches from a Windows Taskbar shortcut:
-
-- `PromptCrafter.lnk` - shortcut to pin to Taskbar
-- `python -m promptcrafter.shortcut` - creates/updates the shortcut
-
-The shortcut runs `pythonw.exe -m promptcrafter` so no console window appears.
+PromptCrafter launches from a Windows Taskbar shortcut, `PromptCrafter.lnk`, kept in
+this folder to pin from. It runs `launch_promptcrafter.vbs`, which starts
+`pythonw.exe -m promptcrafter` so no console window appears. The shortcut is listed
+in `pyproject.toml` under `[tool.haglio.shortcuts]`, and
+`python -m app_support.windows_settings --write` writes it and corrects the pin.
 
 ## The Icon
 
 `icon.ico` is the family's block-letter P -- one MAGENTA letter on the 5x5 grid every app
 in the family draws its own on.  The spec lives in `shared_ui.app_icon`; there is no
 generator here (the one that was here drew a different icon and needed PySide6).
-
-## Rebuild The Shortcut
-
-```bash
-.venv/Scripts/python.exe -m promptcrafter.shortcut
-```
 
 ## Test
 

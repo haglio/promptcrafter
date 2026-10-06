@@ -7,7 +7,7 @@ anonymous "Python" (:mod:`app_support.process_identity` has the whole of it).
 
 This process cannot be named on the way in: writing the copy takes the very
 interpreter being named.  So each run makes it for the run after, and
-``python -m promptcrafter.shortcut`` points the shortcut at it.
+``launch_promptcrafter.vbs`` starts the app through it once it is there.
 """
 from __future__ import annotations
 
