@@ -13,6 +13,8 @@ from PyQt6.QtWidgets import (
     QSlider,
     QWidget,
 )
+from shared_ui.palette import PREVIEW_INK
+from shared_ui.preview import Preview
 from shared_ui.tick_control import TickControl
 
 from promptcrafter.app import PromptCrafterWindow
@@ -147,6 +149,28 @@ def find_label_widget(container, label_text):
         if label_text in lbl.text():
             return lbl
     return None
+
+
+_A_PREVIEW = Preview(feature="the copy button's new mark")
+
+
+class TestPreview:
+    def test_a_preview_is_titled_for_the_feature_it_demos(self, qtbot):
+        window = PromptCrafterWindow(SAMPLE_SCHEMA, preview=_A_PREVIEW)
+        qtbot.addWidget(window)
+
+        assert window.windowTitle() == "PromptCrafter — preview of the copy button's new mark"
+
+    def test_a_previews_name_at_the_top_is_drawn_in_the_preview_ink_and_says_what_it_demos(self, qtbot):
+        window = PromptCrafterWindow(SAMPLE_SCHEMA, preview=_A_PREVIEW)
+        qtbot.addWidget(window)
+        window.show()
+        name = find_label_widget(window, "PromptCrafter")
+        name.ensurePolished()
+
+        ink = name.palette().color(name.foregroundRole())
+        assert (ink.red(), ink.green(), ink.blue()) == PREVIEW_INK
+        assert name.toolTip() == window.windowTitle()
 
 
 class TestUpdatingPrompts:

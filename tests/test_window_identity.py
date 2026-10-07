@@ -18,9 +18,12 @@ from __future__ import annotations
 import ast
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+
+from shared_ui.preview import Preview
 
 from promptcrafter.paths import icon_path, project_root
-from promptcrafter.win32 import set_app_user_model_id
+from promptcrafter.win32 import APP_USER_MODEL_ID, claim_this_checkouts_identity
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ENTRY_POINT = ast.parse((REPO_ROOT / "promptcrafter" / "__main__.py").read_text(encoding="utf-8"))
@@ -52,16 +55,57 @@ class IconTests(unittest.TestCase):
         self.assertIn("icon_path", calls)
 
 
+def _the_call(name: str) -> ast.Call:
+    calls = [node for node in ast.walk(ENTRY_POINT)
+             if isinstance(node, ast.Call) and ast.unparse(node.func) == name]
+    assert len(calls) == 1, f"the entry point calls {name} {len(calls)} times"
+    return calls[0]
+
+
+class PreviewTests(unittest.TestCase):
+    def test_the_entry_point_claims_what_this_checkout_runs_as(self):
+        self.assertEqual(ast.unparse(_the_call("claim_this_checkouts_identity")),
+                         "claim_this_checkouts_identity(project_root())")
+
+    def test_a_preview_claims_a_taskbar_button_of_its_own(self):
+        with patch("promptcrafter.win32.preview_of", return_value=Preview(feature=None)), \
+             patch("promptcrafter.win32.sys.platform", "win32"), \
+             patch("promptcrafter.win32.claim_taskbar_identity") as claimed:
+            shown = claim_this_checkouts_identity(project_root())
+
+        self.assertEqual(shown, Preview(feature=None))
+        claimed.assert_called_once_with(f"{APP_USER_MODEL_ID}.Preview")
+
+    def test_the_live_app_claims_the_identity_its_pin_carries(self):
+        with patch("promptcrafter.win32.preview_of", return_value=None), \
+             patch("promptcrafter.win32.sys.platform", "win32"), \
+             patch("promptcrafter.win32.claim_taskbar_identity") as claimed:
+            shown = claim_this_checkouts_identity(project_root())
+
+        self.assertIsNone(shown)
+        claimed.assert_called_once_with(APP_USER_MODEL_ID)
+
+    def test_a_preview_wears_its_letter_in_the_preview_ink(self):
+        self.assertEqual(ast.unparse(_the_call("app.setWindowIcon")),
+                         "app.setWindowIcon(app_icon(icon, preview))")
+
+    def test_the_window_is_told_whether_it_is_a_preview(self):
+        self.assertEqual(ast.unparse(_the_call("PromptCrafterWindow")),
+                         "PromptCrafterWindow(schema, preview=preview)")
+
+
 class TaskbarIdentityTests(unittest.TestCase):
     def test_the_entry_point_claims_it_before_opening_a_window(self):
-        self.assertIn("set_app_user_model_id", _calls())
+        self.assertIn("claim_this_checkouts_identity", _calls())
         self.assertLess(
-            _first_line_calling("set_app_user_model_id"), _first_line_calling("QApplication"),
+            _first_line_calling("claim_this_checkouts_identity"), _first_line_calling("QApplication"),
             "the id has to be claimed before the first window exists")
 
     def test_setting_it_never_takes_the_app_down(self):
         # An app that cannot group its taskbar button is still an app that runs.
-        set_app_user_model_id("PromptCrafter.Test.Identity")
+        with patch("promptcrafter.win32.sys.platform", "win32"), \
+             patch("promptcrafter.win32.claim_taskbar_identity", side_effect=OSError("refused")):
+            claim_this_checkouts_identity(project_root())
 
 
 if __name__ == "__main__":

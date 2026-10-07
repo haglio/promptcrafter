@@ -21,6 +21,8 @@ from PyQt6.QtWidgets import (
 # shared_ui is imported via sys.path rather than installed; make it importable
 # regardless of checkout depth (normal clone vs .claude/worktrees/<name>).
 from shared_ui.fonts import FONT_UI, SIZE_HEADING
+from shared_ui.palette import PREVIEW_INK, as_hex
+from shared_ui.preview import Preview, window_title
 from shared_ui.spacing import GAP_MEDIUM, GAP_SMALL
 from shared_ui.tick_control import TickControl
 
@@ -63,13 +65,13 @@ from promptcrafter.types import (
 
 
 class PromptCrafterWindow(QMainWindow):
-    def __init__(self, schema: Schema) -> None:
+    def __init__(self, schema: Schema, *, preview: Preview | None = None) -> None:
         super().__init__()
         self.schema = schema
         self.state = create_initial_state(schema)
         # The auto/manual button beside each prompt, re-dressed on a switch.
         self._mode_buttons: dict[PromptTarget, QPushButton] = {}
-        self.setWindowTitle("PromptCrafter")
+        self.setWindowTitle(window_title("PromptCrafter", preview))
         self.setStyleSheet(build_stylesheet())
 
         central = QWidget()
@@ -83,9 +85,12 @@ class PromptCrafterWindow(QMainWindow):
         header = QWidget()
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(0, 0, 0, 0)
-        title = QLabel("PromptCrafter")
-        title.setStyleSheet(f"font-size: 24pt; font-weight: bold; font-family: '{FONT_UI}';")
-        header_layout.addWidget(title)
+        name = QLabel("PromptCrafter")
+        name.setStyleSheet(f"font-size: 24pt; font-weight: bold; font-family: '{FONT_UI}';")
+        if preview is not None:
+            name.setStyleSheet(f"{name.styleSheet()} color: {as_hex(PREVIEW_INK)};")
+            name.setToolTip(self.windowTitle())
+        header_layout.addWidget(name)
         header_layout.addStretch()
         root_layout.addWidget(header)
         root_layout.addSpacing(20)
