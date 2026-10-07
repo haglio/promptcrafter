@@ -20,23 +20,26 @@ from __future__ import annotations
 
 import logging
 import sys
+from pathlib import Path
 
 from app_support.win32 import set_app_user_model_id as claim_taskbar_identity
+from shared_ui.preview import Preview, preview_of, taskbar_identity
 
 logger = logging.getLogger(__name__)
 
 APP_USER_MODEL_ID = "Local.PromptCrafter"
 
 
-def set_app_user_model_id(app_id: str = APP_USER_MODEL_ID) -> None:
-    """Claim *app_id* for this process, so its window joins the pinned button.
+def claim_this_checkouts_identity(checkout: Path) -> Preview | None:
+    """Claim the taskbar identity of what *checkout* runs as, and say what that is.
 
     A no-op off Windows, and never fatal: an app that cannot group its taskbar
     button is still an app that runs.
     """
-    if sys.platform != "win32":
-        return
-    try:
-        claim_taskbar_identity(app_id)
-    except OSError:
-        logger.warning("Could not set the AppUserModelID", exc_info=True)
+    preview = preview_of(checkout)
+    if sys.platform == "win32":
+        try:
+            claim_taskbar_identity(taskbar_identity(APP_USER_MODEL_ID, preview))
+        except OSError:
+            logger.warning("Could not set the AppUserModelID", exc_info=True)
+    return preview
