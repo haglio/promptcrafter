@@ -64,6 +64,7 @@ app = "PromptCrafter"
 interpreter = "pythonw.exe"
 named-interpreter = "PromptCrafter-PromptCrafter.exe"
 run = "-m promptcrafter"
+log = "promptcrafter-launcher.log"
 
 # What launch_preview_branch.vbs starts: a worktree's PromptCrafter on the primary
 # checkout's venv, for judging a branch. Rendered from this by

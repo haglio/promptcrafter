@@ -28,8 +28,10 @@ htmlcov/
 
 # --- promptcrafter's own ---
 
-# The launcher's logs, and what the app writes out.
+# The launcher's logs, the copy it rolls one over to at a megabyte, and what
+# the app writes out.
 *.log
+*.log.1
 output/*.json
 
 # Private overlay — the real schema is the user's own prompt vocabulary, which

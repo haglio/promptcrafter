@@ -4,7 +4,7 @@
 
 Option Explicit
 
-Dim fso, shell, root, app, interpreter, directory, arguments
+Dim fso, shell, root, app, interpreter, directory, arguments, logPath
 
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set shell = CreateObject("WScript.Shell")
@@ -18,6 +18,7 @@ End If
 
 Sub Decide()
   app = "PromptCrafter"
+  logPath = fso.BuildPath(root, "promptcrafter-launcher.log")
   arguments = "-m promptcrafter"
   interpreter = fso.BuildPath(root, ".venv\Scripts\pythonw.exe")
   If fso.FileExists(fso.BuildPath(root, ".venv\Scripts\PromptCrafter-PromptCrafter.exe")) Then interpreter = fso.BuildPath(root, ".venv\Scripts\PromptCrafter-PromptCrafter.exe")
@@ -29,6 +30,7 @@ Sub Report()
   WScript.Echo "interpreter: " & interpreter
   WScript.Echo "directory: " & directory
   WScript.Echo "arguments: " & arguments
+  WScript.Echo "log: " & logPath
   WScript.Echo "command: " & Command()
 End Sub
 
@@ -36,12 +38,13 @@ Sub Launch()
   If Not fso.FileExists(interpreter) Then
     Refuse app & "'s virtual environment is missing:" & vbCrLf & interpreter, vbCritical
   End If
-  shell.CurrentDirectory = directory
+  logPath = FreeLog(logPath)
+  Note logPath, "===== " & Now & " launch: " & Command()
   shell.Run Command(), 0, False
 End Sub
 
 Function Command()
-  Command = Quote(interpreter) & " " & arguments
+  Command = "cmd /c cd /d " & Quote(directory) & " && " & Quote(interpreter) & " " & arguments & " >> " & Quote(logPath) & " 2>&1"
 End Function
 
 Function Quote(text)
@@ -59,4 +62,54 @@ End Sub
 Sub Refuse(message, icon)
   Tell message, icon
   WScript.Quit 1
+End Sub
+
+Function FreeLog(preferred)
+  Dim folder, candidate, index
+  folder = fso.GetParentFolderName(preferred)
+  If Not fso.FolderExists(folder) Then fso.CreateFolder folder
+  For index = 1 To 9
+    candidate = preferred
+    If index > 1 Then
+      candidate = fso.BuildPath(folder, fso.GetBaseName(preferred) & "-" & index & "." & fso.GetExtensionName(preferred))
+    End If
+    RollIfOversize candidate
+    If CanAppend(candidate) Then
+      FreeLog = candidate
+      Exit Function
+    End If
+  Next
+  FreeLog = preferred
+End Function
+
+Function CanAppend(path)
+  Dim stream
+  On Error Resume Next
+  Set stream = fso.OpenTextFile(path, 8, True)
+  CanAppend = (Err.Number = 0)
+  If CanAppend Then stream.Close
+  Err.Clear
+  On Error GoTo 0
+End Function
+
+Sub RollIfOversize(path)
+  On Error Resume Next
+  If fso.FileExists(path) Then
+    If fso.GetFile(path).Size > 1000000 Then
+      If fso.FileExists(path & ".1") Then fso.DeleteFile path & ".1"
+      fso.MoveFile path, path & ".1"
+    End If
+  End If
+  Err.Clear
+  On Error GoTo 0
+End Sub
+
+Sub Note(path, line)
+  Dim stream
+  On Error Resume Next
+  Set stream = fso.OpenTextFile(path, 8, True)
+  stream.WriteLine line
+  stream.Close
+  Err.Clear
+  On Error GoTo 0
 End Sub
