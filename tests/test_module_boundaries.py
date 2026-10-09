@@ -27,6 +27,7 @@ LAYERS = {
     "types": 0,        # dataclasses, literals, and how a submenu's state is keyed
     "paths": 0,        # filesystem, no schema knowledge
     "win32": 0,        # platform shims
+    "errors": 0,       # what becomes of an error nothing catches
     "kinds": 1,        # which control kinds mean what
     "references": 1,   # which ids a schema points at, and which are missing
     "toggle_state": 1,
@@ -42,9 +43,10 @@ LAYERS = {
     "__init__": 0,
 }
 
-# Every intra-package edge that exists. 30 of them.
+# Every intra-package edge that exists. 31 of them.
 EDGES = {
-    ("__main__", "app"), ("__main__", "paths"), ("__main__", "process_name"),
+    ("__main__", "app"), ("__main__", "errors"), ("__main__", "paths"),
+    ("__main__", "process_name"),
     ("__main__", "references"), ("__main__", "schema_overlay"),
     ("__main__", "win32"),
     ("app", "kinds"), ("app", "runtime"), ("app", "state"),

@@ -7,6 +7,7 @@ from shared_ui.chrome import family_stylesheet
 from shared_ui.preview_icon import app_icon
 
 from promptcrafter.app import PromptCrafterWindow
+from promptcrafter.errors import log_errors_and_keep_running
 from promptcrafter.paths import icon_path, project_root
 from promptcrafter.process_name import name_this_process
 from promptcrafter.references import report_dangling_references
@@ -23,6 +24,8 @@ preview = claim_this_checkouts_identity(project_root())
 # promptcrafter.process_name.  One run late, because writing the copy takes
 # the very interpreter being named.
 name_this_process()
+
+log_errors_and_keep_running()
 
 app = QApplication(sys.argv)
 # The family's chrome goes on the application, where the tooltip rule can

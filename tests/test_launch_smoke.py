@@ -6,8 +6,8 @@ and renders Qt offscreen before the first test module is collected. The shortcut
 does neither: it starts ``.venv\\Scripts\\pythonw.exe`` inside this checkout with
 the repo root as its working directory and nothing else. A module that imports
 cleanly under the suite's arrangements can therefore fail at launch, and the
-window simply never appears; ``pythonw`` has no console, so nothing anywhere
-records why.
+window simply never appears; ``pythonw`` has no console, so the only record of
+why is a traceback in the launcher's log.
 
 So this replays the launch's import phase in a fresh process: the interpreter the
 shortcut starts, that working directory, and no inherited ``PYTHONPATH``.

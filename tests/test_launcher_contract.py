@@ -65,6 +65,15 @@ def test_it_runs_the_package_from_this_checkout_on_its_own_venv():
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="the Windows script host")
+def test_the_everyday_launch_keeps_what_the_app_says_in_a_log():
+    """``pythonw`` has no console, so without this the warnings the app gives on
+    the way up, and any error it logs, are written nowhere."""
+    report = dry_run(LAUNCHER)
+
+    assert Path(report.value("log")) == REPO_ROOT / "promptcrafter-launcher.log"
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="the Windows script host")
 def test_a_preview_runs_this_worktree_on_the_primary_checkouts_venv():
     """The working directory is what makes ``-m promptcrafter`` resolve to the
     branch's code rather than to the editable install, which names the primary:
