@@ -18,8 +18,8 @@ requires-python = ">=3.14"
 # other half had not landed turned all of them red at once. Moving to a newer
 # one is this repo's own commit, with its own suite to answer for it.
 dependencies = [
-    "app-support @ git+https://github.com/haglio/app_support@v0.1.195",
-    "shared-ui @ git+https://github.com/haglio/shared_ui@v0.1.189",
+    "app-support @ git+https://github.com/haglio/app_support@v0.1.221",
+    "shared-ui @ git+https://github.com/haglio/shared_ui@v0.1.204",
     "PyQt6>=6,<7",
 ]
 
@@ -55,6 +55,11 @@ qt_api = "pyqt6"
 # tree instead.
 [tool.haglio]
 siblings = ["app_support", "shared_ui"]
+
+# Declared, so that every launcher here brings this checkout up to what has
+# shipped, and waits out an update of it already under way, before it starts
+# PromptCrafter (app_support.production_update).
+[tool.haglio.production]
 
 # What launch_promptcrafter.vbs starts: this checkout's PromptCrafter on its own
 # venv, through the copy of the interpreter named for it once a run has made one.
