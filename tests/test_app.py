@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
     QSlider,
     QWidget,
 )
+from shared_ui.icons import glyph_icon
 from shared_ui.palette import PREVIEW_INK
 from shared_ui.preview import Preview
 from shared_ui.tick_control import TickControl
@@ -117,11 +118,16 @@ def find_slider(container):
     return sliders[0] if sliders else None
 
 
-def find_button(container, label):
+def find_weight_reset(container):
     for btn in container.findChildren(QPushButton):
-        if btn.text() == label and not btn.isHidden():
+        if btn.objectName() == "weight_reset" and not btn.isHidden():
             return btn
     return None
+
+
+def _drawn(icon) -> bytes:
+    image = icon.pixmap(16, 16).toImage()
+    return image.constBits().asstring(image.sizeInBytes())
 
 
 def find_mode_button(prompt):
@@ -552,13 +558,13 @@ class TestWeights:
 
     def test_section_weight_reset_button_appears(self, qtbot, app):
         section = find_section(app, "negative modes")
-        assert find_button(section, "\u21ba") is None
+        assert find_weight_reset(section) is None
 
         app.state.sections["negative modes"].weight = 2.5
         app._rebuild()
 
         section = find_section(app, "negative modes")
-        assert find_button(section, "\u21ba") is not None
+        assert find_weight_reset(section) is not None
 
     def test_section_weight_reset_restores_to_1(self, qtbot, app):
         app.state.sections["negative modes"].weight = 2.5
@@ -566,11 +572,18 @@ class TestWeights:
         assert app.negative_prompt.toPlainText() == "(no clutter:2.5), blurry"
 
         section = find_section(app, "negative modes")
-        find_button(section, "\u21ba").click()
+        find_weight_reset(section).click()
 
         assert app.negative_prompt.toPlainText() == "no clutter, blurry"
         section = find_section(app, "negative modes")
-        assert find_button(section, "\u21ba") is None
+        assert find_weight_reset(section) is None
+
+    def test_the_weight_reset_wears_the_familys_undo_arrow(self, qtbot, app):
+        app.state.sections["negative modes"].weight = 2.5
+        app._rebuild()
+
+        reset = find_weight_reset(find_section(app, "negative modes"))
+        assert _drawn(reset.icon()) == _drawn(glyph_icon("undo_arrow"))
 
     def test_control_weight_reset_restores_to_1(self, qtbot, app):
         find_radio(app, "bone").click()
@@ -584,7 +597,7 @@ class TestWeights:
         # We look for the reset button in the entire app since armor is the only weighted control
         reset = None
         for btn in app.findChildren(QPushButton):
-            if btn.text() == "\u21ba" and not btn.isHidden():
+            if btn.objectName() == "weight_reset" and not btn.isHidden():
                 parent = btn.parent()
                 while parent:
                     cid = parent.property("control_id")

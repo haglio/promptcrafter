@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -21,9 +21,10 @@ from PyQt6.QtWidgets import (
 # shared_ui is imported via sys.path rather than installed; make it importable
 # regardless of checkout depth (normal clone vs .claude/worktrees/<name>).
 from shared_ui.fonts import FONT_UI, SIZE_HEADING
+from shared_ui.icons import glyph_icon
 from shared_ui.palette import PREVIEW_INK, as_hex
 from shared_ui.preview import Preview, window_title
-from shared_ui.spacing import GAP_MEDIUM, GAP_SMALL
+from shared_ui.spacing import BUTTON_ICON, GAP_MEDIUM, GAP_SMALL
 from shared_ui.tick_control import TickControl
 
 from promptcrafter.kinds import is_or_prefixed_kind
@@ -560,8 +561,10 @@ class PromptCrafterWindow(QMainWindow):
         hlayout.setContentsMargins(0, 0, 0, 0)
         hlayout.setSpacing(6)
 
-        reset_btn = QPushButton("\u21ba")
+        reset_btn = QPushButton()
         reset_btn.setObjectName("weight_reset")
+        reset_btn.setIcon(glyph_icon("undo_arrow"))
+        reset_btn.setIconSize(QSize(BUTTON_ICON, BUTTON_ICON))
         reset_btn.setVisible(value != 1)
         reset_btn.clicked.connect(lambda: on_change(1.0))
         hlayout.addWidget(reset_btn)
