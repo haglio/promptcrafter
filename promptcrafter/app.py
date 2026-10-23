@@ -24,7 +24,7 @@ from shared_ui.fonts import FONT_UI, SIZE_HEADING
 from shared_ui.icons import glyph_icon
 from shared_ui.palette import PREVIEW_INK, as_hex
 from shared_ui.preview import Preview, window_title
-from shared_ui.spacing import BUTTON_ICON, GAP_MEDIUM, GAP_SMALL
+from shared_ui.spacing import BUTTON_ICON, GAP_DIALOG, GAP_MEDIUM, GAP_SMALL, MARGIN_DIALOG
 from shared_ui.tick_control import TickControl
 
 from promptcrafter.kinds import is_or_prefixed_kind
@@ -79,7 +79,7 @@ class PromptCrafterWindow(QMainWindow):
         central.setObjectName("central")
         self.setCentralWidget(central)
         root_layout = QVBoxLayout(central)
-        root_layout.setContentsMargins(24, 24, 24, 24)
+        root_layout.setContentsMargins(MARGIN_DIALOG, MARGIN_DIALOG, MARGIN_DIALOG, MARGIN_DIALOG)
         root_layout.setSpacing(0)
 
         # App header
@@ -87,14 +87,14 @@ class PromptCrafterWindow(QMainWindow):
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(0, 0, 0, 0)
         name = QLabel("PromptCrafter")
-        name.setStyleSheet(f"font-size: 24pt; font-weight: bold; font-family: '{FONT_UI}';")
+        name.setStyleSheet(f"font-size: {SIZE_HEADING}pt; font-weight: bold; font-family: '{FONT_UI}';")
         if preview is not None:
             name.setStyleSheet(f"{name.styleSheet()} color: {as_hex(PREVIEW_INK)};")
             name.setToolTip(self.windowTitle())
         header_layout.addWidget(name)
         header_layout.addStretch()
         root_layout.addWidget(header)
-        root_layout.addSpacing(20)
+        root_layout.addSpacing(GAP_DIALOG)
 
         # Prompt areas
         self.positive_prompt = QPlainTextEdit()
@@ -110,9 +110,9 @@ class PromptCrafterWindow(QMainWindow):
         pos_area = self._build_prompt_area("Positive prompt", self.positive_prompt, "positive")
         neg_area = self._build_prompt_area("Negative prompt", self.negative_prompt, "negative")
         root_layout.addWidget(pos_area)
-        root_layout.addSpacing(12)
+        root_layout.addSpacing(GAP_DIALOG)
         root_layout.addWidget(neg_area)
-        root_layout.addSpacing(16)
+        root_layout.addSpacing(GAP_DIALOG)
 
         # Scrollable sections area
         scroll = QScrollArea()
@@ -120,7 +120,7 @@ class PromptCrafterWindow(QMainWindow):
         scroll.setFrameShape(QFrame.Shape.NoFrame)
         sections_container = QWidget()
         self.sections_layout = QVBoxLayout(sections_container)
-        self.sections_layout.setSpacing(16)
+        self.sections_layout.setSpacing(GAP_DIALOG)
         scroll.setWidget(sections_container)
         root_layout.addWidget(scroll)
 
@@ -131,13 +131,13 @@ class PromptCrafterWindow(QMainWindow):
         area = QWidget()
         area.setObjectName("prompt_area")
         layout = QVBoxLayout(area)
-        layout.setContentsMargins(16, 12, 16, 16)
+        layout.setContentsMargins(MARGIN_DIALOG, MARGIN_DIALOG, MARGIN_DIALOG, MARGIN_DIALOG)
 
         # Header row: copy + mode toggle + label
         header = QWidget()
         hlayout = QHBoxLayout(header)
         hlayout.setContentsMargins(0, 0, 0, 0)
-        hlayout.setSpacing(12)
+        hlayout.setSpacing(GAP_DIALOG)
 
         copy_btn = copy_button("Copy prompt")
         copy_btn.clicked.connect(lambda: self._copy_to_clipboard(text_edit.toPlainText()))
@@ -261,9 +261,9 @@ class PromptCrafterWindow(QMainWindow):
                     divider = QWidget()
                     divider.setObjectName("control_divider")
                     divider.setFixedHeight(1)
-                    layout.addSpacing(12)
+                    layout.addSpacing(GAP_DIALOG)
                     layout.addWidget(divider)
-                    layout.addSpacing(12)
+                    layout.addSpacing(GAP_DIALOG)
                 layout.addWidget(control_widget)
                 first_control = False
             prev_was_prefix = control.kind == "or-prefix"
@@ -346,7 +346,7 @@ class PromptCrafterWindow(QMainWindow):
         options_row = QWidget()
         options_layout = QHBoxLayout(options_row)
         options_layout.setContentsMargins(0, 0, 0, 0)
-        options_layout.setSpacing(20)
+        options_layout.setSpacing(GAP_DIALOG)
         options_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         toggle = QCheckBox()
@@ -366,7 +366,7 @@ class PromptCrafterWindow(QMainWindow):
             opts_row = QWidget()
             opts_layout = QHBoxLayout(opts_row)
             opts_layout.setContentsMargins(0, 0, 0, 0)
-            opts_layout.setSpacing(20)
+            opts_layout.setSpacing(GAP_DIALOG)
             opts_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
             for option in control.options:
@@ -395,7 +395,7 @@ class PromptCrafterWindow(QMainWindow):
         toggle_row = QWidget()
         toggle_layout = QHBoxLayout(toggle_row)
         toggle_layout.setContentsMargins(0, 0, 0, 0)
-        toggle_layout.setSpacing(20)
+        toggle_layout.setSpacing(GAP_DIALOG)
         toggle_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         toggle = QCheckBox()
@@ -414,7 +414,7 @@ class PromptCrafterWindow(QMainWindow):
             opts_row = QWidget()
             opts_layout = QHBoxLayout(opts_row)
             opts_layout.setContentsMargins(0, 0, 0, 0)
-            opts_layout.setSpacing(20)
+            opts_layout.setSpacing(GAP_DIALOG)
             opts_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
             for option in control.options:
@@ -440,7 +440,7 @@ class PromptCrafterWindow(QMainWindow):
         options_row = QWidget()
         options_layout = QHBoxLayout(options_row)
         options_layout.setContentsMargins(0, 0, 0, 0)
-        options_layout.setSpacing(20)
+        options_layout.setSpacing(GAP_DIALOG)
         options_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         for option in control.options:
@@ -479,7 +479,7 @@ class PromptCrafterWindow(QMainWindow):
         options_row = QWidget()
         options_layout = QHBoxLayout(options_row)
         options_layout.setContentsMargins(0, 0, 0, 0)
-        options_layout.setSpacing(20)
+        options_layout.setSpacing(GAP_DIALOG)
         options_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         for option in control.options:
@@ -526,7 +526,7 @@ class PromptCrafterWindow(QMainWindow):
         indent = QWidget()
         indent.setObjectName("submenu_indent")
         indent_layout = QVBoxLayout(indent)
-        indent_layout.setContentsMargins(12, GAP_SMALL, 0, 0)
+        indent_layout.setContentsMargins(MARGIN_DIALOG, GAP_SMALL, 0, 0)
         indent_layout.setSpacing(GAP_SMALL)
 
         for child in option.submenu.options:
@@ -559,7 +559,7 @@ class PromptCrafterWindow(QMainWindow):
         container = QWidget()
         hlayout = QHBoxLayout(container)
         hlayout.setContentsMargins(0, 0, 0, 0)
-        hlayout.setSpacing(6)
+        hlayout.setSpacing(GAP_MEDIUM)
 
         reset_btn = QPushButton()
         reset_btn.setObjectName("weight_reset")
