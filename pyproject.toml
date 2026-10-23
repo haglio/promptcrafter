@@ -18,8 +18,8 @@ requires-python = ">=3.14"
 # other half had not landed turned all of them red at once. Moving to a newer
 # one is this repo's own commit, with its own suite to answer for it.
 dependencies = [
-    "app-support @ git+https://github.com/haglio/app_support@v0.1.221",
-    "shared-ui @ git+https://github.com/haglio/shared_ui@v0.1.204",
+    "app-support @ git+https://github.com/haglio/app_support@v0.1.259",
+    "shared-ui @ git+https://github.com/haglio/shared_ui@v0.1.223",
     "PyQt6>=6,<7",
 ]
 
@@ -70,6 +70,7 @@ interpreter = "pythonw.exe"
 named-interpreter = "PromptCrafter-PromptCrafter.exe"
 run = "-m promptcrafter"
 log = "promptcrafter-launcher.log"
+loading-screen = ["Updating PromptCrafter..."]
 
 # What launch_preview_branch.vbs starts: a worktree's PromptCrafter on the primary
 # checkout's venv, for judging a branch. Rendered from this by
@@ -80,6 +81,7 @@ interpreter = "pythonw.exe"
 venv = "primary"
 run = "-m promptcrafter"
 log = "promptcrafter-preview-launcher.log"
+loading-screen = ["Updating PromptCrafter..."]
 
 # What PromptCrafter relies on Windows to keep: the shortcut it is pinned from.
 # `python -m app_support.windows_settings --write` makes this machine match

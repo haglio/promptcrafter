@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+import logging
 import sys
 
 from PyQt6.QtWidgets import QApplication
 from shared_ui.chrome import family_stylesheet
+from shared_ui.loading_window import Loading, LoadingCanceled
 from shared_ui.preview_icon import app_icon
 
-from promptcrafter.app import PromptCrafterWindow
 from promptcrafter.errors import log_errors_and_keep_running
+from promptcrafter.opening import open_promptcrafter, open_the_loading_screen
 from promptcrafter.paths import icon_path, project_root
 from promptcrafter.process_name import name_this_process
-from promptcrafter.references import report_dangling_references
-from promptcrafter.schema_overlay import load_schema
 from promptcrafter.win32 import claim_this_checkouts_identity
 
 # Both before the first window exists: the id decides which taskbar button the
@@ -34,11 +34,11 @@ app.setStyleSheet(family_stylesheet())
 icon = icon_path()
 if icon.is_file():
     app.setWindowIcon(app_icon(icon, preview))
-schema = load_schema()
-# Say on the way up which ids this schema points at and does not hold. Each one
-# renders as nothing, so without this a typo is indistinguishable from a blank
-# someone meant; the launcher sends this stream to its log.
-report_dangling_references(schema)
-window = PromptCrafterWindow(schema, preview=preview)
+loading = Loading.at_the_click(app, logging.getLogger("promptcrafter"), lambda: open_the_loading_screen(preview))
+try:
+    window = open_promptcrafter(loading, preview=preview)
+except LoadingCanceled:
+    sys.exit(0)
+loading.done()
 window.show()
 sys.exit(app.exec())
