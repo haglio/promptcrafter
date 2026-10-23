@@ -90,8 +90,8 @@ class PreviewTests(unittest.TestCase):
                          "app.setWindowIcon(app_icon(icon, preview))")
 
     def test_the_window_is_told_whether_it_is_a_preview(self):
-        self.assertEqual(ast.unparse(_the_call("PromptCrafterWindow")),
-                         "PromptCrafterWindow(schema, preview=preview)")
+        self.assertEqual(ast.unparse(_the_call("open_promptcrafter")),
+                         "open_promptcrafter(loading, preview=preview)")
 
 
 class TaskbarIdentityTests(unittest.TestCase):

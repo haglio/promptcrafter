@@ -39,16 +39,17 @@ LAYERS = {
     "runtime": 2,      # renders a prompt from schema plus state
     "transitions": 3,  # what a click does to the state
     "app": 4,          # widgets and wiring
-    "__main__": 5,
+    "opening": 5,      # the loading screen, and the window it opens on
+    "__main__": 6,
     "__init__": 0,
 }
 
-# Every intra-package edge that exists. 31 of them.
+# Every intra-package edge that exists. 34 of them.
 EDGES = {
-    ("__main__", "app"), ("__main__", "errors"), ("__main__", "paths"),
-    ("__main__", "process_name"),
-    ("__main__", "references"), ("__main__", "schema_overlay"),
-    ("__main__", "win32"),
+    ("__main__", "errors"), ("__main__", "opening"), ("__main__", "paths"),
+    ("__main__", "process_name"), ("__main__", "win32"),
+    ("opening", "app"), ("opening", "paths"), ("opening", "references"),
+    ("opening", "schema_overlay"), ("opening", "win32"),
     ("app", "kinds"), ("app", "runtime"), ("app", "state"),
     ("app", "style"), ("app", "toggle_state"), ("app", "transitions"), ("app", "types"),
     ("kinds", "types"),

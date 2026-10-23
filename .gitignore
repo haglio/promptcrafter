@@ -34,6 +34,10 @@ htmlcov/
 *.log.1
 output/*.json
 
+# The pictures each launcher's loading screen shows at the click, which the
+# app's own loading screen leaves at every start.
+*launcher.screen/
+
 # Private overlay — the real schema is the user's own prompt vocabulary, which
 # is exactly what the sanitize blocklist exists to keep out of this repo. The
 # committed promptcrafter/schema.py is a fabricated demo; see schema_overlay.py.

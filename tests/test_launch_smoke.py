@@ -12,8 +12,9 @@ why is a traceback in the launcher's log.
 So this replays the launch's import phase in a fresh process: the interpreter the
 shortcut starts, that working directory, and no inherited ``PYTHONPATH``.
 
-``__main__.py`` *is* the whole launch here -- it builds the QApplication and the
-window at module level -- so its imports are the launch's imports.
+``__main__.py`` and the ``opening`` it calls *are* the whole launch here -- they
+build the QApplication, the loading screen and the window -- so their imports are
+the launch's imports.
 
 The walk that reads them off the AST and the three assertions that replay them
 are ``app_support.launch_smoke``: seven repos carried a copy of the same 200
@@ -37,9 +38,9 @@ from app_support.launch_smoke import (
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = "promptcrafter"
 
-# ``pythonw -m promptcrafter`` runs exactly this file, and it holds the whole
-# launch: no main(), just the QApplication and the window at module level.
-LAUNCH_FILES = (REPO_ROOT / PACKAGE / "__main__.py",)
+# ``pythonw -m promptcrafter`` runs __main__.py, which opens the window through
+# opening.py: between them, the whole launch.
+LAUNCH_FILES = (REPO_ROOT / PACKAGE / "__main__.py", REPO_ROOT / PACKAGE / "opening.py")
 
 # What the launch is for. Asserted present, so a walk that silently found
 # nothing -- a renamed file, a parse that returned an empty tree -- cannot pass
