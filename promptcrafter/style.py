@@ -2,7 +2,7 @@
 
 A 160-line Qt stylesheet and the two helpers that feed it were the first third
 of `app.py`, ahead of the class that is what the module is for. Nothing here
-knows about the schema, the state or a control kind; it is colours, geometry and
+knows about the schema, the state or a control kind; it is colors, geometry and
 one icon.
 """
 
@@ -30,9 +30,24 @@ from shared_ui.colors import (
 )
 from shared_ui.fonts import FONT_UI, SIZE_BODY, SIZE_HEADING
 from shared_ui.icons import glyph_pixmap
+from shared_ui.spacing import (
+    BUTTON_MARK_INSET,
+    BUTTON_PAD_H,
+    BUTTON_PAD_H_TIGHT,
+    BUTTON_PAD_V,
+    BUTTON_RADIUS,
+    GAP_MEDIUM,
+    MARGIN_DIALOG,
+)
+from shared_ui.type_scale import in_pixels
 
 # The copy button's mark, at the size its 22px square leaves room for.
 _COPY_ICON = 14
+
+_GROOVE_H = 4
+_HANDLE_SIDE = 14
+_SWITCH_H = 24
+_TITLE_ROOM = in_pixels(SIZE_HEADING) + 2 * GAP_MEDIUM
 
 
 def copy_button(accessible_name: str) -> QPushButton:
@@ -91,10 +106,10 @@ def build_stylesheet() -> str:
     QGroupBox {{
         background: {bg3};
         border: 1px solid {bg_btn};
-        border-radius: 16px;
-        padding: 16px;
-        padding-top: 36px;
-        margin-top: 8px;
+        border-radius: {BUTTON_RADIUS}px;
+        padding: {MARGIN_DIALOG}px;
+        padding-top: {_TITLE_ROOM}px;
+        margin-top: {GAP_MEDIUM}px;
         font-weight: bold;
         font-size: {SIZE_HEADING}pt;
         color: {t1};
@@ -102,15 +117,15 @@ def build_stylesheet() -> str:
     QGroupBox::title {{
         subcontrol-origin: margin;
         subcontrol-position: top left;
-        padding: 8px 16px;
+        padding: {GAP_MEDIUM}px {MARGIN_DIALOG}px;
         color: {t1};
     }}
     QPlainTextEdit {{
         background: {bg2};
         color: {t1};
         border: 1px solid {border};
-        border-radius: 12px;
-        padding: 12px;
+        border-radius: {BUTTON_RADIUS}px;
+        padding: {MARGIN_DIALOG}px;
         font-family: "{font}";
         font-size: {sz}pt;
     }}
@@ -123,7 +138,7 @@ def build_stylesheet() -> str:
     }}
     QRadioButton, QCheckBox {{
         color: {t2};
-        spacing: 6px;
+        spacing: {GAP_MEDIUM}px;
         background: transparent;
     }}
     QRadioButton::indicator, QCheckBox::indicator {{
@@ -139,14 +154,14 @@ def build_stylesheet() -> str:
         background: {blue};
         color: {t1};
         border: none;
-        border-radius: 8px;
-        padding: 8px 12px;
+        border-radius: {BUTTON_RADIUS}px;
+        padding: {BUTTON_PAD_V}px {BUTTON_PAD_H}px;
     }}
     QPushButton#copy_button {{
         background: transparent;
         color: {t_muted};
         border: none;
-        padding: 2px;
+        padding: {BUTTON_MARK_INSET}px;
         min-width: 22px;
         max-width: 22px;
         min-height: 22px;
@@ -160,16 +175,15 @@ def build_stylesheet() -> str:
         background: {bg_key};
         color: {t2};
         border: none;
-        font-size: 12px;
-        padding: 2px 6px;
-        border-radius: 4px;
+        padding: {BUTTON_MARK_INSET}px {BUTTON_PAD_H_TIGHT}px;
+        border-radius: {BUTTON_RADIUS}px;
     }}
     QPushButton#mode_toggle_auto {{
         background: {bg_key};
         color: {t2};
         border: none;
-        border-radius: 6px;
-        padding: 4px 8px;
+        border-radius: {BUTTON_RADIUS}px;
+        padding: {BUTTON_PAD_V}px {BUTTON_PAD_H_TIGHT}px;
     }}
     /* Manual mode is a state that means more than "engaged", and the family
        spends its one blue on those; the teal it wore was a hue no other app
@@ -178,13 +192,13 @@ def build_stylesheet() -> str:
         background: {blue};
         color: {t1};
         border: none;
-        border-radius: 6px;
-        padding: 4px 8px;
+        border-radius: {BUTTON_RADIUS}px;
+        padding: {BUTTON_PAD_V}px {BUTTON_PAD_H_TIGHT}px;
     }}
     QWidget#prompt_area {{
         background: {bg3};
         border: 1px solid {bg_btn};
-        border-radius: 16px;
+        border-radius: {BUTTON_RADIUS}px;
     }}
     QWidget#control_divider {{
         background: {bg_btn};
@@ -195,28 +209,28 @@ def build_stylesheet() -> str:
         border-left: 2px solid {border};
     }}
     QSlider::groove:horizontal {{
-        height: 4px;
+        height: {_GROOVE_H}px;
         background: {bg_btn};
-        border-radius: 2px;
+        border-radius: {_GROOVE_H // 2}px;
     }}
     QSlider::handle:horizontal {{
-        width: 14px;
-        height: 14px;
-        margin: -5px 0;
+        width: {_HANDLE_SIDE}px;
+        height: {_HANDLE_SIDE}px;
+        margin: -{(_HANDLE_SIDE - _GROOVE_H) // 2}px 0;
         background: {blue};
-        border-radius: 7px;
+        border-radius: {_HANDLE_SIDE // 2}px;
     }}
     QSlider::sub-page:horizontal {{
         background: {blue};
-        border-radius: 2px;
+        border-radius: {_GROOVE_H // 2}px;
     }}
     QCheckBox#toggle_switch {{
         spacing: 0px;
     }}
     QCheckBox#toggle_switch::indicator {{
         width: 44px;
-        height: 24px;
-        border-radius: 12px;
+        height: {_SWITCH_H}px;
+        border-radius: {_SWITCH_H // 2}px;
         background: {tog_off};
     }}
     QCheckBox#toggle_switch::indicator:checked {{
