@@ -47,3 +47,4 @@ output/*.json
 # still on this machine, so un-ignoring it would dirty the tree for good and
 # block every agent's merge; the rest of that era's patterns are gone.
 node_modules/
+/state/

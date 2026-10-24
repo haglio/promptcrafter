@@ -104,6 +104,9 @@ than the thing under review; and check the launch windowlessly with
 `python -m pytest tests/test_launch_smoke.py`, which replays the whole import
 phase in a fresh interpreter under the launcher's own working directory and
 `PYTHONPATH`.
+A branch that needs a sibling version the venv does not hold gets a launcher
+of its own in the worktree's git-ignored `state/` that also puts checkouts of
+those versions first on `PYTHONPATH`.
 
 The working directory is the part that fails silently. The venv carries an
 editable install pointing at the primary, so a preview started anywhere else
