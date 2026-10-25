@@ -87,5 +87,13 @@ def test_a_preview_runs_this_worktree_on_the_primary_checkouts_venv():
     assert Path(report.value("log")) == REPO_ROOT / "promptcrafter-preview-launcher.log"
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="the Windows script host")
+def test_a_new_previews_first_click_shows_the_pictures_an_earlier_preview_left():
+    report = dry_run(PREVIEW_LAUNCHER)
+
+    primary = REPO_ROOT.parents[2]
+    assert Path(report.value("pictures")) == primary / "promptcrafter-preview-launcher.screen" / "preview"
+
+
 if __name__ == "__main__":
     unittest.main()
