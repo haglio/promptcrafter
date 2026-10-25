@@ -82,6 +82,7 @@ venv = "primary"
 run = "-m promptcrafter"
 log = "promptcrafter-preview-launcher.log"
 loading-screen = ["Updating PromptCrafter..."]
+preview = true
 
 # What PromptCrafter relies on Windows to keep: the shortcut it is pinned from.
 # `python -m app_support.windows_settings --write` makes this machine match
