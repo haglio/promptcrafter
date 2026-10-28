@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from app_support import unread
 from app_support.dead_code import (
     assert_every_package_is_scanned,
@@ -11,6 +12,8 @@ from app_support.dead_code import (
     assert_no_function_takes_an_argument_it_never_reads,
     assert_nothing_is_imported_or_assigned_and_left_unread,
 )
+
+pytestmark = pytest.mark.repo_check
 
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGES = (ROOT / "promptcrafter",)

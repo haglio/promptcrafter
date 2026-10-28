@@ -19,6 +19,8 @@ import pathlib
 
 import pytest
 
+pytestmark = pytest.mark.repo_check
+
 PACKAGE = pathlib.Path(__file__).resolve().parent.parent / "promptcrafter"
 
 # Lower may not import higher, and equal may not import equal. Anything that
