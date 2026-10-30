@@ -22,6 +22,7 @@ def test_app_module_imports_in_fresh_interpreter():
         capture_output=True,
         text=True,
         env={k: v for k, v in os.environ.items() if k != "PYTHONPATH"},
+        check=False,
     )
     assert result.returncode == 0, result.stderr
     assert "PromptCrafterWindow" in result.stdout
