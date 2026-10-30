@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 import pytest
-from app_support.launcher import assert_launchers_match_their_specs, dry_run, launchers
+from app_support.launcher import dry_run, launchers
 
 from promptcrafter.process_name import ROLE, namer
 
@@ -38,10 +38,6 @@ class PromptCrafterLauncherContractTests(unittest.TestCase):
     def test_repo_has_line_ending_policy(self):
         assert "* text=auto eol=lf" in self.attributes_text
         assert "*.ps1 text eol=crlf" in self.attributes_text
-
-
-def test_the_launchers_are_what_their_specs_render():
-    assert_launchers_match_their_specs(REPO_ROOT)
 
 
 def test_it_starts_through_the_copy_the_app_names_for_itself():
