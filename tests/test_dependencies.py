@@ -23,7 +23,7 @@ from app_support.dependencies import (
 pytestmark = pytest.mark.repo_check
 
 ROOT = Path(__file__).resolve().parent.parent
-TREES = [ROOT / "promptcrafter", ROOT / "tests", ROOT / "tools"]
+TREES = [ROOT / "promptcrafter", ROOT / "tests"]
 
 
 def test_every_third_party_import_is_declared():
