@@ -24,20 +24,20 @@ class PromptCrafterLauncherContractTests(unittest.TestCase):
         # Local: importing it here is the whole test, so a module that stops
         # importing fails this rather than the collection of every test.
         from promptcrafter.app import PromptCrafterWindow  # noqa: PLC0415
-        self.assertTrue(callable(PromptCrafterWindow))
+        assert callable(PromptCrafterWindow)
 
     def test_schema_module_loads(self):
         # Local, for the same reason as above: the import is the test.
         from promptcrafter.schema import schema  # noqa: PLC0415
-        self.assertGreater(len(schema.sections), 0)
+        assert len(schema.sections) > 0
 
     def test_docs_cover_pyqt6_desktop(self):
-        self.assertIn("PyQt6", self.readme_text)
-        self.assertIn("python -m promptcrafter", self.readme_text)
+        assert "PyQt6" in self.readme_text
+        assert "python -m promptcrafter" in self.readme_text
 
     def test_repo_has_line_ending_policy(self):
-        self.assertIn("* text=auto eol=lf", self.attributes_text)
-        self.assertIn("*.ps1 text eol=crlf", self.attributes_text)
+        assert "* text=auto eol=lf" in self.attributes_text
+        assert "*.ps1 text eol=crlf" in self.attributes_text
 
 
 def test_the_launchers_are_what_their_specs_render():
