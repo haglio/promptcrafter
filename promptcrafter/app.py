@@ -21,7 +21,7 @@ from PyQt6.QtWidgets import (
 # shared_ui is imported via sys.path rather than installed; make it importable
 # regardless of checkout depth (normal clone vs .claude/worktrees/<name>).
 from shared_ui.fonts import FONT_UI, SIZE_HEADING
-from shared_ui.icons import glyph_icon
+from shared_ui.icons import qt_icon
 from shared_ui.palette import PREVIEW_INK, as_hex
 from shared_ui.preview import Preview, window_title
 from shared_ui.spacing import BUTTON_ICON, GAP_DIALOG, GAP_MEDIUM, GAP_SMALL, MARGIN_DIALOG
@@ -563,7 +563,7 @@ class PromptCrafterWindow(QMainWindow):
 
         reset_btn = QPushButton()
         reset_btn.setObjectName("weight_reset")
-        reset_btn.setIcon(glyph_icon("undo_arrow"))
+        reset_btn.setIcon(qt_icon("undo_arrow"))
         reset_btn.setIconSize(QSize(BUTTON_ICON, BUTTON_ICON))
         reset_btn.setVisible(value != 1)
         reset_btn.clicked.connect(lambda: on_change(1.0))
