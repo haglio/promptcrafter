@@ -38,79 +38,58 @@ from promptcrafter.types import (
     TemplateText,
     TextRef,
     TextReference,
+    conditions_of,
+    every_holder,
+    texts_of,
 )
 from tests.fixtures.sample_schema import SAMPLE_SCHEMA
 
 
 def schema_features(schema: Schema) -> set[str]:
     found: set[str] = set()
-    for section in schema.sections:
-        found.add(f"section:promptTarget={section.prompt_target or 'positive'}")
-        _text_features(section.text, found)
-        _condition_features(section.hidden_bys, "section.hiddenBys", found)
-        _condition_features(section.revealed_bys, "section.revealedBys", found)
-        _condition_features(section.disabled_bys, "section.disabledBys", found)
-        for control in section.controls:
-            _control_features(control, found)
+    for place, holder in every_holder(schema):
+        for name, conditions in conditions_of(holder).items():
+            found.update(f"{place.kind}.{name}:{_which_ids_name(condition)}" for condition in conditions)
+        for text in texts_of(holder):
+            _text_features(text, found)
+        _holder_features(holder, found)
     return found
+
+
+def _holder_features(holder, found: set[str]) -> None:
+    if isinstance(holder, Section):
+        found.add(f"section:promptTarget={holder.prompt_target or 'positive'}")
+    elif isinstance(holder, Control):
+        _control_features(holder, found)
+    else:
+        _option_features(holder, found)
 
 
 def _control_features(control: Control, found: set[str]) -> None:
     found.add(f"control:kind={control.kind}")
-    _text_features(control.text, found)
     if control.custom_text is not None:
         found.add("control:customText")
-        _text_features(control.custom_text, found)
     if control.initially_selected_options is not None:
         found.add(
             "control:initiallySelectedOptions="
             f"{type(control.initially_selected_options).__name__}"
         )
     for substitution in control.global_substitutions:
-        _substitution_features(substitution, found)
-    _condition_features(control.hidden_opposite_bys, "control.hiddenOppositeBys", found)
-    _condition_features(control.hidden_bys, "control.hiddenBys", found)
-    _condition_features(control.revealed_bys, "control.revealedBys", found)
-    _condition_features(control.disabled_bys, "control.disabledBys", found)
+        found.add("control:globalSubstitutions")
+        if substitution.from_plural is not None or substitution.to_plural is not None:
+            found.add("control:globalSubstitutions:plural")
     for supplement in control.supplemented_bys:
         found.add(f"control.supplementedBys:{_which_ids_name(supplement)}")
         found.add(f"control.supplementedBys:side={supplement.side or 'unset'}")
-        _text_features(supplement.supplemental_text, found)
-    for option in control.options:
-        _option_features(option, found, inside_a_submenu=False)
 
 
-def _option_features(option: Option, found: set[str], *, inside_a_submenu: bool) -> None:
-    _text_features(option.text, found)
+def _option_features(option: Option, found: set[str]) -> None:
     if option.custom_control_text is not None:
         found.add("option:customControlText")
-        _text_features(option.custom_control_text, found)
-    _condition_features(option.hidden_bys, "option.hiddenBys", found)
-    _condition_features(option.revealed_bys, "option.revealedBys", found)
-    _condition_features(option.disabled_bys, "option.disabledBys", found)
     if option.submenu is not None:
         found.add(f"submenu:kind={option.submenu.kind}")
-        if inside_a_submenu:
+        if any(child.submenu is not None for child in option.submenu.options):
             found.add("submenu:nested")
-        for child in option.submenu.options:
-            _option_features(child, found, inside_a_submenu=True)
-
-
-def _substitution_features(substitution: GlobalSubstitution, found: set[str]) -> None:
-    found.add("control:globalSubstitutions")
-    _text_features(substitution.from_text, found)
-    _text_features(substitution.to_text, found)
-    for plural in (substitution.from_plural, substitution.to_plural):
-        if plural is not None:
-            found.add("control:globalSubstitutions:plural")
-            _text_features(plural, found)
-
-
-def _condition_features(
-    conditions: list[DisabledOrHiddenBy], name: str, found: set[str]
-) -> None:
-    for condition in conditions:
-        found.add(f"{name}:{_which_ids_name(condition)}")
 
 
 def _which_ids_name(rule: DisabledOrHiddenBy | SupplementedBy) -> str:
