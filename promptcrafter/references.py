@@ -18,12 +18,14 @@ from dataclasses import dataclass
 from promptcrafter.types import (
     Control,
     DisabledOrHiddenBy,
-    Option,
     Schema,
     SupplementedBy,
     TemplateText,
     TextRef,
     TextValue,
+    conditions_of,
+    every_holder,
+    texts_of,
 )
 
 logger = logging.getLogger(__name__)
@@ -54,11 +56,8 @@ def report_dangling_references(schema: Schema) -> list[Dangling]:
 def known_ids(schema: Schema) -> dict[str, set[str]]:
     """Every id the schema holds, by what kind of thing carries it."""
     found: dict[str, set[str]] = {"section": set(), "control": set(), "option": set()}
-    for section in schema.sections:
-        found["section"].add(section.id)
-        for control in section.controls:
-            found["control"].add(control.id)
-            _option_ids(control.options, found["option"])
+    for place, _ in every_holder(schema):
+        found[place.kind].add(place.id)
     return found
 
 
@@ -66,61 +65,18 @@ def dangling_references(schema: Schema) -> list[Dangling]:
     """Every reference in the schema that names something it does not hold."""
     known = known_ids(schema)
     found: list[Dangling] = []
-    for section in schema.sections:
-        where = f"section:{section.id}"
-        _from_text(section.text, where, known, found)
-        _from_conditions(_all_conditions(section), where, known, found)
-        for control in section.controls:
-            _from_control(control, known, found)
+    for place, holder in every_holder(schema):
+        where = str(place)
+        for text in texts_of(holder):
+            _from_text(text, where, known, found)
+        conditions = [condition for named in conditions_of(holder).values() for condition in named]
+        if isinstance(holder, Control):
+            conditions += holder.supplemented_bys
+        _from_conditions(conditions, where, known, found)
     return found
 
 
-def _option_ids(options: list[Option], into: set[str]) -> None:
-    for option in options:
-        into.add(option.id)
-        if option.submenu:
-            _option_ids(option.submenu.options, into)
-
-
-def _from_control(control: Control, known: dict[str, set[str]],
-                  found: list[Dangling]) -> None:
-    where = f"control:{control.id}"
-    _from_text(control.text, where, known, found)
-    _from_text(control.custom_text, where, known, found)
-    _from_conditions(_all_conditions(control) + control.hidden_opposite_bys,
-                     where, known, found)
-    for substitution in control.global_substitutions:
-        for text in (substitution.from_text, substitution.to_text,
-                     substitution.from_plural, substitution.to_plural):
-            _from_text(text, where, known, found)
-    for supplement in control.supplemented_bys:
-        _from_supplement(supplement, where, known, found)
-    for option in control.options:
-        _from_option(option, known, found)
-
-
-def _from_option(option: Option, known: dict[str, set[str]],
-                 found: list[Dangling]) -> None:
-    where = f"option:{option.id}"
-    _from_text(option.text, where, known, found)
-    _from_text(option.custom_control_text, where, known, found)
-    _from_conditions(_all_conditions(option), where, known, found)
-    if option.submenu:
-        for child in option.submenu.options:
-            _from_option(child, known, found)
-
-
-def _from_supplement(supplement: SupplementedBy, where: str,
-                     known: dict[str, set[str]], found: list[Dangling]) -> None:
-    _from_text(supplement.supplemental_text, where, known, found)
-    _from_conditions([supplement], where, known, found)
-
-
-def _all_conditions(holder) -> list:
-    return [*holder.hidden_bys, *holder.revealed_bys, *holder.disabled_bys]
-
-
-def _from_text(text: TextValue | None, where: str, known: dict[str, set[str]],
+def _from_text(text: TextValue, where: str, known: dict[str, set[str]],
                found: list[Dangling]) -> None:
     if not isinstance(text, TemplateText):
         return

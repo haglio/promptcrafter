@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from typing import Literal, Union
 
@@ -134,6 +134,57 @@ class Section:
 @dataclass
 class Schema:
     sections: list[Section]
+
+
+# --- One walk over a schema, for every reader that visits all of it ---
+
+@dataclass(frozen=True)
+class Place:
+    kind: Literal["section", "control", "option"]
+    id: str
+
+    def __str__(self) -> str:
+        return f"{self.kind}:{self.id}"
+
+
+Holder = Section | Control | Option
+
+
+def every_holder(schema: Schema) -> Iterator[tuple[Place, Holder]]:
+    for section in schema.sections:
+        yield Place("section", section.id), section
+        for control in section.controls:
+            yield Place("control", control.id), control
+            yield from _every_option(control.options)
+
+
+def _every_option(options: list[Option]) -> Iterator[tuple[Place, Holder]]:
+    for option in options:
+        yield Place("option", option.id), option
+        if option.submenu is not None:
+            yield from _every_option(option.submenu.options)
+
+
+def texts_of(holder: Holder) -> list[TextValue]:
+    if isinstance(holder, Option):
+        found = [holder.text, holder.custom_control_text]
+    elif isinstance(holder, Control):
+        found = [holder.text, holder.custom_text]
+        for substitution in holder.global_substitutions:
+            found += [substitution.from_text, substitution.to_text,
+                      substitution.from_plural, substitution.to_plural]
+        found += [supplement.supplemental_text for supplement in holder.supplemented_bys]
+    else:
+        found = [holder.text]
+    return [text for text in found if text is not None]
+
+
+def conditions_of(holder: Holder) -> dict[str, list[DisabledOrHiddenBy]]:
+    conditions = {"hiddenBys": holder.hidden_bys, "revealedBys": holder.revealed_bys,
+                  "disabledBys": holder.disabled_bys}
+    if isinstance(holder, Control):
+        conditions["hiddenOppositeBys"] = holder.hidden_opposite_bys
+    return conditions
 
 
 # --- State types ---
