@@ -29,9 +29,9 @@ from shared_ui.colors import (
     TOGGLE_ON,
 )
 from shared_ui.fonts import FONT_UI, SIZE_BODY, SIZE_HEADING
-from shared_ui.icons import glyph_pixmap
+from shared_ui.icons import icon_pixmap
 from shared_ui.spacing import (
-    BUTTON_MARK_INSET,
+    BUTTON_ICON_INSET,
     BUTTON_PAD_H,
     BUTTON_PAD_H_TIGHT,
     BUTTON_PAD_V,
@@ -65,8 +65,8 @@ def copy_button(accessible_name: str) -> QPushButton:
     button.setObjectName("copy_button")
     button.setAccessibleName(accessible_name)
     icon = QIcon()
-    icon.addPixmap(glyph_pixmap("copy", _COPY_ICON, TEXT_MUTED), QIcon.Mode.Normal)
-    icon.addPixmap(glyph_pixmap("copy", _COPY_ICON, TEXT_SECONDARY), QIcon.Mode.Active)
+    icon.addPixmap(icon_pixmap("copy", _COPY_ICON, TEXT_MUTED), QIcon.Mode.Normal)
+    icon.addPixmap(icon_pixmap("copy", _COPY_ICON, TEXT_SECONDARY), QIcon.Mode.Active)
     button.setIcon(icon)
     button.setIconSize(QSize(_COPY_ICON, _COPY_ICON))
     return button
@@ -161,7 +161,7 @@ def build_stylesheet() -> str:
         background: transparent;
         color: {t_muted};
         border: none;
-        padding: {BUTTON_MARK_INSET}px;
+        padding: {BUTTON_ICON_INSET}px;
         min-width: 22px;
         max-width: 22px;
         min-height: 22px;
@@ -175,7 +175,7 @@ def build_stylesheet() -> str:
         background: {bg_key};
         color: {t2};
         border: none;
-        padding: {BUTTON_MARK_INSET}px {BUTTON_PAD_H_TIGHT}px;
+        padding: {BUTTON_ICON_INSET}px {BUTTON_PAD_H_TIGHT}px;
         border-radius: {BUTTON_RADIUS}px;
     }}
     QPushButton#mode_toggle_auto {{

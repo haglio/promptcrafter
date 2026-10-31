@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
     QSlider,
     QWidget,
 )
-from shared_ui.icons import glyph_icon
+from shared_ui.icons import qt_icon
 from shared_ui.palette import PREVIEW_INK
 from shared_ui.preview import Preview
 from shared_ui.tick_control import TickControl
@@ -583,7 +583,7 @@ class TestWeights:
         app._rebuild()
 
         reset = find_weight_reset(find_section(app, "negative modes"))
-        assert _drawn(reset.icon()) == _drawn(glyph_icon("undo_arrow"))
+        assert _drawn(reset.icon()) == _drawn(qt_icon("undo_arrow"))
 
     def test_control_weight_reset_restores_to_1(self, qtbot, app):
         find_radio(app, "bone").click()
