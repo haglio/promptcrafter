@@ -15,9 +15,6 @@ from __future__ import annotations
 
 import logging
 
-import pytest
-
-from promptcrafter import runtime
 from promptcrafter.references import dangling_references, report_dangling_references
 from promptcrafter.runtime import get_text_value
 from promptcrafter.schema import schema as demo_schema
@@ -174,40 +171,13 @@ class TestTheSchemasThisCheckoutCanLoad:
             assert not found, f"{len(found)} unresolved reference(s), kinds: {kinds}"
 
 
-class TestSayingSoAtRenderTime:
-    """A private schema's typo cannot fail a suite that never sees it, so the
-    renderer says so where it happens -- once per id, not once per rebuild."""
-
-    @pytest.fixture(autouse=True)
-    def _forget_earlier_warnings(self, monkeypatch):
-        monkeypatch.setattr(runtime, "_UNRESOLVED_ALREADY_SAID", set())
-
-    def test_an_unresolved_reference_is_logged_with_its_kind_and_id(self, caplog):
+class TestAMissingIdAtRenderTime:
+    def test_renders_as_nothing_and_leaves_the_saying_to_the_startup_report(self, caplog):
         schema = _schema(section_text=TemplateText(singular=[_ref("control", "zoom")]))
         state = create_initial_state(schema)
 
-        with caplog.at_level(logging.WARNING, logger="promptcrafter.runtime"):
+        with caplog.at_level(logging.WARNING):
             rendered = get_text_value(schema.sections[0].text, False, schema, state)
 
         assert rendered == ""
-        assert "control" in caplog.text
-        assert "zoom" in caplog.text
-
-    def test_the_same_missing_id_is_logged_once_however_often_it_renders(self, caplog):
-        schema = _schema(section_text=TemplateText(singular=[_ref("control", "zoom")]))
-        state = create_initial_state(schema)
-
-        with caplog.at_level(logging.WARNING, logger="promptcrafter.runtime"):
-            for _ in range(5):
-                get_text_value(schema.sections[0].text, False, schema, state)
-
-        assert len(caplog.records) == 1
-
-    def test_a_reference_that_resolves_says_nothing(self, caplog):
-        schema = _schema(section_text=TemplateText(singular=[_ref("control", "tilt")]))
-        state = create_initial_state(schema)
-
-        with caplog.at_level(logging.WARNING, logger="promptcrafter.runtime"):
-            get_text_value(schema.sections[0].text, False, schema, state)
-
         assert caplog.records == []

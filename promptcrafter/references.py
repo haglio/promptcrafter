@@ -2,10 +2,9 @@
 
 Every failed lookup in the renderer answers with the empty string, so a mistyped
 id reaches the prompt as silence: the text is shorter than it should be, nothing
-says why, and there is no way to tell a typo from a deliberate blank. This is the
-half that can be checked before anything renders; runtime says so once per id
-when it happens anyway, which is the only thing that can reach a schema the suite
-never sees.
+says why, and there is no way to tell a typo from a deliberate blank. So the app
+says so here, once, on the way up, for the schema it loaded -- the private one
+beside the checkout included, which no suite sees.
 
 It walks the schema itself rather than borrowing the renderer's lookups: what it
 needs is the whole set of ids, which is one pass, and taking it from here keeps
