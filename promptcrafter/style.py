@@ -25,8 +25,6 @@ from shared_ui.colors import (
     TEXT_MUTED,
     TEXT_PRIMARY,
     TEXT_SECONDARY,
-    TOGGLE_OFF,
-    TOGGLE_ON,
 )
 from shared_ui.fonts import FONT_UI, SIZE_BODY, SIZE_HEADING
 from shared_ui.icons import icon_pixmap
@@ -46,7 +44,6 @@ _COPY_ICON = 14
 
 _GROOVE_H = 4
 _HANDLE_SIDE = 14
-_SWITCH_H = 24
 _TITLE_ROOM = in_pixels(SIZE_HEADING) + 2 * GAP_MEDIUM
 
 
@@ -87,8 +84,6 @@ def build_stylesheet() -> str:
     t_muted = _qcolor_hex(TEXT_MUTED)
     border = _qcolor_hex(BORDER_SUBTLE)
     blue = _qcolor_hex(BLUE)
-    tog_on = _qcolor_hex(TOGGLE_ON)
-    tog_off = _qcolor_hex(TOGGLE_OFF)
     font = FONT_UI
     sz = SIZE_BODY
 
@@ -223,17 +218,5 @@ def build_stylesheet() -> str:
     QSlider::sub-page:horizontal {{
         background: {blue};
         border-radius: {_GROOVE_H // 2}px;
-    }}
-    QCheckBox#toggle_switch {{
-        spacing: 0px;
-    }}
-    QCheckBox#toggle_switch::indicator {{
-        width: 44px;
-        height: {_SWITCH_H}px;
-        border-radius: {_SWITCH_H // 2}px;
-        background: {tog_off};
-    }}
-    QCheckBox#toggle_switch::indicator:checked {{
-        background: {tog_on};
     }}
     """

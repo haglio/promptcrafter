@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import (
     QApplication,
-    QCheckBox,
     QFrame,
     QGroupBox,
     QHBoxLayout,
@@ -26,6 +27,7 @@ from shared_ui.palette import PREVIEW_INK, as_hex
 from shared_ui.preview import Preview, window_title
 from shared_ui.spacing import BUTTON_ICON, GAP_DIALOG, GAP_MEDIUM, GAP_SMALL, MARGIN_DIALOG
 from shared_ui.tick_control import TickControl
+from shared_ui.toggle_switch import ToggleSwitch
 
 from promptcrafter.kinds import is_or_prefixed_kind
 from promptcrafter.runtime import (
@@ -342,23 +344,9 @@ class PromptCrafterWindow(QMainWindow):
         plural = is_subject_plural(self.state)
         label = self._display_text(control.text, plural)
 
-        # Options row
-        options_row = QWidget()
-        options_layout = QHBoxLayout(options_row)
-        options_layout.setContentsMargins(0, 0, 0, 0)
-        options_layout.setSpacing(GAP_DIALOG)
-        options_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-
-        toggle = QCheckBox()
-        toggle.setObjectName("toggle_switch")
-        toggle.setAccessibleName(label)
-        toggle.setText(label)
-        toggle.setChecked(is_toggle_enabled(cs))
-        toggle.setEnabled(not disabled)
-        toggle.clicked.connect(lambda checked, cid=control.id: self._on_toggle(cid, checked))
-        options_layout.addWidget(toggle)
-
-        layout.addWidget(options_row)
+        layout.addWidget(_switch_row(
+            label, on=is_toggle_enabled(cs), disabled=disabled,
+            thrown=lambda checked, cid=control.id: self._on_toggle(cid, checked)))
 
         # Multi-option toggles show options when enabled
         has_option_list = len(control.options) > 1 and toggle_holds_an_option_list(cs)
@@ -391,24 +379,9 @@ class PromptCrafterWindow(QMainWindow):
         label = self._display_text(control.text, plural)
         is_on = cs.selected_options.is_switched_on()
 
-        # Toggle row
-        toggle_row = QWidget()
-        toggle_layout = QHBoxLayout(toggle_row)
-        toggle_layout.setContentsMargins(0, 0, 0, 0)
-        toggle_layout.setSpacing(GAP_DIALOG)
-        toggle_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-
-        toggle = QCheckBox()
-        toggle.setObjectName("toggle_switch")
-        toggle.setAccessibleName(label)
-        toggle.setText(label)
-        toggle.setChecked(is_on)
-        toggle.setEnabled(not disabled)
-        toggle.clicked.connect(
-            lambda checked, cid=control.id: self._on_global_selector_toggle(cid, checked)
-        )
-        toggle_layout.addWidget(toggle)
-        layout.addWidget(toggle_row)
+        layout.addWidget(_switch_row(
+            label, on=is_on, disabled=disabled,
+            thrown=lambda checked, cid=control.id: self._on_global_selector_toggle(cid, checked)))
 
         if is_on:
             opts_row = QWidget()
@@ -635,3 +608,17 @@ class PromptCrafterWindow(QMainWindow):
             self.positive_prompt.setPlainText(build_prompt(self.schema, self.state, "positive"))
         if self.state.modes["negative"] == "auto":
             self.negative_prompt.setPlainText(build_prompt(self.schema, self.state, "negative"))
+
+
+def _switch_row(label: str, *, on: bool, disabled: bool, thrown: Callable[[bool], None]) -> QWidget:
+    row = QWidget()
+    row_layout = QHBoxLayout(row)
+    row_layout.setContentsMargins(0, 0, 0, 0)
+    row_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+    switch = ToggleSwitch(label)
+    switch.setAccessibleName(label)
+    switch.setChecked(on)
+    switch.setEnabled(not disabled)
+    switch.clicked.connect(thrown)
+    row_layout.addWidget(switch)
+    return row
