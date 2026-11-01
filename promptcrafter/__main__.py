@@ -4,7 +4,7 @@ import logging
 import sys
 
 from PyQt6.QtWidgets import QApplication
-from shared_ui.chrome import family_stylesheet
+from shared_ui.colors import dress_application
 from shared_ui.loading_window import Loading, LoadingCanceled
 from shared_ui.preview_icon import app_icon
 
@@ -28,9 +28,9 @@ name_this_process()
 log_errors_and_keep_running()
 
 app = QApplication(sys.argv)
-# The family's chrome goes on the application, where the tooltip rule can
-# reach a top-level popup; the window's own sheet sits over it.
-app.setStyleSheet(family_stylesheet())
+# The family's palette and chrome go on the application, where the tooltip
+# rule can reach a top-level popup; the window's own sheet sits over it.
+dress_application(app)
 icon = icon_path()
 if icon.is_file():
     app.setWindowIcon(app_icon(icon, preview))
