@@ -17,9 +17,10 @@ from shared_ui.icons import qt_icon
 from shared_ui.palette import PREVIEW_INK
 from shared_ui.preview import Preview
 from shared_ui.tick_control import TickControl
+from shared_ui.toggle_switch import ToggleSwitch
 
 from promptcrafter.app import PromptCrafterWindow
-from promptcrafter.types import Control, Option, Schema, Section, Submenu
+from promptcrafter.types import Control, DisabledOrHiddenBy, Option, Schema, Section, Submenu
 from tests.fixtures.sample_schema import SAMPLE_SCHEMA
 
 
@@ -60,7 +61,7 @@ def window_with_a_toggle(qtbot):
 
 
 def find_tick(container, label, *, required=True):
-    for cb in container.findChildren(QCheckBox):
+    for cb in container.findChildren((QCheckBox, ToggleSwitch)):
         if cb.text() == label or cb.accessibleName() == label:
             return cb
     if required:
@@ -254,6 +255,22 @@ class TestToggleControls:
         assert find_tick(window, "oak").isChecked()
         assert find_tick(window, "pine").isChecked()
         assert window.positive_prompt.toPlainText() == "space robo dino demon monster, oak, pine"
+
+    def test_an_option_another_hides_is_left_out_of_the_list_a_switch_shows(self, qtbot):
+        schema = copy.deepcopy(SAMPLE_SCHEMA)
+        schema.sections[1].controls.insert(0, Control(
+            id="texture pack", text="texture pack", kind="toggle",
+            initially_selected_options=["oak"],
+            options=[Option(id="oak", text="oak"),
+                     Option(id="pine", text="pine", hidden_bys=[DisabledOrHiddenBy(option_id="oak")])],
+        ))
+        window = PromptCrafterWindow(schema)
+        qtbot.addWidget(window)
+
+        find_tick(window, "texture pack").click()
+
+        assert find_tick(window, "oak").isChecked()
+        assert query_tick(window, "pine") is None
 
     def test_uses_initial_option_defaults_when_turned_on(self, window_with_a_toggle):
         window = window_with_a_toggle(initially_selected_options=["oak"])
@@ -824,10 +841,11 @@ class TestCopying:
 def test_option_ticks_use_the_shared_tick_control(app):
     # Every option tick must be the shared TickControl (a real ticked square),
     # not a plain QCheckBox whose styled indicator renders as a down-caret.
-    # The QSS pill toggles (objectName "toggle_switch") stay QCheckBox.
-    option_ticks = [
-        cb for cb in app.findChildren(QCheckBox)
-        if cb.objectName() != "toggle_switch"
-    ]
+    option_ticks = app.findChildren(QCheckBox)
     assert option_ticks  # the test schema renders tick options
     assert all(isinstance(cb, TickControl) for cb in option_ticks)
+
+
+def test_the_on_off_controls_are_the_familys_switch(app):
+    switches = {switch.text() for switch in app.findChildren(ToggleSwitch)}
+    assert switches == {"colorize", "is portrait", "thorax mode", "negative-switch"}
