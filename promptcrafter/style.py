@@ -26,8 +26,8 @@ from shared_ui.colors import (
     TEXT_SECONDARY,
 )
 from shared_ui.fonts import FONT_UI, SIZE_BODY, SIZE_HEADING
+from shared_ui.icon_button import fill_square_with_icon
 from shared_ui.icons import icon_pixmap
-from shared_ui.mark_button import fill_square_with_mark
 from shared_ui.spacing import (
     BUTTON_ICON_INSET,
     BUTTON_PAD_H,
@@ -55,7 +55,7 @@ def copy_button(accessible_name: str) -> QPushButton:
     cursor is over the button, and a stylesheet hover rule cannot reach into a
     drawn mark the way it reaches text.
     """
-    button = fill_square_with_mark(QPushButton())
+    button = fill_square_with_icon(QPushButton())
     button.setObjectName("copy_button")
     button.setAccessibleName(accessible_name)
     mark = button.iconSize().width()
