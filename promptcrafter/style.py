@@ -8,7 +8,6 @@ one icon.
 
 from __future__ import annotations
 
-from PyQt6.QtCore import QSize
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QPushButton
 
@@ -28,6 +27,7 @@ from shared_ui.colors import (
 )
 from shared_ui.fonts import FONT_UI, SIZE_BODY, SIZE_HEADING
 from shared_ui.icons import icon_pixmap
+from shared_ui.mark_button import fill_square_with_mark
 from shared_ui.spacing import (
     BUTTON_ICON_INSET,
     BUTTON_PAD_H,
@@ -38,9 +38,6 @@ from shared_ui.spacing import (
     MARGIN_DIALOG,
 )
 from shared_ui.type_scale import in_pixels
-
-# The copy button's mark, at the size its 22px square leaves room for.
-_COPY_ICON = 14
 
 _GROOVE_H = 4
 _HANDLE_SIDE = 14
@@ -58,14 +55,14 @@ def copy_button(accessible_name: str) -> QPushButton:
     cursor is over the button, and a stylesheet hover rule cannot reach into a
     drawn mark the way it reaches text.
     """
-    button = QPushButton()
+    button = fill_square_with_mark(QPushButton())
     button.setObjectName("copy_button")
     button.setAccessibleName(accessible_name)
+    mark = button.iconSize().width()
     icon = QIcon()
-    icon.addPixmap(icon_pixmap("copy", _COPY_ICON, TEXT_MUTED), QIcon.Mode.Normal)
-    icon.addPixmap(icon_pixmap("copy", _COPY_ICON, TEXT_SECONDARY), QIcon.Mode.Active)
+    icon.addPixmap(icon_pixmap("copy", mark, TEXT_MUTED), QIcon.Mode.Normal)
+    icon.addPixmap(icon_pixmap("copy", mark, TEXT_SECONDARY), QIcon.Mode.Active)
     button.setIcon(icon)
-    button.setIconSize(QSize(_COPY_ICON, _COPY_ICON))
     return button
 
 
@@ -151,20 +148,6 @@ def build_stylesheet() -> str:
         border: none;
         border-radius: {BUTTON_RADIUS}px;
         padding: {BUTTON_PAD_V}px {BUTTON_PAD_H}px;
-    }}
-    QPushButton#copy_button {{
-        background: transparent;
-        color: {t_muted};
-        border: none;
-        padding: {BUTTON_ICON_INSET}px;
-        min-width: 22px;
-        max-width: 22px;
-        min-height: 22px;
-        max-height: 22px;
-    }}
-    QPushButton#copy_button:hover {{
-        background: {bg_btn};
-        color: {t2};
     }}
     QPushButton#weight_reset {{
         background: {bg_key};
