@@ -4,7 +4,8 @@ import copy
 
 import pytest
 
-from promptcrafter.runtime import build_prompt
+from promptcrafter.runtime import build_prompt, find_control, is_subject_plural
+from promptcrafter.schema import schema as demo_schema
 from promptcrafter.state import create_initial_state
 from promptcrafter.types import (
     Control,
@@ -602,3 +603,13 @@ class TestPlurality:
         assert "thorax, thorax side profile, thoraces" in prompt
         assert "torso" not in prompt
         assert "torsos" not in prompt
+
+
+def test_the_shipped_schema_holds_the_two_ids_plurality_hangs_on():
+    count = find_control(demo_schema, "count")
+    assert "two" in [option.id for option in count.options]
+
+    state = create_initial_state(demo_schema)
+    assert not is_subject_plural(state)
+    state.controls["count"].selected_options = OneOf("two")
+    assert is_subject_plural(state)

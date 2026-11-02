@@ -36,7 +36,7 @@
     "promptcrafter/win32.py": 19,
     "tests/conftest.py": 8,
     "tests/fixtures/sample_schema.py": 3,
-    "tests/test_app.py": 99,
+    "tests/test_app.py": 93,
     "tests/test_copy_button.py": 13,
     "tests/test_family_look.py": 1,
     "tests/test_gui_headless.py": 4,
@@ -67,7 +67,7 @@
   "uncovered_lines": {
     "promptcrafter/__main__.py": 28,
     "promptcrafter/app.py": 6,
-    "promptcrafter/runtime.py": 44,
+    "promptcrafter/runtime.py": 38,
     "promptcrafter/state.py": 2,
     "promptcrafter/toggle_state.py": 3,
     "promptcrafter/transitions.py": 3

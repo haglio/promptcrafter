@@ -565,13 +565,7 @@ class TestWeights:
         assert find_slider(section) is None
 
     def test_no_control_slider_when_no_selection(self, app):
-        # armor has no selection initially — find its container and check no slider
-        # We check there's no slider by verifying the label widget has no sibling slider
-        # This is implicitly true since the _build_control method only adds sliders when has selection
-        # Just verify build works without error and armor section has no slider next to it
-        # armor's header should exist but shouldn't have a slider
-        # We need a more targeted approach — for now, verify slider count is limited
-        assert app.positive_prompt.toPlainText() == "space robo dino demon monster"
+        assert find_slider(find_control(app, "armor")) is None
 
     def test_section_weight_reset_button_appears(self, qtbot, app):
         section = find_section(app, "negative modes")
