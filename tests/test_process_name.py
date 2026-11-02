@@ -12,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from app_support.launcher import launchers
-from app_support.process_identity_check import assert_the_app_names_its_process
+from app_support.process_identity_check import ProcessName, assert_the_process_is_named
 
 from promptcrafter.paths import icon_path
 from promptcrafter.process_name import APP_NAME, ROLE, name_this_process, namer
@@ -25,9 +25,16 @@ def test_the_app_prepares_the_copy_its_shortcut_starts_through(tmp_path: Path):
     described as the app's name alone -- one app with one window, so the row is
     its name, not its name twice; carrying the app's own mark; and never taking
     a launch down when there is nothing to copy from."""
-    assert_the_app_names_its_process(
-        name_this_process, tmp_path, app_name=APP_NAME, role=ROLE,
-        interpreter="pythonw.exe", row=APP_NAME, icon=icon_path())
+    assert_the_process_is_named(
+        name_this_process, tmp_path,
+        ProcessName(
+            app_name=APP_NAME,
+            role=ROLE,
+            interpreter="pythonw.exe",
+            row=APP_NAME,
+            icon=icon_path(),
+        ),
+    )
 
 
 def test_it_starts_through_the_copy_the_app_names_for_itself():
