@@ -62,7 +62,7 @@
   "simple_namespaces": {},
   "statements": {
     "promptcrafter/app.py": 407,
-    "promptcrafter/runtime.py": 366
+    "promptcrafter/runtime.py": 365
   },
   "uncovered_lines": {
     "promptcrafter/__main__.py": 28,
