@@ -40,7 +40,6 @@
     "tests/test_gui_headless.py": 4,
     "tests/test_kinds.py": 40,
     "tests/test_launch_smoke.py": 45,
-    "tests/test_launcher_contract.py": 12,
     "tests/test_module_boundaries.py": 15,
     "tests/test_paths.py": 3,
     "tests/test_process_name.py": 12,
