@@ -7,7 +7,7 @@ ignore = ["E501", "BLE001", "S110",
     # This repo's ratchet: each rule the family config still finds here, and its places today.
     "PLR0911",  # 3
     "UP007",  # 3
-    "C408",  # 2
+    "C408",  # 1
     "RET504",  # 1
 ]
 external = ["ARG", "N", "S", "E501", "BLE001", "S110", "PLR0911", "UP007", "C408", "RET504"]

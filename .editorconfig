@@ -12,3 +12,6 @@ indent_size = 4
 
 [*.{ps1,bat,cmd}]
 end_of_line = crlf
+
+[*.py]
+indent_size = 4
