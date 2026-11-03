@@ -333,13 +333,13 @@ SAMPLE_SCHEMA = Schema(sections=[
             Control(
                 id="is portrait",
                 text="is portrait",
-                kind="toggle",
+                kind="switch",
                 options=[Option(id="portrait", text="portrait")],
             ),
             Control(
                 id="thorax mode",
                 text="thorax mode",
-                kind="toggle",
+                kind="switch",
                 global_substitutions=[
                     GlobalSubstitution(
                         from_text="torso",
@@ -486,7 +486,7 @@ SAMPLE_SCHEMA = Schema(sections=[
             Control(
                 id="negative-switch",
                 text="negative-switch",
-                kind="toggle",
+                kind="switch",
                 initially_selected_options=True,
                 options=[Option(id="no clutter", text="no clutter")],
             ),

@@ -34,7 +34,7 @@ class TestTheDeclaredKinds:
             "or", "or-adv", "or-adj", "or-prefix",
             "and-commas", "and-commas-adj", "and-commas-adv",
             "and-spaces-adj", "required", "hidden-opposite",
-            "toggle", "global-selector",
+            "switch", "global-selector",
         }
 
     @pytest.mark.parametrize("kind", [*DECLARED_CONTROL_KINDS, *DECLARED_SUBMENU_KINDS])
@@ -60,7 +60,7 @@ class TestTheStateShapeMatchesWhatTheRendererReads:
         state = create_initial_state(schema)
         selected = state.controls["bough"].selected_options
 
-        if kind in ("toggle", "global-selector"):
+        if kind in ("switch", "global-selector"):
             return
         assert isinstance(selected, OneOf) == is_radio_kind(kind)
 

@@ -37,7 +37,7 @@
     "promptcrafter/__main__.py": 28,
     "promptcrafter/app.py": 6,
     "promptcrafter/runtime.py": 29,
-    "promptcrafter/toggle_state.py": 3,
+    "promptcrafter/switch_state.py": 3,
     "promptcrafter/transitions.py": 3
   }
 }

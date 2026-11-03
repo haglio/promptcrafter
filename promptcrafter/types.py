@@ -62,7 +62,7 @@ ControlKind = Literal[
     "or", "or-adv", "or-adj", "or-prefix",
     "and-commas", "and-commas-adj", "and-commas-adv",
     "and-spaces-adj", "required", "hidden-opposite",
-    "toggle", "global-selector",
+    "switch", "global-selector",
 ]
 
 SubmenuKind = Literal["or-adv", "or-adj", "and-adv", "and-adj"]

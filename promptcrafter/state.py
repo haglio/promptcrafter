@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from promptcrafter.kinds import is_or_prefixed_kind
-from promptcrafter.toggle_state import create_initial_toggle_state
+from promptcrafter.switch_state import create_initial_switch_state
 from promptcrafter.types import (
     Control,
     ControlState,
@@ -37,8 +37,8 @@ def _initial_selection(control: Control) -> Selection:
 
 
 def _create_control_state(control: Control) -> ControlState:
-    if control.kind == "toggle":
-        return create_initial_toggle_state(control)
+    if control.kind == "switch":
+        return create_initial_switch_state(control)
     return ControlState(selected_options=_initial_selection(control), weight=1)
 
 
