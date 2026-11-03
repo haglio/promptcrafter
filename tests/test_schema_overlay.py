@@ -247,3 +247,10 @@ def test_a_built_schema_can_open_the_app_state():
     state = create_initial_state(schema_from_document(MINIMAL))
     assert state.controls["beta"].selected_options == OneOf()
     assert list(state.sections) == ["alpha"]
+
+
+def test_a_control_the_private_file_calls_a_toggle_is_a_switch():
+    schema = schema_from_document(
+        _with_control({"id": "beta", "text": "beta", "kind": "toggle", "options": []}))
+
+    assert schema.sections[0].controls[0].kind == "switch"

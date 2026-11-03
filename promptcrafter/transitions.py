@@ -4,7 +4,7 @@ import re
 from collections.abc import Iterator
 
 from promptcrafter.runtime import find_control
-from promptcrafter.toggle_state import get_toggle_selections_for_next_state
+from promptcrafter.switch_state import get_switch_selections_for_next_state
 from promptcrafter.types import Control, ControlState, ManyOf, OneOf, Schema, State, Switch
 
 
@@ -22,14 +22,14 @@ def toggle_option(state: State, control_key: str, option_id: str) -> None:
     cs.selected_options = cs.selected_options.with_toggled(option_id)
 
 
-def set_toggle_enabled(schema: Schema, state: State, control_id: str, enabled: bool) -> None:
+def set_switch_on(schema: Schema, state: State, control_id: str, enabled: bool) -> None:
     cs = state.controls.get(control_id)
     if not cs:
         return
     control = find_control(schema, control_id)
     if not control:
         return
-    cs.selected_options = get_toggle_selections_for_next_state(control, cs, enabled)
+    cs.selected_options = get_switch_selections_for_next_state(control, cs, enabled)
     cs.enabled = enabled
 
 

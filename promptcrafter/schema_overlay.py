@@ -22,6 +22,9 @@ from promptcrafter.types import (
     TextValue,
 )
 
+_KIND_THE_FILE_CALLS_TOGGLE = {"toggle": "switch"}
+
+
 OVERLAY_NAME = "schema.local.json"
 
 
@@ -104,7 +107,7 @@ def _control(doc: dict) -> Control:
     return Control(
         id=doc["id"],
         text=_text(doc["text"]),
-        kind=doc["kind"],
+        kind=_KIND_THE_FILE_CALLS_TOGGLE.get(doc["kind"], doc["kind"]),
         custom_text=_text(doc["customText"]) if "customText" in doc else None,
         initially_selected_options=doc.get("initiallySelectedOptions"),
         global_substitutions=[_substitution(g) for g in doc.get("globalSubstitutions", [])],

@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 
 from promptcrafter.kinds import is_adverb_submenu_kind, is_radio_kind
-from promptcrafter.toggle_state import is_toggle_enabled, toggle_holds_an_option_list
+from promptcrafter.switch_state import is_switch_on, switch_holds_an_option_list
 from promptcrafter.types import (
     Control,
     ControlState,
@@ -52,8 +52,8 @@ def control_has_at_least_one_selected_option(control: Control, state: State) -> 
         return False
     if control.kind == "required":
         return True
-    if control.kind == "toggle":
-        return is_toggle_enabled(cs)
+    if control.kind == "switch":
+        return is_switch_on(cs)
     if control.kind == "global-selector":
         return cs.selected_options.is_switched_on()
     return cs.selected_options.has_selection()
@@ -181,12 +181,12 @@ def get_active_substitutions(schema: Schema, state: State) -> list[GlobalSubstit
         if is_hidden(state, section.hidden_bys, section.revealed_bys) or is_disabled(state, section.disabled_bys):
             continue
         for control in section.controls:
-            if control.kind != "toggle":
+            if control.kind != "switch":
                 continue
             if is_hidden(state, control.hidden_bys, control.revealed_bys) or is_disabled(state, control.disabled_bys):
                 continue
             cs = state.controls.get(control.id)
-            if not cs or not is_toggle_enabled(cs):
+            if not cs or not is_switch_on(cs):
                 continue
             substitutions.extend(control.global_substitutions)
     return substitutions
@@ -362,12 +362,12 @@ def _render_every_selected_option(
     return _supplemented_segment(combined, control, rendering, cs.weight)
 
 
-def _render_toggle(
+def _render_switch(
     control: Control, cs: ControlState, rendering: _Rendering, disabled: bool,
 ) -> Segment | None:
-    if disabled or not is_toggle_enabled(cs):
+    if disabled or not is_switch_on(cs):
         return None
-    if toggle_holds_an_option_list(cs):
+    if switch_holds_an_option_list(cs):
         return _render_every_selected_option(control, cs, rendering, disabled)
     if not control.options and control.global_substitutions:
         return None
@@ -432,7 +432,7 @@ def _render_and_list(
 
 
 _RENDERER_OF_KIND = {
-    "toggle": _render_toggle,
+    "switch": _render_switch,
     "required": _render_every_selected_option,
     "hidden-opposite": _render_hidden_opposite,
 }

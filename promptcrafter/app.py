@@ -40,9 +40,9 @@ from promptcrafter.runtime import (
 )
 from promptcrafter.state import create_initial_state
 from promptcrafter.style import build_stylesheet, copy_button
-from promptcrafter.toggle_state import (
-    is_toggle_enabled,
-    toggle_holds_an_option_list,
+from promptcrafter.switch_state import (
+    is_switch_on,
+    switch_holds_an_option_list,
 )
 from promptcrafter.transitions import (
     choose_global_selector_option,
@@ -50,7 +50,7 @@ from promptcrafter.transitions import (
     set_control_weight,
     set_global_selector_enabled,
     set_section_weight,
-    set_toggle_enabled,
+    set_switch_on,
     toggle_option,
 )
 from promptcrafter.types import (
@@ -300,29 +300,29 @@ class PromptCrafterWindow(QMainWindow):
 
         vlayout.addWidget(header)
 
-        if control.kind == "toggle":
-            self._build_toggle_control(vlayout, control, cs, disabled)
+        if control.kind == "switch":
+            self._build_switch_control(vlayout, control, cs, disabled)
         elif control.kind == "global-selector":
             self._build_global_selector_control(vlayout, control, cs, disabled)
         elif is_or_prefixed_kind(control.kind):
             self._build_radio_control(vlayout, control, cs, disabled)
         else:
-            self._build_tick_control(vlayout, control, cs, disabled)
+            self._build_checkbox_control(vlayout, control, cs, disabled)
 
         return container
 
-    def _build_toggle_control(
+    def _build_switch_control(
         self, layout: QVBoxLayout, control: Control, cs: ControlState, disabled: bool
     ) -> None:
         plural = is_subject_plural(self.state)
         label = self._display_text(control.text, plural)
 
         layout.addWidget(_switch_row(
-            label, on=is_toggle_enabled(cs), disabled=disabled,
-            thrown=lambda checked, cid=control.id: self._on_toggle(cid, checked)))
+            label, on=is_switch_on(cs), disabled=disabled,
+            thrown=lambda checked, cid=control.id: self._on_switch(cid, checked)))
 
-        has_option_list = len(control.options) > 1 and toggle_holds_an_option_list(cs)
-        if is_toggle_enabled(cs) and has_option_list:
+        has_option_list = len(control.options) > 1 and switch_holds_an_option_list(cs)
+        if is_switch_on(cs) and has_option_list:
             opts_row = QWidget()
             opts_layout = QHBoxLayout(opts_row)
             opts_layout.setContentsMargins(0, 0, 0, 0)
@@ -338,7 +338,7 @@ class PromptCrafterWindow(QMainWindow):
                 cb.setChecked(cs.selected_options.contains(option.id))
                 cb.setEnabled(not opt_disabled)
                 cb.clicked.connect(
-                    lambda _, cid=control.id, oid=option.id: self._on_tick(cid, oid)
+                    lambda _, cid=control.id, oid=option.id: self._on_checkbox(cid, oid)
                 )
                 opts_layout.addWidget(cb)
 
@@ -353,7 +353,7 @@ class PromptCrafterWindow(QMainWindow):
 
         layout.addWidget(_switch_row(
             label, on=is_on, disabled=disabled,
-            thrown=lambda checked, cid=control.id: self._on_global_selector_toggle(cid, checked)))
+            thrown=lambda checked, cid=control.id: self._on_global_selector_switch(cid, checked)))
 
         if is_on:
             opts_row = QWidget()
@@ -415,7 +415,7 @@ class PromptCrafterWindow(QMainWindow):
 
         layout.addWidget(options_row)
 
-    def _build_tick_control(
+    def _build_checkbox_control(
         self, layout: QVBoxLayout, control: Control, cs: ControlState, disabled: bool
     ) -> None:
         plural = is_subject_plural(self.state)
@@ -443,7 +443,7 @@ class PromptCrafterWindow(QMainWindow):
             cb.setChecked(cs.selected_options.contains(option.id))
             cb.setEnabled(not opt_disabled)
             cb.clicked.connect(
-                lambda _, cid=control.id, oid=option.id: self._on_tick(cid, oid)
+                lambda _, cid=control.id, oid=option.id: self._on_checkbox(cid, oid)
             )
             stack_layout.addWidget(cb)
 
@@ -492,7 +492,7 @@ class PromptCrafterWindow(QMainWindow):
                 cb.setChecked(submenu_state.selected_options.contains(child.id))
                 cb.setEnabled(not child_disabled)
                 cb.clicked.connect(
-                    lambda _, k=key, oid=child.id: self._on_tick(k, oid)
+                    lambda _, k=key, oid=child.id: self._on_checkbox(k, oid)
                 )
                 indent_layout.addWidget(cb)
 
@@ -530,15 +530,15 @@ class PromptCrafterWindow(QMainWindow):
         choose_option(self.state, control_key, option_id)
         self._rebuild()
 
-    def _on_tick(self, control_key: str, option_id: str) -> None:
+    def _on_checkbox(self, control_key: str, option_id: str) -> None:
         toggle_option(self.state, control_key, option_id)
         self._rebuild()
 
-    def _on_toggle(self, control_id: str, checked: bool) -> None:
-        set_toggle_enabled(self.schema, self.state, control_id, checked)
+    def _on_switch(self, control_id: str, checked: bool) -> None:
+        set_switch_on(self.schema, self.state, control_id, checked)
         self._rebuild()
 
-    def _on_global_selector_toggle(self, control_id: str, checked: bool) -> None:
+    def _on_global_selector_switch(self, control_id: str, checked: bool) -> None:
         set_global_selector_enabled(self.schema, self.state, control_id, checked)
         self._rebuild()
 

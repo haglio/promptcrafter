@@ -134,7 +134,7 @@ schema = Schema(sections=[
             Control(
                 id="wakka",
                 text="wakka",
-                kind="toggle",
+                kind="switch",
                 initially_selected_options=True,
                 options=[Option(id="no clutter", text="no clutter")],
             ),

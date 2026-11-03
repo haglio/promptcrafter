@@ -33,11 +33,11 @@ def app(qtbot):
 
 
 @pytest.fixture
-def window_with_a_toggle(qtbot):
+def window_with_a_switch(qtbot):
     def build(initially_selected_options=None):
         schema = copy.deepcopy(SAMPLE_SCHEMA)
         schema.sections[1].controls.insert(0, Control(
-            id="texture pack", text="texture pack", kind="toggle",
+            id="texture pack", text="texture pack", kind="switch",
             initially_selected_options=initially_selected_options,
             options=[Option(id="oak", text="oak"), Option(id="pine", text="pine")],
         ))
@@ -204,17 +204,17 @@ class TestUpdatingPrompts:
         assert not find_radio(app, "bone").isChecked()
 
 
-class TestToggleControls:
-    def test_keeps_multi_option_toggles_off_initially(self, window_with_a_toggle):
-        window = window_with_a_toggle(initially_selected_options=["oak"])
+class TestSwitchControls:
+    def test_keeps_multi_option_switchs_off_initially(self, window_with_a_switch):
+        window = window_with_a_switch(initially_selected_options=["oak"])
 
-        toggle = find_tick(window, "texture pack")
-        assert not toggle.isChecked()
+        switch = find_tick(window, "texture pack")
+        assert not switch.isChecked()
         assert query_tick(window, "oak") is None
         assert window.positive_prompt.toPlainText() == "space robo dino demon monster"
 
-    def test_shows_options_when_toggle_turned_on(self, window_with_a_toggle):
-        window = window_with_a_toggle()
+    def test_shows_options_when_switch_turned_on(self, window_with_a_switch):
+        window = window_with_a_switch()
 
         assert query_tick(window, "oak") is None
         find_tick(window, "texture pack").click()
@@ -226,7 +226,7 @@ class TestToggleControls:
     def test_an_option_another_hides_is_left_out_of_the_list_a_switch_shows(self, qtbot):
         schema = copy.deepcopy(SAMPLE_SCHEMA)
         schema.sections[1].controls.insert(0, Control(
-            id="texture pack", text="texture pack", kind="toggle",
+            id="texture pack", text="texture pack", kind="switch",
             initially_selected_options=["oak"],
             options=[Option(id="oak", text="oak"),
                      Option(id="pine", text="pine", hidden_bys=[DisabledOrHiddenBy(option_id="oak")])],
@@ -239,8 +239,8 @@ class TestToggleControls:
         assert find_tick(window, "oak").isChecked()
         assert query_tick(window, "pine") is None
 
-    def test_uses_initial_option_defaults_when_turned_on(self, window_with_a_toggle):
-        window = window_with_a_toggle(initially_selected_options=["oak"])
+    def test_uses_initial_option_defaults_when_turned_on(self, window_with_a_switch):
+        window = window_with_a_switch(initially_selected_options=["oak"])
 
         find_tick(window, "texture pack").click()
 
@@ -248,8 +248,8 @@ class TestToggleControls:
         assert not find_tick(window, "pine").isChecked()
         assert window.positive_prompt.toPlainText() == "space robo dino demon monster, oak"
 
-    def test_preserves_narrowed_selection_across_off_on(self, window_with_a_toggle):
-        window = window_with_a_toggle()
+    def test_preserves_narrowed_selection_across_off_on(self, window_with_a_switch):
+        window = window_with_a_switch()
 
         find_tick(window, "texture pack").click()
         find_tick(window, "pine").click()
@@ -559,7 +559,7 @@ class TestWeights:
 
 class TestGlobalSelector:
 
-    def _click_the_toggle(self, app):
+    def _click_the_switch(self, app):
         find_tick(find_control(app, "colorize"), "colorize").click()
 
     def _choose(self, app, option_label):
@@ -573,7 +573,7 @@ class TestGlobalSelector:
         assert query_radio(colorize, "black") is None
 
     def test_shows_options_when_turned_on(self, app):
-        self._click_the_toggle(app)
+        self._click_the_switch(app)
 
         colorize = find_control(app, "colorize")
         assert find_tick(colorize, "colorize").isChecked()
@@ -581,7 +581,7 @@ class TestGlobalSelector:
         assert find_radio(colorize, "black").isEnabled()
 
     def test_selects_the_same_option_in_every_other_control(self, app):
-        self._click_the_toggle(app)
+        self._click_the_switch(app)
         self._choose(app, "green")
 
         assert find_radio(find_control(app, "eye color"), "green").isChecked()
@@ -590,13 +590,13 @@ class TestGlobalSelector:
         )
 
     def test_reaches_options_that_contain_the_chosen_id_as_a_word(self, app):
-        self._click_the_toggle(app)
+        self._click_the_switch(app)
         self._choose(app, "green")
 
         assert find_tick(find_control(app, "render style"), "green tinted").isChecked()
 
     def test_choosing_another_option_releases_the_first(self, app):
-        self._click_the_toggle(app)
+        self._click_the_switch(app)
         self._choose(app, "green")
         self._choose(app, "black")
 
@@ -608,9 +608,9 @@ class TestGlobalSelector:
         )
 
     def test_turning_it_off_clears_everything_it_selected(self, app):
-        self._click_the_toggle(app)
+        self._click_the_switch(app)
         self._choose(app, "green")
-        self._click_the_toggle(app)
+        self._click_the_switch(app)
 
         assert not find_radio(find_control(app, "eye color"), "green").isChecked()
         assert not find_tick(find_control(app, "render style"), "green tinted").isChecked()
@@ -701,11 +701,11 @@ class TestCopying:
     def test_the_section_copy_reads_past_a_section_that_names_no_target(self, qtbot):
         schema = Schema(sections=[
             Section(id="zonk", text="zonk", controls=[
-                Control(id="quaffle", text="quaffle", kind="toggle",
+                Control(id="quaffle", text="quaffle", kind="switch",
                         initially_selected_options=True),
             ]),
             Section(id="zonk", text="zonk", prompt_target="negative", controls=[
-                Control(id="snitch", text="snitch", kind="toggle",
+                Control(id="snitch", text="snitch", kind="switch",
                         initially_selected_options=True),
             ]),
         ])

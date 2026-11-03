@@ -98,12 +98,12 @@ class TestControlKinds:
 
         assert build_prompt(SAMPLE_SCHEMA, state, "negative") == "no clutter, blurry, cold"
 
-    def test_does_not_render_multi_option_toggles_just_because_they_have_defaults(self):
+    def test_does_not_render_multi_option_switchs_just_because_they_have_defaults(self):
         schema = copy.deepcopy(SAMPLE_SCHEMA)
         schema.sections[1].controls.insert(0, Control(
             id="texture pack",
             text="texture pack",
-            kind="toggle",
+            kind="switch",
             initially_selected_options=["oak", "pine"],
             options=[
                 Option(id="oak", text="oak"),
@@ -133,12 +133,12 @@ class TestControlKinds:
 
         assert build_prompt(schema, state, "positive") == "space robo dino demon monster, hero, villain"
 
-    def test_global_substitutions_for_toggles_without_options(self):
+    def test_global_substitutions_for_switchs_without_options(self):
         schema = copy.deepcopy(SAMPLE_SCHEMA)
         schema.sections[1].controls.insert(0, Control(
             id="thorax mode lite",
             text="replace torso terminology",
-            kind="toggle",
+            kind="switch",
             global_substitutions=[GlobalSubstitution(from_text="torso", to_text="thorax")],
             options=[],
         ))
@@ -155,13 +155,13 @@ class TestControlKinds:
 
         assert build_prompt(schema, state, "positive") == "space robo dino demon monster, thorax badge"
 
-    def test_renders_control_text_for_toggles_without_options_when_enabled(self):
+    def test_renders_control_text_for_switchs_without_options_when_enabled(self):
         schema = copy.deepcopy(SAMPLE_SCHEMA)
         schema.sections[1].controls.insert(0, Control(
             id="safety mode",
             text="safety mode",
             custom_text="keep safe",
-            kind="toggle",
+            kind="switch",
             options=[],
         ))
 
@@ -172,7 +172,7 @@ class TestControlKinds:
 
 
 _LIST_KINDS = [
-    ("toggle", "zeta, korth", "korth"),
+    ("switch", "zeta, korth", "korth"),
     ("required", "zeta, korth", "korth"),
     ("hidden-opposite", "zeta, korth", "korth"),
     ("and-commas", "zeta, korth", "korth"),
@@ -200,9 +200,9 @@ def _a_control_of_kind(kind, *, control_disabled=False, option_disabled=False,
         hidden_opposite_bys=[DisabledOrHiddenBy(control_id="ward")],
     )
     return Schema(sections=[Section(id="glade", text="glade", controls=[
-        Control(id="ward", text="ward", kind="toggle", initially_selected_options=True,
+        Control(id="ward", text="ward", kind="switch", initially_selected_options=True,
                 options=[Option(id="warded", text="warded")]),
-        Control(id="gale", text="gale", kind="toggle",
+        Control(id="gale", text="gale", kind="switch",
                 options=[Option(id="gusting", text="gusting")]),
         probe,
     ])])
@@ -269,8 +269,8 @@ class TestASegmentWithNothingInIt:
         state.controls["mute"].enabled = True
         return build_prompt(schema, state, "positive")
 
-    def test_an_empty_toggle_counts_as_the_prefixs_partner(self):
-        assert self._prefix_then("toggle", Switch(True)) == "alpha"
+    def test_an_empty_switch_counts_as_the_prefixs_partner(self):
+        assert self._prefix_then("switch", Switch(True)) == "alpha"
 
     def test_an_empty_and_commas_does_not_and_takes_the_prefix_with_it(self):
         assert self._prefix_then("and-commas", ManyOf(("beta",))) == ""

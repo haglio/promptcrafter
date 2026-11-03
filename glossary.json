@@ -14,63 +14,94 @@
     {
       "id": "promptcrafter",
       "thing": "this app: one window, the two prompts at the top and the sections scrolling under them",
-      "screen": ["PromptCrafter"],
+      "screen": [
+        "PromptCrafter"
+      ],
       "his_word": "PromptCrafter",
-      "code_today": ["PromptCrafter"],
+      "code_today": [
+        "PromptCrafter"
+      ],
       "code_word": "PromptCrafter",
       "status": "agreed"
     },
     {
       "id": "positive_prompt",
       "thing": "the upper text box at the top of the window, holding the text the choices below add up to",
-      "screen": ["Positive prompt"],
+      "screen": [
+        "Positive prompt"
+      ],
       "his_word": "positive prompt",
-      "code_today": ["positive prompt"],
+      "code_today": [
+        "positive prompt"
+      ],
       "code_word": "positive prompt",
       "status": "agreed"
     },
     {
       "id": "negative_prompt",
       "thing": "the lower text box at the top of the window",
-      "screen": ["Negative prompt"],
+      "screen": [
+        "Negative prompt"
+      ],
       "his_word": "negative prompt",
-      "code_today": ["negative prompt"],
+      "code_today": [
+        "negative prompt"
+      ],
       "code_word": "negative prompt",
       "status": "agreed"
     },
     {
       "id": "copy_prompt",
       "thing": "the button with the two overlapping sheets beside a prompt's title",
-      "screen": ["Copy prompt"],
+      "screen": [
+        "Copy prompt"
+      ],
       "his_word": null,
-      "code_today": ["copy"],
+      "code_today": [
+        "copy"
+      ],
       "code_word": "copy",
       "status": "agreed"
     },
     {
       "id": "copy_section",
       "thing": "the same button at the top of a section",
-      "screen": ["Copy section"],
+      "screen": [
+        "Copy section"
+      ],
       "his_word": null,
-      "code_today": ["copy"],
+      "code_today": [
+        "copy"
+      ],
       "code_word": "copy",
       "status": "agreed"
     },
     {
       "id": "auto_manual",
       "thing": "the button beside a prompt that reads auto or manual, the one it will switch to",
-      "screen": ["auto", "manual"],
+      "screen": [
+        "auto",
+        "manual"
+      ],
       "his_word": null,
-      "code_today": ["auto", "manual", "mode"],
+      "code_today": [
+        "auto",
+        "manual",
+        "mode"
+      ],
       "code_word": "mode",
       "status": "agreed"
     },
     {
       "id": "section",
       "thing": "a titled frame in the scrolling part of the window",
-      "screen": ["Copy section"],
+      "screen": [
+        "Copy section"
+      ],
       "his_word": "section (Origenerator's list, 2026-10-30)",
-      "code_today": ["section"],
+      "code_today": [
+        "section"
+      ],
       "code_word": "section",
       "status": "agreed"
     },
@@ -79,25 +110,32 @@
       "thing": "the on/off control with Off on one side and On on the other",
       "screen": null,
       "his_word": "switch (shared_ui's list, 2026-10-13)",
-      "code_today": ["toggle"],
+      "code_today": [
+        "switch"
+      ],
       "code_word": "switch",
-      "status": "his_word"
+      "status": "agreed"
     },
     {
       "id": "checkbox",
       "thing": "a box that is ticked or not, in a row of them",
       "screen": null,
       "his_word": "checkbox (Origenerator's list, 2026-10-19)",
-      "code_today": ["tick"],
+      "code_today": [
+        "checkbox",
+        "tick control"
+      ],
       "code_word": "checkbox",
-      "status": "his_word"
+      "status": "agreed"
     },
     {
       "id": "round_button",
       "thing": "a round button in a row of them, one of which can be chosen",
       "screen": null,
       "his_word": null,
-      "code_today": ["radio"],
+      "code_today": [
+        "radio"
+      ],
       "code_word": "radio",
       "status": "kept"
     },
@@ -105,53 +143,70 @@
       "id": "control",
       "thing": "a bold title inside a section with its row of choices under it",
       "screen": null,
-      "his_word": null,
-      "code_today": ["control"],
-      "code_word": null,
-      "status": "unruled"
+      "his_word": "control",
+      "code_today": [
+        "control"
+      ],
+      "code_word": "control",
+      "status": "ruled",
+      "ruled": "2026-11-03, in the session that drew up this list: 'all the PromptCrafter code words are what I call them'"
     },
     {
       "id": "option",
       "thing": "one checkbox or round button in such a row, with its word beside it",
       "screen": null,
-      "his_word": null,
-      "code_today": ["option"],
-      "code_word": null,
-      "status": "unruled"
+      "his_word": "option",
+      "code_today": [
+        "option"
+      ],
+      "code_word": "option",
+      "status": "ruled",
+      "ruled": "2026-11-03, in the session that drew up this list: 'all the PromptCrafter code words are what I call them'"
     },
     {
       "id": "submenu",
       "thing": "the indented choices that open under a choice once it is picked",
       "screen": null,
-      "his_word": null,
-      "code_today": ["submenu"],
-      "code_word": null,
-      "status": "unruled"
+      "his_word": "submenu",
+      "code_today": [
+        "submenu"
+      ],
+      "code_word": "submenu",
+      "status": "ruled",
+      "ruled": "2026-11-03, in the session that drew up this list: 'all the PromptCrafter code words are what I call them'"
     },
     {
       "id": "global_selector",
       "thing": "a switch that opens a row of round buttons, whose choice also ticks the same word everywhere else in the window",
       "screen": null,
-      "his_word": null,
-      "code_today": ["global selector"],
-      "code_word": null,
-      "status": "unruled"
+      "his_word": "global selector",
+      "code_today": [
+        "global selector"
+      ],
+      "code_word": "global selector",
+      "status": "ruled",
+      "ruled": "2026-11-03, in the session that drew up this list: 'all the PromptCrafter code words are what I call them'"
     },
     {
       "id": "weight",
       "thing": "the slider at the right of a section or of a bold title, with an arrow beside it that puts it back to 1",
       "screen": null,
-      "his_word": null,
-      "code_today": ["weight"],
-      "code_word": null,
-      "status": "unruled"
+      "his_word": "weight",
+      "code_today": [
+        "weight"
+      ],
+      "code_word": "weight",
+      "status": "ruled",
+      "ruled": "2026-11-03, in the session that drew up this list: 'all the PromptCrafter code words are what I call them'"
     },
     {
       "id": "schema",
       "thing": "the private file that lists every section and choice; never on screen",
       "screen": null,
       "his_word": null,
-      "code_today": ["schema"],
+      "code_today": [
+        "schema"
+      ],
       "code_word": "schema",
       "status": "kept"
     },
@@ -160,7 +215,9 @@
       "thing": "Python's word for trimming spaces off text; never on screen",
       "screen": null,
       "his_word": null,
-      "code_today": ["strip"],
+      "code_today": [
+        "strip"
+      ],
       "code_word": "strip",
       "status": "kept"
     },
@@ -169,7 +226,9 @@
       "thing": "what Qt calls the rules for how the window looks; never on screen",
       "screen": null,
       "his_word": null,
-      "code_today": ["sheet"],
+      "code_today": [
+        "sheet"
+      ],
       "code_word": "sheet",
       "status": "kept"
     }

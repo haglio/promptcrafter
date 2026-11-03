@@ -10,7 +10,7 @@ from promptcrafter.transitions import (
     set_control_weight,
     set_global_selector_enabled,
     set_section_weight,
-    set_toggle_enabled,
+    set_switch_on,
     toggle_option,
 )
 from promptcrafter.types import (
@@ -136,26 +136,26 @@ class TestTickingSeveral:
         assert state.controls["alignment"].selected_options == OneOf("hero")
 
 
-class TestFlippingAToggle:
-    def test_turning_a_toggle_on_selects_its_defaults(self):
+class TestFlippingASwitch:
+    def test_turning_a_switch_on_selects_its_defaults(self):
         state = a_state()
 
-        set_toggle_enabled(SAMPLE_SCHEMA, state, "is portrait", True)
+        set_switch_on(SAMPLE_SCHEMA, state, "is portrait", True)
 
         assert state.controls["is portrait"].enabled is True
         assert state.controls["is portrait"].selected_options == Switch(True)
 
-    def test_turning_a_toggle_off_keeps_the_narrowed_selection(self):
+    def test_turning_a_switch_off_keeps_the_narrowed_selection(self):
         schema = copy.deepcopy(SAMPLE_SCHEMA)
         schema.sections[1].controls.insert(0, Control(
-            id="texture pack", text="texture pack", kind="toggle",
+            id="texture pack", text="texture pack", kind="switch",
             options=[Option(id="oak", text="oak"), Option(id="pine", text="pine")],
         ))
         state = create_initial_state(schema)
-        set_toggle_enabled(schema, state, "texture pack", True)
+        set_switch_on(schema, state, "texture pack", True)
         toggle_option(state, "texture pack", "pine")
 
-        set_toggle_enabled(schema, state, "texture pack", False)
+        set_switch_on(schema, state, "texture pack", False)
 
         assert state.controls["texture pack"].enabled is False
         assert state.controls["texture pack"].selected_options == ManyOf(("oak",))
@@ -164,7 +164,7 @@ class TestFlippingAToggle:
         state = a_state()
         state.controls["orphaned"] = ControlState(selected_options=Switch(False))
 
-        set_toggle_enabled(SAMPLE_SCHEMA, state, "orphaned", True)
+        set_switch_on(SAMPLE_SCHEMA, state, "orphaned", True)
 
         assert state.controls["orphaned"].selected_options == Switch(False)
         assert state.controls["orphaned"].enabled is None
@@ -344,7 +344,7 @@ class TestTheStateObjectsSurviveEveryRule:
 
         choose_option(state, "alignment", "hero")
         toggle_option(state, "appendages", "wings")
-        set_toggle_enabled(schema, state, "is portrait", True)
+        set_switch_on(schema, state, "is portrait", True)
         set_global_selector_enabled(schema, state, "colorize", True)
         choose_global_selector_option(schema, state, "colorize", "green")
         set_global_selector_enabled(schema, state, "colorize", False)

@@ -118,7 +118,7 @@ _SHAPES_BY_KIND = {
     "or": (OneOf,), "or-adv": (OneOf,), "or-adj": (OneOf,), "or-prefix": (OneOf,),
     "and-commas": (ManyOf,), "and-commas-adj": (ManyOf,), "and-commas-adv": (ManyOf,),
     "and-spaces-adj": (ManyOf,), "required": (ManyOf,), "hidden-opposite": (ManyOf,),
-    "toggle": (Switch, ManyOf), "global-selector": (Switch, OneOf),
+    "switch": (Switch, ManyOf), "global-selector": (Switch, OneOf),
 }
 
 
@@ -145,9 +145,9 @@ def _one_control_of(kind: str) -> Schema:
 
 
 def test_the_walk_names_a_feature_one_schema_carries_and_another_does_not():
-    assert schema_features(_one_control_of("toggle")) - schema_features(
+    assert schema_features(_one_control_of("switch")) - schema_features(
         _one_control_of("or")
-    ) == {"control:kind=toggle"}
+    ) == {"control:kind=switch"}
 
 
 _FIELDS_THE_WALK_HAS_AN_ANSWER_FOR = {

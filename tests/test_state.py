@@ -16,7 +16,7 @@ from promptcrafter.types import (
 
 
 class TestCreateInitialState:
-    def test_uses_toggle_helper_semantics_for_multi_option_defaults(self):
+    def test_uses_switch_helper_semantics_for_multi_option_defaults(self):
         state = create_initial_state(Schema(sections=[
             Section(
                 id="mods",
@@ -24,7 +24,7 @@ class TestCreateInitialState:
                 controls=[Control(
                     id="texture pack",
                     text="texture pack",
-                    kind="toggle",
+                    kind="switch",
                     options=[Option(id="oak", text="oak"), Option(id="pine", text="pine")],
                     initially_selected_options=["oak"],
                 )],
