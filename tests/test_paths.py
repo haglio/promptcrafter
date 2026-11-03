@@ -7,9 +7,6 @@ from pathlib import Path
 
 
 def test_app_module_imports_in_fresh_interpreter():
-    """A fresh process (real app launch / worktree) must resolve shared_ui on
-    its own, without a conftest or another test having patched sys.path -- which
-    it does by being an installed, pinned dependency."""
     pkg_root = Path(__file__).resolve().parents[1]
     code = (
         "import sys;"

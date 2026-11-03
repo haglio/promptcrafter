@@ -1,14 +1,3 @@
-"""What PromptCrafter's process is called in the Windows task list.
-
-Windows takes what it shows about a process from the file it was started from --
-the Details tab's name, the Processes tab's description, the icon beside it --
-so a plain ``pythonw.exe`` puts PromptCrafter in the task list as one more
-anonymous "Python" (:mod:`app_support.process_identity` has the whole of it).
-
-This process cannot be named on the way in: writing the copy takes the very
-interpreter being named.  So each run makes it for the run after, and
-``launch_promptcrafter.vbs`` starts the app through it once it is there.
-"""
 from __future__ import annotations
 
 from app_support.process_identity import ProcessNamer
@@ -20,12 +9,8 @@ ROLE = "PromptCrafter"
 
 
 def namer():
-    """The one answer to what this app's copy is called and how it describes itself."""
     return ProcessNamer(APP_NAME, icon=icon_path())
 
 
 def name_this_process() -> None:
-    """Make the copy the shortcut should start through next time; why it is one
-    launch late, and why it can never cost the launch, is
-    :meth:`ProcessNamer.name_this_process`'s to say."""
     namer().name_this_process(ROLE)

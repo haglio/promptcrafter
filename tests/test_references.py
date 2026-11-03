@@ -1,16 +1,3 @@
-"""An id a schema points at that the schema does not hold.
-
-Every failed lookup in the renderer answers with the empty string, so a mistyped
-id reaches the prompt as silence: the text is shorter than it should be and
-nothing anywhere says why, which leaves no way to tell a typo from a deliberate
-blank (audit promptcrafter/all/design/016). Two answers, both here: the ids can
-be checked before anything renders, and a lookup that fails at render time says
-so once in the log.
-
-Ids are the schema author's own vocabulary, so the whole-tree check below
-reports counts and kinds only -- no id out of a schema reaches this file's
-failure messages, which is what lets it run against a private one.
-"""
 from __future__ import annotations
 
 import logging
@@ -41,7 +28,6 @@ def _ref(kind, id_):
 
 def _schema(*, section_extra=None, control_extra=None, option_extra=None,
             section_text="plain"):
-    """A one-control schema, with room to hang a reference off each level."""
     return Schema(sections=[
         Section(
             id="frame",
@@ -91,7 +77,6 @@ class TestWhatCountsAsDangling:
         assert [(d.kind, d.id) for d in dangling_references(schema)] == [("option", "right")]
 
     def test_an_option_inside_a_submenu_is_a_real_option(self):
-        """The renderer finds it, so a checker that did not would cry wolf."""
         schema = Schema(sections=[Section(id="frame", text="plain", controls=[
             Control(id="tilt", text="tilt", kind="or", options=[
                 Option(id="left", text="left", submenu=Submenu(

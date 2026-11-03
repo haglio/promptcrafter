@@ -1,17 +1,3 @@
-"""The package's own import graph, as a number that can fail.
-
-Length and coverage measure tidiness; neither says anything about coupling,
-which is the property that actually decides whether this stays workable. So the
-edges between these modules are written down here and checked, and adding one
-means editing this file on purpose.
-
-It has already earned it once. Consolidating the submenu key put a
-`runtime -> state` edge in -- the pure renderer importing the module that
-builds initial state, for a one-line string format. Acyclic, harmless, and
-exactly the kind of edge nobody notices; the key moved to `types`, where both
-sides already were.
-"""
-
 from __future__ import annotations
 
 import ast
@@ -23,30 +9,27 @@ pytestmark = pytest.mark.repo_check
 
 PACKAGE = pathlib.Path(__file__).resolve().parent.parent / "promptcrafter"
 
-# Lower may not import higher, and equal may not import equal. Anything that
-# would need to is telling you the layers are wrong, not that the rule is.
 LAYERS = {
-    "types": 0,        # dataclasses, literals, and how a submenu's state is keyed
-    "paths": 0,        # filesystem, no schema knowledge
-    "win32": 0,        # platform shims
-    "errors": 0,       # what becomes of an error nothing catches
-    "kinds": 1,        # which control kinds mean what
-    "references": 1,   # which ids a schema points at, and which are missing
+    "types": 0,
+    "paths": 0,
+    "win32": 0,
+    "errors": 0,
+    "kinds": 1,
+    "references": 1,
     "toggle_state": 1,
     "process_name": 1,
-    "schema": 1,       # the shipped demo config
-    "schema_overlay": 2,  # reads the private one beside the checkout, else the demo
-    "style": 1,        # the stylesheet and the copy button's mark
-    "state": 2,        # builds the state dict from a schema
-    "runtime": 2,      # renders a prompt from schema plus state
-    "transitions": 3,  # what a click does to the state
-    "app": 4,          # widgets and wiring
-    "opening": 5,      # the loading screen, and the window it opens on
+    "schema": 1,
+    "schema_overlay": 2,
+    "style": 1,
+    "state": 2,
+    "runtime": 2,
+    "transitions": 3,
+    "app": 4,
+    "opening": 5,
     "__main__": 6,
     "__init__": 0,
 }
 
-# Every intra-package edge that exists. 34 of them.
 EDGES = {
     ("__main__", "errors"), ("__main__", "opening"), ("__main__", "paths"),
     ("__main__", "process_name"), ("__main__", "win32"),
@@ -104,7 +87,6 @@ def test_each_import_reaches_down_a_layer(importer, imported):
 
 
 def test_the_layering_leaves_no_room_for_a_cycle():
-    """Strictly-decreasing edges cannot close a loop; this says so out loud."""
     reachable = {m: {i for (e, i) in EDGES if e == m} for m in LAYERS}
     for start in LAYERS:
         seen, stack = set(), [start]

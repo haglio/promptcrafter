@@ -1,6 +1,12 @@
 {
   "chain_length": {},
   "class_attributes": {},
+  "externality_comments": {
+    "promptcrafter/__main__.py": 2,
+    "promptcrafter/app.py": 4,
+    "promptcrafter/win32.py": 2,
+    "tests/conftest.py": 1
+  },
   "fan_out": {},
   "library_patches": {},
   "methods": {},
@@ -17,55 +23,20 @@
   },
   "private_imports": {},
   "private_reaches": {},
-  "prose_lines": {
-    "promptcrafter/__main__.py": 9,
-    "promptcrafter/app.py": 38,
-    "promptcrafter/kinds.py": 39,
-    "promptcrafter/opening.py": 3,
-    "promptcrafter/paths.py": 7,
-    "promptcrafter/process_name.py": 13,
-    "promptcrafter/references.py": 17,
-    "promptcrafter/runtime.py": 29,
-    "promptcrafter/schema_overlay.py": 28,
-    "promptcrafter/style.py": 16,
-    "promptcrafter/toggle_state.py": 6,
-    "promptcrafter/transitions.py": 59,
-    "promptcrafter/types.py": 35,
-    "promptcrafter/win32.py": 19,
-    "tests/conftest.py": 8,
-    "tests/fixtures/sample_schema.py": 3,
-    "tests/test_app.py": 93,
-    "tests/test_copy_button.py": 13,
-    "tests/test_family_look.py": 1,
-    "tests/test_gui_headless.py": 4,
-    "tests/test_kinds.py": 40,
-    "tests/test_launch_smoke.py": 45,
-    "tests/test_module_boundaries.py": 15,
-    "tests/test_paths.py": 3,
-    "tests/test_process_name.py": 12,
-    "tests/test_prompt.py": 36,
-    "tests/test_references.py": 13,
-    "tests/test_schema_coverage.py": 34,
-    "tests/test_schema_overlay.py": 9,
-    "tests/test_selection.py": 10,
-    "tests/test_state.py": 13,
-    "tests/test_transitions.py": 64,
-    "tests/test_window_identity.py": 17,
-    "tests/test_windows_settings.py": 4
-  },
+  "prose_lines": {},
   "reach_chains": {
     "promptcrafter/app.py": 23
   },
   "simple_namespaces": {},
   "statements": {
-    "promptcrafter/app.py": 407,
-    "promptcrafter/runtime.py": 365
+    "promptcrafter/app.py": 406,
+    "promptcrafter/runtime.py": 337
   },
+  "trailing_comments": {},
   "uncovered_lines": {
     "promptcrafter/__main__.py": 28,
     "promptcrafter/app.py": 6,
-    "promptcrafter/runtime.py": 38,
-    "promptcrafter/state.py": 2,
+    "promptcrafter/runtime.py": 29,
     "promptcrafter/toggle_state.py": 3,
     "promptcrafter/transitions.py": 3
   }

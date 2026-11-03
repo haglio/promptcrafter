@@ -1,20 +1,3 @@
-"""Every schema this checkout can load, held against what the fixture declares.
-
-`tests/fixtures/sample_schema.py` is what the renderer, the rules and the window
-are tested against, so a schema feature that reaches the app without reaching
-that fixture is a feature no test has ever run. Two schemas can reach the app:
-the shipped demo, and the private overlay beside the checkout where there is
-one -- a public clone, CI and a worktree have none, and there the demo is the
-whole of the comparison. The same pair is walked once more through the state
-builder, which is the loader's output meeting the rest of the app.
-
-A feature here is a shape the types can carry, never a value: which control and
-submenu kinds are declared, which optional fields are filled in, which form each
-condition and supplement takes, which sort of text node each piece of text is.
-No id, no text and no name out of a schema reaches this file or the message it
-fails with, which is what lets it run against a private schema at all.
-"""
-
 from __future__ import annotations
 
 import dataclasses
@@ -93,11 +76,6 @@ def _option_features(option: Option, found: set[str]) -> None:
 
 
 def _which_ids_name(rule: DisabledOrHiddenBy | SupplementedBy) -> str:
-    """Which of the two ids a condition or supplement fills in.
-
-    The three forms are three different searches, and the fourth -- neither id
-    -- is a rule that can never fire.
-    """
     if rule.control_id and rule.option_id:
         return "by-control-and-option"
     if rule.control_id:
@@ -136,9 +114,6 @@ def test_no_schema_this_checkout_can_load_reaches_past_the_test_schema():
         assert not beyond, f"{name} uses {beyond}, which the test schema does not"
 
 
-# Which of the three shapes a control's state may arrive in, by kind. A toggle
-# and a global selector each have two: a toggle with at most one option of its
-# own is a plain on/off, and a selector that is off is too.
 _SHAPES_BY_KIND = {
     "or": (OneOf,), "or-adv": (OneOf,), "or-adj": (OneOf,), "or-prefix": (OneOf,),
     "and-commas": (ManyOf,), "and-commas-adj": (ManyOf,), "and-commas-adv": (ManyOf,),
@@ -148,13 +123,6 @@ _SHAPES_BY_KIND = {
 
 
 def test_every_schema_this_checkout_can_load_opens_a_state_the_renderer_can_read():
-    """The loader's output is what the rest of the app takes.
-
-    Each kind's renderer reads one of the three selection shapes, and the state
-    builder is what decides which one a control arrives holding; a schema that
-    opened with the wrong shape would render nothing and say nothing. Only kinds
-    reach the failure message -- never an id out of a private schema.
-    """
     for name, schema in _schemas_this_checkout_can_load():
         state = create_initial_state(schema)
         wrong = sorted({
@@ -177,14 +145,11 @@ def _one_control_of(kind: str) -> Schema:
 
 
 def test_the_walk_names_a_feature_one_schema_carries_and_another_does_not():
-    """What the comparison above is worth, said without either real schema."""
     assert schema_features(_one_control_of("toggle")) - schema_features(
         _one_control_of("or")
     ) == {"control:kind=toggle"}
 
 
-# Every field of every schema type, and the walk owes each one an answer --
-# including "this is a name, and a name is not a feature".
 _FIELDS_THE_WALK_HAS_AN_ANSWER_FOR = {
     Schema: {"sections"},
     Section: {"id", "text", "controls", "prompt_target",
@@ -206,10 +171,5 @@ _FIELDS_THE_WALK_HAS_AN_ANSWER_FOR = {
 
 
 def test_the_walk_has_an_answer_for_every_field_the_schema_types_declare():
-    """A new field on any of these reds this until the walk decides about it.
-
-    Without it the comparison quietly narrows: a feature nobody taught the walk
-    about is a feature it reports as covered.
-    """
     for schema_type, expected in _FIELDS_THE_WALK_HAS_AN_ANSWER_FOR.items():
         assert {f.name for f in dataclasses.fields(schema_type)} == expected, schema_type

@@ -20,9 +20,6 @@ def open_promptcrafter(loading, *, preview: Preview | None) -> PromptCrafterWind
     loading_promptcrafter, opening_the_window = (step for step, _weight in STEPS)
     loading.say(loading_promptcrafter)
     schema = load_schema()
-    # Say on the way up which ids this schema points at and does not hold. Each one
-    # renders as nothing, so without this a typo is indistinguishable from a blank
-    # someone meant; the launcher sends this stream to its log.
     report_dangling_references(schema)
     loading.say(opening_the_window)
     return PromptCrafterWindow(schema, preview=preview)

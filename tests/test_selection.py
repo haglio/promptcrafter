@@ -1,11 +1,3 @@
-"""What a control has picked, asked rather than type-tested.
-
-``ControlState.selected_options`` was a `bool | str | list[str]` -- one field
-carrying three meanings -- and every reader tested which of the three it had
-been handed, 38 times across four modules, several of them re-testing inside a
-comprehension that already knew. The three meanings are three types now, and
-they answer the same questions as each other.
-"""
 from __future__ import annotations
 
 from promptcrafter.types import ManyOf, OneOf, Switch
@@ -25,7 +17,6 @@ class TestASwitch:
         assert not Switch(False).is_switched_on()
 
     def test_a_rule_naming_no_option_reads_it_rather_than_the_enabled_flag(self):
-        """A toggle assigned to directly is on whatever the flag beside it says."""
         assert Switch(True).is_engaged(enabled=False)
         assert not Switch(False).is_engaged(enabled=True)
 
@@ -49,8 +40,6 @@ class TestOneOf:
         assert OneOf().single_choice() == ""
 
     def test_it_is_switched_on_by_existing(self):
-        """A global selector holds one of these only while it is on -- off is a
-        `Switch`, which is how "off" stays tellable from "on, nothing picked"."""
         assert OneOf().is_switched_on()
 
     def test_a_rule_naming_no_option_asks_whether_anything_is_chosen(self):

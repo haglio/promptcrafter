@@ -34,11 +34,6 @@ def app(qtbot):
 
 @pytest.fixture
 def window_with_a_toggle(qtbot):
-    """Build a window whose second section leads with a multi-option toggle.
-
-    The four toggle tests differ only in which of its options start selected,
-    which was being spelled out in full four times.
-    """
     def build(initially_selected_options=None):
         schema = copy.deepcopy(SAMPLE_SCHEMA)
         schema.sections[1].controls.insert(0, Control(
@@ -54,10 +49,6 @@ def window_with_a_toggle(qtbot):
     return build
 
 
-# Each of these comes in two names for one look-up: `find_` for a control that
-# has to be there (missing is the failure, and says so), `query_` for one whose
-# absence is what a test is checking. Same body -- the pair used to be the same
-# loop written twice.
 
 
 def find_tick(container, label, *, required=True):
@@ -100,14 +91,6 @@ def query_section(app, heading_text):
 
 
 def find_control(app, control_id):
-    """The widget one control's rows are built into.
-
-    ``control_id`` is a property of that container and of nothing else, so it is
-    the only way to ask what *one* control shows. Searching the window instead
-    answers about every control at once: the fixture spells "green" in three
-    places, so a window-wide count of green radios says the same thing whether
-    the selector built any or not.
-    """
     for widget in app.findChildren(QWidget):
         if widget.property("control_id") == control_id:
             return widget
@@ -132,12 +115,6 @@ def _drawn(icon) -> bytes:
 
 
 def find_mode_button(prompt):
-    """The auto/manual button beside one prompt.
-
-    Its label names the mode it switches *to*, so both prompts' buttons read
-    "manual" at load; the object name is what separates it from the copy button
-    sitting next to it.
-    """
     for btn in prompt.parent().findChildren(QPushButton):
         if btn.objectName().startswith("mode_toggle_"):
             return btn
@@ -214,20 +191,10 @@ class TestUpdatingPrompts:
         assert app.negative_prompt.toPlainText() == "no clutter, blurry, cold"
 
     def test_a_hidden_opposite_control_builds_no_widget_of_its_own(self, app):
-        """It has no row: the negative prompt is the only place it appears.
-
-        Its options are still state the selector and the rules reach, so the
-        control is not absent -- only unbuilt.
-        """
         assert query_tick(app, "cold") is None
         assert "neg-temperature-opposite" in app.state.controls
 
     def test_clicking_the_chosen_radio_again_clears_it(self, qtbot, app):
-        """A radio is the only control here that can be emptied by one click.
-
-        Every other test clicks a radio to *choose*; the branch that puts the
-        control back to no selection had never run.
-        """
         find_radio(app, "bone").click()
         assert app.positive_prompt.toPlainText() == "space robo dino demon monster, bone armor"
 
@@ -296,12 +263,6 @@ class TestToggleControls:
 
 class TestRebuilding:
     def test_a_rebuild_leaves_one_widget_per_section(self, qtbot, app):
-        """Nothing from the previous tree is still hanging off the window.
-
-        Every click rebuilds the whole control tree, so a teardown that missed
-        anything would stack a second copy of each section on each interaction
-        and the window would grow without ever looking wrong at first glance.
-        """
         titles = sorted(gb.title() for gb in app.findChildren(QGroupBox))
         assert titles
 
@@ -320,12 +281,6 @@ class TestRebuilding:
 
 
 class TestSubmenus:
-    """The second row an option opens under itself.
-
-    A submenu's radios and tick controls go through their own handlers, and the
-    suite reached only one of the two: the tick handler had never been
-    called by any test, and neither deselect branch had ever run.
-    """
 
     def test_clicking_the_chosen_submenu_radio_again_clears_it(self, qtbot, app):
         find_tick(app, "wings").click()
@@ -352,13 +307,6 @@ class TestSubmenus:
         assert app.positive_prompt.toPlainText() == "space robo dino demon monster, tail"
 
     def test_an_or_prefixed_submenu_kind_builds_radios_whatever_follows_the_or(self, qtbot):
-        """The widget half of the open rival, pinned beside the state half.
-
-        `_build_submenu` asks whether the kind begins with `or`, not whether it
-        is one of the two declared `or` submenu kinds. Nothing validates a
-        submenu kind, so a schema can carry `or` here and it builds radios;
-        narrowing the test to a closed set would silently make them tick controls.
-        """
         schema = Schema(sections=[Section(id="grove", text="grove", controls=[
             Control(id="bough", text="bough", kind="and-commas",
                     initially_selected_options=["knot"], options=[
@@ -512,8 +460,6 @@ class TestPluralityInLabels:
 
 class TestTemplateLabels:
     def test_an_option_label_follows_the_control_its_template_references(self, qtbot, app):
-        """A label built from a template is rebuilt with the rest of the window,
-        so the control it quotes shows up in it as soon as it has an answer."""
         assert query_radio(find_control(app, "echoes"), "loud as") is not None
 
         find_radio(app, "hero").click()
@@ -524,9 +470,6 @@ class TestTemplateLabels:
 class TestWeights:
     def test_control_weight_lowers_below_1(self, qtbot, app):
         find_radio(app, "bone").click()
-        # Find the slider in the armor control's container
-        # After selecting bone, armor control should have a weight slider
-        # Set weight to 0.6
         app.state.controls["armor"].weight = 0.6
         app._rebuild()
 
@@ -539,12 +482,6 @@ class TestWeights:
         assert app.negative_prompt.toPlainText() == "(no clutter:2.5), blurry"
 
     def test_the_control_slider_sets_the_controls_weight(self, qtbot, app):
-        """The slider itself, not the state backing it.
-
-        The other weight tests here assign to ``state`` and rebuild, and the
-        reset button only ever asks for 1.0 -- so the one number the slider is
-        for had never travelled from the widget to the prompt.
-        """
         find_radio(app, "bone").click()
 
         find_slider(find_control(app, "armor")).setValue(24)
@@ -602,10 +539,6 @@ class TestWeights:
         app._rebuild()
         assert app.positive_prompt.toPlainText() == "space robo dino demon monster, (bone armor:2.0)"
 
-        # Find and click the reset button near armor
-        # After rebuild, we need to find the armor control's reset button
-        # The reset button is in the weight widget which is in the control header
-        # We look for the reset button in the entire app since armor is the only weighted control
         reset = None
         for btn in app.findChildren(QPushButton):
             if btn.objectName() == "weight_reset" and not btn.isHidden():
@@ -625,11 +558,6 @@ class TestWeights:
 
 
 class TestGlobalSelector:
-    """One control that reaches across the window and sets the others.
-
-    Every look-up here is scoped to a single control's container. The window
-    rebuilds on each click, so the container is fetched again after one.
-    """
 
     def _click_the_toggle(self, app):
         find_tick(find_control(app, "colorize"), "colorize").click()
@@ -662,9 +590,6 @@ class TestGlobalSelector:
         )
 
     def test_reaches_options_that_contain_the_chosen_id_as_a_word(self, app):
-        # An id with the choice in it as a word follows the choice, so
-        # choosing "green" also ticks "green tinted" -- though never an id that
-        # merely contains the letters (bug 20; tests/test_transitions.py).
         self._click_the_toggle(app)
         self._choose(app, "green")
 
@@ -702,9 +627,6 @@ class TestPromptMode:
         assert not app.positive_prompt.isReadOnly()
 
     def test_the_button_names_the_mode_it_switches_to_after_a_switch(self, app):
-        """It kept the label and object name it was built with, so after a
-        switch to manual it still read "manual" and stayed styled as the
-        auto-mode button (bug 78)."""
         button = find_mode_button(app.positive_prompt)
 
         button.click()
@@ -741,11 +663,6 @@ class TestPromptMode:
         assert app.negative_prompt.isReadOnly()
 
     def test_the_negative_button_switches_the_negative_prompt(self, app):
-        """The other half of the pair, which nothing asked for.
-
-        Every mode test drove the positive button, so a handler that wrote
-        "positive" whatever it was handed passed all of them.
-        """
         find_mode_button(app.negative_prompt).click()
 
         assert app.state.modes["negative"] == "manual"
@@ -757,12 +674,6 @@ class TestPromptMode:
 class TestCopying:
     @pytest.fixture(autouse=True)
     def _nothing_copied_yet(self, app):
-        """Put something on the clipboard that no test here expects.
-
-        The clipboard is one object for the whole process, and two of these
-        tests copy the same text, so without this a test could be reading what
-        the test before it left there -- the suite is also run shuffled.
-        """
         QApplication.clipboard().setText("nothing has been copied yet")
 
     def test_the_copy_button_copies_the_prompt_beside_it(self, app):
@@ -778,31 +689,16 @@ class TestCopying:
         assert QApplication.clipboard().text() == "no clutter, blurry"
 
     def test_a_sections_copy_button_copies_that_sections_prompt(self, app):
-        """``clicked`` carries a bool, and the lambda backing these buttons
-        named the section id as its first parameter with a default, so Qt's
-        ``checked`` landed there: the handler was called with ``False``,
-        matched no section, and the click cleared the clipboard (bug 77).
-        """
         find_copy_button(find_section(app, "negative modes")).click()
 
         assert QApplication.clipboard().text() == "no clutter"
 
     def test_the_section_copy_takes_its_target_from_the_section(self, app):
-        # Called directly with the id the button passes. This section renders
-        # into the negative prompt, so a copy that assumed positive would come
-        # back empty.
         app._copy_section_prompt("negative modes")
 
         assert QApplication.clipboard().text() == "no clutter"
 
     def test_the_section_copy_reads_past_a_section_that_names_no_target(self, qtbot):
-        """Two sections can share an id, and the target comes from either.
-
-        The look-up is not "the section with this id" -- it is "the first
-        section with this id that names a target", so a pair whose second half
-        is the negative one copies the negative prompt. Nothing makes ids
-        unique, and a copy button is built for each half.
-        """
         schema = Schema(sections=[
             Section(id="zonk", text="zonk", controls=[
                 Control(id="quaffle", text="quaffle", kind="toggle",
@@ -833,10 +729,8 @@ class TestCopying:
 
 
 def test_option_ticks_use_the_shared_tick_control(app):
-    # Every option tick must be the shared TickControl (a real ticked square),
-    # not a plain QCheckBox whose styled indicator renders as a down-caret.
     option_ticks = app.findChildren(QCheckBox)
-    assert option_ticks  # the test schema renders tick options
+    assert option_ticks
     assert all(isinstance(cb, TickControl) for cb in option_ticks)
 
 

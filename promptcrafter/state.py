@@ -9,6 +9,7 @@ from promptcrafter.types import (
     OneOf,
     Schema,
     SectionState,
+    Selection,
     State,
     Switch,
     submenu_state_key,
@@ -24,34 +25,21 @@ def _declared_list(control: Control) -> ManyOf | None:
     return ManyOf(tuple(initial)) if isinstance(initial, list) else None
 
 
+def _initial_selection(control: Control) -> Selection:
+    initial = control.initially_selected_options
+    if control.kind == "global-selector" and initial is not True and not isinstance(initial, str):
+        return Switch(False)
+    if control.kind == "global-selector" or is_or_prefixed_kind(control.kind):
+        return OneOf(initial) if isinstance(initial, str) else OneOf()
+    if control.kind == "required":
+        return _declared_list(control) or _every_option_of(control)
+    return _declared_list(control) or ManyOf()
+
+
 def _create_control_state(control: Control) -> ControlState:
     if control.kind == "toggle":
         return create_initial_toggle_state(control)
-
-    if control.kind == "global-selector":
-        initial = control.initially_selected_options
-        if initial is True:
-            return ControlState(selected_options=OneOf(), weight=1)
-        if isinstance(initial, str):
-            return ControlState(selected_options=OneOf(initial), weight=1)
-        return ControlState(selected_options=Switch(False), weight=1)
-
-    if control.kind == "required":
-        return ControlState(
-            selected_options=_declared_list(control) or _every_option_of(control),
-            weight=1,
-        )
-
-    if control.kind == "hidden-opposite":
-        return ControlState(selected_options=_declared_list(control) or ManyOf(), weight=1)
-
-    if is_or_prefixed_kind(control.kind):
-        initial = control.initially_selected_options
-        return ControlState(
-            selected_options=OneOf(initial) if isinstance(initial, str) else OneOf(),
-            weight=1,
-        )
-    return ControlState(selected_options=_declared_list(control) or ManyOf(), weight=1)
+    return ControlState(selected_options=_initial_selection(control), weight=1)
 
 
 def _walk_controls(controls: list[Control], bucket: dict[str, ControlState]) -> None:

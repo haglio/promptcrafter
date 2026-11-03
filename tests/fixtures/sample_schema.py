@@ -1,7 +1,3 @@
-"""A whole fabricated schema, for the tests that need one end to end.
-
-Every value in here is invented -- see the fixture rule in CLAUDE.md.
-"""
 from __future__ import annotations
 
 from promptcrafter.types import (
