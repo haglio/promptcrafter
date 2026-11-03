@@ -1,15 +1,3 @@
-"""Which ids a schema points at, and which of them it does not hold.
-
-Every failed lookup in the renderer answers with the empty string, so a mistyped
-id reaches the prompt as silence: the text is shorter than it should be, nothing
-says why, and there is no way to tell a typo from a deliberate blank. So the app
-says so here, once, on the way up, for the schema it loaded -- the private one
-beside the checkout included, which no suite sees.
-
-It walks the schema itself rather than borrowing the renderer's lookups: what it
-needs is the whole set of ids, which is one pass, and taking it from here keeps
-this under the renderer rather than beside it.
-"""
 from __future__ import annotations
 
 import logging
@@ -33,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class Dangling:
-    """One reference that resolves to nothing, and where it was found."""
 
     kind: str
     id: str
@@ -41,11 +28,6 @@ class Dangling:
 
 
 def report_dangling_references(schema: Schema) -> list[Dangling]:
-    """Log every reference the schema does not hold, and hand them over.
-
-    The app calls this on the way up, which is the only place a schema the suite
-    never sees -- the private one beside the checkout -- can be checked at all.
-    """
     found = dangling_references(schema)
     for dangling in found:
         logger.warning("%s names a %s that is not in this schema: %r", dangling.at,
@@ -54,7 +36,6 @@ def report_dangling_references(schema: Schema) -> list[Dangling]:
 
 
 def known_ids(schema: Schema) -> dict[str, set[str]]:
-    """Every id the schema holds, by what kind of thing carries it."""
     found: dict[str, set[str]] = {"section": set(), "control": set(), "option": set()}
     for place, _ in every_holder(schema):
         found[place.kind].add(place.id)
@@ -62,7 +43,6 @@ def known_ids(schema: Schema) -> dict[str, set[str]]:
 
 
 def dangling_references(schema: Schema) -> list[Dangling]:
-    """Every reference in the schema that names something it does not hold."""
     known = known_ids(schema)
     found: list[Dangling] = []
     for place, holder in every_holder(schema):

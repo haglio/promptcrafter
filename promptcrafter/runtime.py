@@ -139,20 +139,13 @@ def _resolve_reference_value(
         return ""
     next_stack = stack | {key}
 
-    if ref_kind == "option":
-        option = _find_option(schema, ref_id)
-        if not option:
-            return ""
-        return get_text_value(option.text, is_plural, schema, state, next_stack)
-    if ref_kind == "control":
-        control = find_control(schema, ref_id)
-        if not control:
-            return ""
-        return _render_control_value(control, schema, state, next_stack)
-    section = find_section(schema, ref_id)
-    if not section:
-        return ""
-    return _render_section_value(section, schema, state, next_stack)
+    find, value_of = {
+        "option": (_find_option, lambda option: get_text_value(option.text, is_plural, schema, state, next_stack)),
+        "control": (find_control, lambda control: _render_control_value(control, schema, state, next_stack)),
+        "section": (find_section, lambda section: _render_section_value(section, schema, state, next_stack)),
+    }[ref_kind]
+    found = find(schema, ref_id)
+    return value_of(found) if found else ""
 
 
 def get_text_value(
@@ -223,8 +216,7 @@ def _join_parts(parts: list[str]) -> str:
     joined = ", ".join(filtered)
     joined = re.sub(r"\s+,", ",", joined)
     joined = re.sub(r",\s*,", ", ", joined)
-    joined = joined.strip().rstrip(",")
-    return joined
+    return joined.strip().rstrip(",")
 
 
 def _get_supplemental_texts(
@@ -295,8 +287,6 @@ def _render_submenu(parent_control_id: str, option: Option, rendering: _Renderin
     if not submenu_state:
         return ""
 
-    # An "and" submenu joins every child it holds; an "or" submenu holds at
-    # most one, so the same walk answers for both.
     checked = [
         child
         for child in option.submenu.options
@@ -343,14 +333,6 @@ def _selected_options(
     state: State,
     disabled: bool,
 ) -> list[Option]:
-    """The control's options that are ticked, visible and not disabled.
-
-    This was written out four times, and in two of the four the control's own
-    ``disabled`` was left out of the filter -- the ``toggle`` and
-    ``hidden-opposite`` branches, both of which have already returned by the
-    time they reach it if the control is disabled at all. So the four agreed;
-    folding ``disabled`` in for every caller is what all four already did.
-    """
     return [
         opt for opt in control.options
         if not is_hidden(state, opt.hidden_bys, opt.revealed_bys)
@@ -366,13 +348,6 @@ def _rendered_options(control: Control, selected: list[Option], rendering: _Rend
 def _supplemented_segment(
     base_text: str, control: Control, rendering: _Rendering, weight: float,
 ) -> Segment | None:
-    """The control's text with its supplements attached, as a segment.
-
-    Nothing comes back when there is no text left to carry. The toggle's
-    single-option arm is the one place that wants a segment either way, so that
-    arm builds its own -- see `TestASegmentWithNothingInIt`, which pins what the
-    difference does.
-    """
     text = _append_supplements(base_text, control, rendering)
     return Segment(text=text, weight=weight) if text else None
 
@@ -380,11 +355,6 @@ def _supplemented_segment(
 def _render_every_selected_option(
     control: Control, cs: ControlState, rendering: _Rendering, disabled: bool,
 ) -> Segment | None:
-    """Every ticked option, comma-joined.
-
-    What `required`, `hidden-opposite` and a multi-option toggle all render
-    to, in one place rather than three.
-    """
     selected = _selected_options(control, cs, rendering.state, disabled)
     if not selected:
         return None
@@ -399,16 +369,12 @@ def _render_toggle(
         return None
     if toggle_holds_an_option_list(cs):
         return _render_every_selected_option(control, cs, rendering, disabled)
-    # A toggle with no options of its own says one thing: its first option's
-    # text, or the control's, unless it exists only to drive a substitution.
     if not control.options and control.global_substitutions:
         return None
     if control.options:
         base = rendering.text_of(control.options[0].text)
     else:
         base = _get_control_text(control, rendering)
-    # The one renderer that answers with a segment either way, empty text and
-    # all. `TestASegmentWithNothingInIt` pins what the difference does.
     return Segment(
         text=_append_supplements(base, control, rendering),
         weight=cs.weight,
@@ -441,11 +407,6 @@ def _render_radio(
 def _render_and_list(
     control: Control, cs: ControlState, rendering: _Rendering, disabled: bool,
 ) -> Segment | None:
-    """and-commas, and-commas-adj, and-commas-adv, and-spaces-adj.
-
-    The four differ only in where the control's own text goes: nowhere, after
-    each option, before each option, or once at the end.
-    """
     selected = _selected_options(control, cs, rendering.state, disabled)
     if not selected:
         return None
@@ -464,10 +425,17 @@ def _render_and_list(
         )
     elif control.kind == "and-spaces-adj":
         combined = f"{' '.join(option_values)} {_get_control_text(control, rendering, selected[0])}"
-    else:  # and-commas
+    else:
         combined = ", ".join(option_values)
 
     return _supplemented_segment(combined.strip(), control, rendering, cs.weight)
+
+
+_RENDERER_OF_KIND = {
+    "toggle": _render_toggle,
+    "required": _render_every_selected_option,
+    "hidden-opposite": _render_hidden_opposite,
+}
 
 
 def _render_control_segment(
@@ -476,27 +444,12 @@ def _render_control_segment(
     state: State,
     stack: ResolutionStack,
 ) -> Segment | None:
-    """Which of the twelve kinds this control is, and nothing else."""
     rendering = _Rendering(schema, state, stack)
-    if not rendering.shows(control):
-        return None
     cs = state.controls.get(control.id)
-    if not cs:
+    if not rendering.shows(control) or not cs or control.kind == "global-selector":
         return None
-    disabled = is_disabled(state, control.disabled_bys)
-
-    if control.kind == "toggle":
-        return _render_toggle(control, cs, rendering, disabled)
-    if control.kind == "global-selector":
-        # It sets the other controls; it contributes no text of its own.
-        return None
-    if control.kind == "required":
-        return _render_every_selected_option(control, cs, rendering, disabled)
-    if control.kind == "hidden-opposite":
-        return _render_hidden_opposite(control, cs, rendering, disabled)
-    if is_radio_kind(control.kind):
-        return _render_radio(control, cs, rendering, disabled)
-    return _render_and_list(control, cs, rendering, disabled)
+    render = _RENDERER_OF_KIND.get(control.kind, _render_radio if is_radio_kind(control.kind) else _render_and_list)
+    return render(control, cs, rendering, is_disabled(state, control.disabled_bys))
 
 
 def _merge_segments(segments: list[Segment]) -> list[Segment]:

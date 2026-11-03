@@ -14,22 +14,15 @@ from promptcrafter.paths import icon_path, project_root
 from promptcrafter.process_name import name_this_process
 from promptcrafter.win32 import claim_this_checkouts_identity
 
-# Both before the first window exists: the id decides which taskbar button the
-# window joins, and Qt hands every later window the application icon set here.
-# Without them the window wears a generic fallback mark and sits beside its own
-# pinned shortcut rather than in it.  See promptcrafter.win32.
+# Before the first window exists: Windows picks the taskbar button from the id, and Qt hands
+# every later window the application icon set here.
 preview = claim_this_checkouts_identity(project_root())
 
-# And leave the shortcut an interpreter that says so in the task list -- see
-# promptcrafter.process_name.  One run late, because writing the copy takes
-# the very interpreter being named.
 name_this_process()
 
 log_errors_and_keep_running()
 
 app = QApplication(sys.argv)
-# The family's palette and chrome go on the application, where the tooltip
-# rule can reach a top-level popup; the window's own sheet sits over it.
 dress_application(app)
 icon = icon_path()
 if icon.is_file():

@@ -171,11 +171,6 @@ class TestControlKinds:
         assert build_prompt(schema, state, "positive") == "space robo dino demon monster, keep safe"
 
 
-# Every kind below picks its options out of a list, and each does it with its
-# own copy of the same comprehension -- four copies, of which two fold the
-# control's own disabled state into the filter and two do not. These say what
-# each one keeps, so that collapsing them to one cannot change any of them.
-# `kind`, what it renders with both options selected, and with only `korth` left.
 _LIST_KINDS = [
     ("toggle", "zeta, korth", "korth"),
     ("required", "zeta, korth", "korth"),
@@ -192,13 +187,6 @@ _KINDS_KEEPING_ONE = [(kind, one) for kind, _, one in _LIST_KINDS]
 
 def _a_control_of_kind(kind, *, control_disabled=False, option_disabled=False,
                        option_hidden=False):
-    """One control of `kind` between two switches, both of them on.
-
-    Two are needed rather than one. `ward` fires the `hidden_opposite_bys` that
-    the `hidden-opposite` kind needs before it will render at all; `gale` fires
-    whichever of the three rules a test is asking about, and has to be able to
-    fire without disabling the control it is meant to leave alone.
-    """
     gale = [DisabledOrHiddenBy(control_id="gale")]
     probe = Control(
         id="probe", text="probe", kind=kind,
@@ -229,14 +217,6 @@ def _state_with(schema, selected):
 
 
 class TestWhatEachKindKeeps:
-    """The option filter, per kind, under each of the three rules that drop one.
-
-    The four copies of it are not written the same way, so before they become
-    one this says what each of them does. They agree: the difference between
-    the copies is which of them folds the control's own disabled state into the
-    filter, and the two that do not are the two whose branch has already
-    returned by then.
-    """
 
     @pytest.mark.parametrize(("kind", "expected"), _KINDS_KEEPING_BOTH)
     def test_it_renders_the_options_that_are_selected(self, kind, expected):
@@ -275,16 +255,6 @@ class TestWhatEachKindKeeps:
 
 
 class TestASegmentWithNothingInIt:
-    """The one place the kinds part company on what "renders to nothing" means.
-
-    Six of the seven end with `return the segment if there is any text, else
-    nothing`. The toggle's single-option arm does not: it returns a segment
-    whose text is empty. Nothing downstream prints an empty segment -- the merge
-    step drops it -- except the `or-prefix` pairing, which asks only whether the
-    control beside it rendered *something*. So an empty toggle is a partner and
-    an empty and-commas is not, and the prefix survives in one case and is
-    dropped in the other.
-    """
 
     def _prefix_then(self, kind, selected):
         schema = Schema(sections=[Section(id="glade", text="glade", controls=[
@@ -343,12 +313,6 @@ class TestControlCustomText:
 
 
 class TestTemplateText:
-    """Text built out of literals and a reference to another control.
-
-    The reference resolves by rendering the control it names, so a schema can
-    show what the user picked somewhere else; an unpicked control resolves to
-    nothing and the literals close up around the gap.
-    """
 
     def test_an_option_text_quotes_the_control_its_template_references(self):
         state = create_initial_state(SAMPLE_SCHEMA)
@@ -419,8 +383,6 @@ class TestSupplements:
         assert "plasma runed plating" in build_prompt(SAMPLE_SCHEMA, state, "positive")
 
     def test_a_supplement_naming_no_side_follows_the_text_it_supplements(self):
-        """`side` is optional, and an absent one reads as `adv` -- so the
-        supplement lands after the control's text, not before it."""
         state = create_initial_state(SAMPLE_SCHEMA)
         state.controls["temperature"].selected_options = OneOf("hot")
         state.controls["material vibe"].selected_options = ManyOf(("molten",))
@@ -516,8 +478,6 @@ class TestRevealedBys:
         assert build_prompt(SAMPLE_SCHEMA, state, "positive") == "space robo dino demon monster"
 
     def test_a_control_revealed_by_an_option_stays_out_until_it_is_chosen(self):
-        """A condition naming an option and no control matches wherever that
-        option is selected, rather than in one control the rule points at."""
         state = create_initial_state(SAMPLE_SCHEMA)
         state.controls["heat haze"].selected_options = ManyOf(("shimmer",))
 

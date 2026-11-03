@@ -1,18 +1,7 @@
-"""The window's looks: the stylesheet, and the copy button's mark.
-
-A 160-line Qt stylesheet and the two helpers that feed it were the first third
-of `app.py`, ahead of the class that is what the module is for. Nothing here
-knows about the schema, the state or a control kind; it is colors, geometry and
-one icon.
-"""
-
 from __future__ import annotations
 
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QPushButton
-
-# shared_ui is imported via sys.path rather than installed; make it importable
-# regardless of checkout depth (normal clone vs .claude/worktrees/<name>).
 from shared_ui.colors import (
     BG_BUTTON,
     BG_KEYCAP,
@@ -45,16 +34,6 @@ _TITLE_ROOM = in_pixels(SIZE_HEADING) + 2 * GAP_MEDIUM
 
 
 def copy_button(accessible_name: str) -> QPushButton:
-    """A copy button wearing the family's two-overlapping-sheets mark.
-
-    It was the clipboard emoji, which is a picture out of whatever font Windows
-    resolves it to -- a different drawing at a different weight from the copy
-    buttons in Origenerator and Fun Time, which the user has open beside this.
-
-    Two renderings rather than one: Qt swaps to the Active pixmap while the
-    cursor is over the button, and a stylesheet hover rule cannot reach into a
-    drawn mark the way it reaches text.
-    """
     button = fill_square_with_icon(QPushButton())
     button.setObjectName("copy_button")
     button.setAccessibleName(accessible_name)

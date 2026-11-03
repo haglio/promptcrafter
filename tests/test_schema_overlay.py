@@ -1,9 +1,3 @@
-"""The private-schema overlay: what it reads, and what it does without one.
-
-Every fixture here is fabricated. The overlay's whole reason for existing is
-that a real schema may not enter this repo, so a test that made one "realistic"
-would be the leak the feature exists to prevent.
-"""
 from __future__ import annotations
 
 import json
@@ -62,7 +56,6 @@ def test_an_overlay_beside_the_checkout_wins(monkeypatch, tmp_path):
 
 
 def test_a_directory_named_like_the_overlay_is_not_one(monkeypatch, tmp_path):
-    """``is_file``, not ``exists``: a stray directory must not crash the launch."""
     (tmp_path / OVERLAY_NAME).mkdir()
     monkeypatch.setattr(schema_overlay, "project_root", lambda: tmp_path)
 
@@ -70,12 +63,10 @@ def test_a_directory_named_like_the_overlay_is_not_one(monkeypatch, tmp_path):
 
 
 def test_the_overlay_is_looked_for_in_this_checkout_not_the_primary(monkeypatch, tmp_path):
-    """A worktree runs the tree under test, never the user's real schema."""
     monkeypatch.setattr(schema_overlay, "project_root", lambda: tmp_path)
     assert overlay_path() == tmp_path / OVERLAY_NAME
 
 
-# --- the camelCase document, key by key ---
 
 def test_a_bare_string_is_a_text_value():
     built = schema_from_document(
@@ -253,7 +244,6 @@ def test_a_submenu_nests_to_any_depth():
 
 
 def test_a_built_schema_can_open_the_app_state():
-    """The point of the loader: what it returns is what the rest of the app takes."""
     state = create_initial_state(schema_from_document(MINIMAL))
     assert state.controls["beta"].selected_options == OneOf()
     assert list(state.sections) == ["alpha"]

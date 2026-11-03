@@ -18,9 +18,6 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
-# shared_ui is imported via sys.path rather than installed; make it importable
-# regardless of checkout depth (normal clone vs .claude/worktrees/<name>).
 from shared_ui.fonts import FONT_UI, SIZE_HEADING
 from shared_ui.icons import qt_icon
 from shared_ui.palette import PREVIEW_INK, as_hex
@@ -72,7 +69,6 @@ class PromptCrafterWindow(QMainWindow):
         super().__init__()
         self.schema = schema
         self.state = create_initial_state(schema)
-        # The auto/manual button beside each prompt, re-dressed on a switch.
         self._mode_buttons: dict[PromptTarget, QPushButton] = {}
         self.setWindowTitle(window_title("PromptCrafter", preview))
         self.setStyleSheet(build_stylesheet())
@@ -84,7 +80,6 @@ class PromptCrafterWindow(QMainWindow):
         root_layout.setContentsMargins(MARGIN_DIALOG, MARGIN_DIALOG, MARGIN_DIALOG, MARGIN_DIALOG)
         root_layout.setSpacing(0)
 
-        # App header
         header = QWidget()
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(0, 0, 0, 0)
@@ -98,7 +93,6 @@ class PromptCrafterWindow(QMainWindow):
         root_layout.addWidget(header)
         root_layout.addSpacing(GAP_DIALOG)
 
-        # Prompt areas
         self.positive_prompt = QPlainTextEdit()
         self.positive_prompt.setAccessibleName("Positive prompt")
         self.positive_prompt.setReadOnly(True)
@@ -116,7 +110,6 @@ class PromptCrafterWindow(QMainWindow):
         root_layout.addWidget(neg_area)
         root_layout.addSpacing(GAP_DIALOG)
 
-        # Scrollable sections area
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
@@ -135,7 +128,6 @@ class PromptCrafterWindow(QMainWindow):
         layout = QVBoxLayout(area)
         layout.setContentsMargins(MARGIN_DIALOG, MARGIN_DIALOG, MARGIN_DIALOG, MARGIN_DIALOG)
 
-        # Header row: copy + mode toggle + label
         header = QWidget()
         hlayout = QHBoxLayout(header)
         hlayout.setContentsMargins(0, 0, 0, 0)
@@ -161,19 +153,13 @@ class PromptCrafterWindow(QMainWindow):
         return area
 
     def _dress_mode_button(self, target: PromptTarget) -> None:
-        """Label and style the button for the mode it switches *to*.
-
-        Built once and never re-dressed, it went on naming the mode the user
-        had just left, in that mode's color.
-        """
         button = self._mode_buttons[target]
         mode = self.state.modes[target]
         other = "manual" if mode == "auto" else "auto"
         button.setText(other)
         button.setAccessibleName(other)
         button.setObjectName(f"mode_toggle_{mode}")
-        # The sheet colors it by object name, which the style reads when it
-        # polishes the widget -- so a renamed one is polished again.
+        # Qt reads the object name the sheet colors by only when it polishes the widget.
         button.style().unpolish(button)
         button.style().polish(button)
 
@@ -197,12 +183,8 @@ class PromptCrafterWindow(QMainWindow):
     def _build_sections(self) -> None:
         while self.sections_layout.count():
             item = self.sections_layout.takeAt(0)
-            # Hold the widget in a name across both calls. `setParent(None)`
-            # leaves it with no C++ parent, so the only thing keeping it alive
-            # is a Python reference; asking the layout item for it a second time
-            # gets None back and `deleteLater` raises. That branch never ran
-            # while a second list was holding those references, which is why the
-            # list could not simply be deleted.
+            # Qt's `setParent(None)` leaves only this Python name keeping the widget alive, and
+            # asking the layout item again gets None back.
             widget = item.widget()
             if widget is not None:
                 widget.setParent(None)
@@ -228,7 +210,6 @@ class PromptCrafterWindow(QMainWindow):
         layout = QVBoxLayout(group)
         layout.setSpacing(0)
 
-        # Section header actions: copy button + weight slider (inside the group frame)
         actions = QWidget()
         actions.setObjectName("section-header-actions")
         actions_layout = QHBoxLayout(actions)
@@ -236,8 +217,7 @@ class PromptCrafterWindow(QMainWindow):
         actions_layout.setSpacing(GAP_MEDIUM)
 
         copy_btn = copy_button("Copy section")
-        # ``clicked`` hands over its ``checked`` bool first; named, it cannot
-        # land in the section id.
+        # Qt's ``clicked`` hands over its ``checked`` bool first; named, it cannot land in the section id.
         copy_btn.clicked.connect(
             lambda _checked=False, sid=section.id: self._copy_section_prompt(sid)
         )
@@ -253,7 +233,6 @@ class PromptCrafterWindow(QMainWindow):
 
         layout.addWidget(actions)
 
-        # Controls
         first_control = True
         prev_was_prefix = False
         for control in section.controls:
@@ -276,10 +255,6 @@ class PromptCrafterWindow(QMainWindow):
         return group
 
     def _copy_section_prompt(self, section_id: str) -> None:
-        # Not `find_section`: this looks for the first section with the id *that
-        # names a target*, which is a different search when two sections share
-        # an id -- `find_section` would stop at the first one and answer
-        # "positive" for a pair whose second half is the negative one.
         section = next(
             (s for s in self.schema.sections if s.id == section_id and s.prompt_target),
             None,
@@ -308,7 +283,6 @@ class PromptCrafterWindow(QMainWindow):
         vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.setSpacing(GAP_SMALL)
 
-        # Control header: label on left, weight on right
         header = QWidget()
         hlayout = QHBoxLayout(header)
         hlayout.setContentsMargins(0, 0, 0, 0)
@@ -326,7 +300,6 @@ class PromptCrafterWindow(QMainWindow):
 
         vlayout.addWidget(header)
 
-        # Control body
         if control.kind == "toggle":
             self._build_toggle_control(vlayout, control, cs, disabled)
         elif control.kind == "global-selector":
@@ -348,7 +321,6 @@ class PromptCrafterWindow(QMainWindow):
             label, on=is_toggle_enabled(cs), disabled=disabled,
             thrown=lambda checked, cid=control.id: self._on_toggle(cid, checked)))
 
-        # Multi-option toggles show options when enabled
         has_option_list = len(control.options) > 1 and toggle_holds_an_option_list(cs)
         if is_toggle_enabled(cs) and has_option_list:
             opts_row = QWidget()
@@ -422,7 +394,6 @@ class PromptCrafterWindow(QMainWindow):
             opt_disabled = disabled or is_disabled(self.state, option.disabled_bys)
             opt_label = self._display_text(option.text, plural)
 
-            # Each option + its submenu forms a vertical stack
             opt_stack = QWidget()
             stack_layout = QVBoxLayout(opt_stack)
             stack_layout.setContentsMargins(0, 0, 0, 0)
@@ -463,7 +434,6 @@ class PromptCrafterWindow(QMainWindow):
                 opt_disabled = True
             opt_label = self._display_text(option.text, plural)
 
-            # Each option + its submenu forms a vertical stack
             opt_stack = QWidget()
             stack_layout = QVBoxLayout(opt_stack)
             stack_layout.setContentsMargins(0, 0, 0, 0)
@@ -554,12 +524,7 @@ class PromptCrafterWindow(QMainWindow):
 
         return container
 
-    # --- State mutation handlers ---
 
-    # Each one reads two ids off the widget that was clicked, hands them to the
-    # rule in `transitions`, and rebuilds. The submenu radios and tick controls go
-    # through the same two as the top-level ones: submenu state lives in the
-    # same flat dict under a composite key, so the rules never had to differ.
 
     def _on_radio(self, control_key: str, option_id: str) -> None:
         choose_option(self.state, control_key, option_id)
@@ -589,7 +554,6 @@ class PromptCrafterWindow(QMainWindow):
         set_control_weight(self.state, control_id, weight)
         self._rebuild()
 
-    # --- Helpers ---
 
     def _display_text(self, text, plural: bool) -> str:
         raw = get_text_value(text, plural, self.schema, self.state)

@@ -9,15 +9,15 @@ from promptcrafter.types import Control, ControlState, ManyOf, Option, Switch
 
 
 def _build_toggle(**overrides):
-    defaults = dict(
-        id="texture pack",
-        text="texture pack",
-        kind="toggle",
-        options=[
+    defaults = {
+        "id": "texture pack",
+        "text": "texture pack",
+        "kind": "toggle",
+        "options": [
             Option(id="oak", text="oak"),
             Option(id="pine", text="pine"),
         ],
-    )
+    }
     defaults.update(overrides)
     return Control(**defaults)
 

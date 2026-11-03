@@ -1,10 +1,3 @@
-"""The state machine, asked directly.
-
-Until these rules left `PromptCrafterWindow` the only way to reach them was to
-build a Qt window and send it a fake click, so the two that mattered most --
-the global selector's reach across the other controls -- were pinned by four
-window tests and nothing else. Here they are ordinary function calls.
-"""
 from __future__ import annotations
 
 import copy
@@ -39,8 +32,6 @@ def a_state():
 
 
 def _evergreen_schema():
-    """A selector offering ``green`` beside controls that list ``evergreen``
-    ahead of it: the letters of the choice, but not the word."""
     return Schema(sections=[Section(id="garden", text="garden", controls=[
         Control(id="shade", text="shade", kind="global-selector",
                 options=[Option(id="green", text="green"), Option(id="black", text="black")]),
@@ -54,11 +45,6 @@ def _evergreen_schema():
 
 
 def _two_selector_schema():
-    """Two global selectors and one ordinary radio, all offering the same ids.
-
-    `hue`'s option id contains the selector's as a word rather than equalling
-    it, which is what the containment half of the match reaches.
-    """
     return Schema(sections=[Section(id="palette", text="palette", controls=[
         Control(id="tint", text="tint", kind="global-selector",
                 options=[Option(id="amber", text="amber"), Option(id="slate", text="slate")]),
@@ -71,12 +57,6 @@ def _two_selector_schema():
 
 
 def _opposite_schema():
-    """A selector beside a ``hidden-opposite`` control offering the same id.
-
-    The window builds no row for a ``hidden-opposite`` control, so the only
-    thing that ever writes to one is a rule -- and the selector's two loops
-    walk every control that holds a list, this kind included.
-    """
     return Schema(sections=[Section(id="weather", text="weather", controls=[
         Control(id="shade", text="shade", kind="global-selector",
                 options=[Option(id="frost", text="frost")]),
@@ -113,7 +93,6 @@ class TestChoosingOneOfMany:
         assert state.controls["alignment"].selected_options == OneOf("villain")
 
     def test_a_submenu_is_chosen_by_its_composite_key(self):
-        """Submenu state is in the same dict, so it needs no rule of its own."""
         state = a_state()
         toggle_option(state, "appendages", "wings")
 
@@ -149,8 +128,6 @@ class TestTickingSeveral:
         assert state.controls["appendages"].selected_options == ManyOf(("horns",))
 
     def test_a_control_holding_one_selection_is_left_alone(self):
-        """A radio holds one choice, and this rule only edits the ones that
-        hold a list."""
         state = a_state()
         choose_option(state, "alignment", "hero")
 
@@ -184,12 +161,6 @@ class TestFlippingAToggle:
         assert state.controls["texture pack"].selected_options == ManyOf(("oak",))
 
     def test_a_state_key_the_schema_has_no_control_for_is_left_alone(self):
-        """The guard that stops a stale key reaching the toggle rules.
-
-        `get_toggle_selections_for_next_state` raises on a control that is not a
-        toggle, and it would have nothing to raise about here -- there is no
-        control at all.
-        """
         state = a_state()
         state.controls["orphaned"] = ControlState(selected_options=Switch(False))
 
@@ -201,8 +172,6 @@ class TestFlippingAToggle:
 
 class TestTheGlobalSelector:
     def test_switching_it_on_leaves_it_with_nothing_chosen(self):
-        """Off is a `Switch` and on-with-nothing-chosen is an empty `OneOf` --
-        two states, not one."""
         state = a_state()
         assert state.controls["colorize"].selected_options == Switch(False)
 
@@ -219,11 +188,6 @@ class TestTheGlobalSelector:
         assert state.controls["eye color"].selected_options == OneOf("green")
 
     def test_choosing_reaches_options_that_contain_the_id_as_a_word(self):
-        """`render style` offers `green tinted`, which has `green` in it as a
-        word, so it is ticked too -- the reach the schemas are written for. The
-        window test of the same name pins the widget side; this one pins the
-        rule.
-        """
         state = a_state()
         set_global_selector_enabled(SAMPLE_SCHEMA, state, "colorize", True)
 
@@ -232,9 +196,6 @@ class TestTheGlobalSelector:
         assert state.controls["render style"].selected_options.contains("green tinted")
 
     def test_choosing_does_not_reach_an_id_that_merely_contains_the_letters(self):
-        """The match was a substring test, so `green` reached `evergreen`; and
-        where `evergreen` was listed first it was the one picked, and the exact
-        `green` beside it was skipped (bug 20)."""
         schema = _evergreen_schema()
         state = create_initial_state(schema)
         set_global_selector_enabled(schema, state, "shade", True)
@@ -245,8 +206,6 @@ class TestTheGlobalSelector:
         assert state.controls["mulch"].selected_options == ManyOf(("green moss",))
 
     def test_releasing_does_not_reach_an_id_that_merely_contains_the_letters(self):
-        """The release side of the same rule (bug 58): what the selector never
-        set, it does not take back."""
         schema = _evergreen_schema()
         state = create_initial_state(schema)
         choose_option(state, "foliage", "evergreen")
@@ -298,11 +257,6 @@ class TestTheGlobalSelector:
         assert state.controls["colorize"].selected_options == OneOf("green")
 
     def test_releasing_also_reaches_ids_that_contain_the_choice_as_a_word(self):
-        """The release side of the word match.
-
-        `hue` was never set to `amber`; it was set to `amber glazed`, which has
-        it as a word -- and switching the selector off takes that back out.
-        """
         schema = _two_selector_schema()
         state = create_initial_state(schema)
         set_global_selector_enabled(schema, state, "tint", True)
@@ -333,16 +287,6 @@ class TestTheGlobalSelector:
         assert state.controls["chill"].selected_options == ManyOf()
 
     def test_a_second_selector_is_released_like_any_other_control(self):
-        """Both loops skip the control the choice came from, and only that one.
-
-        The TypeScript this was ported from wrote the same guard in both --
-        `schemaCtrl.id === controlId`, `src/App.tsx:204` and `:226`. The port
-        turned the releasing one into a test on the *kind*, so a second selector
-        was written to like any ordinary control and then never released: it
-        kept a choice its own switch never made, and would push it onward. One
-        selector is all any schema here has, so the two guards picked the same
-        control and nothing showed.
-        """
         schema = _two_selector_schema()
         state = create_initial_state(schema)
         set_global_selector_enabled(schema, state, "tint", True)
@@ -381,13 +325,6 @@ class TestWeights:
 
 
 class TestTheStateObjectsSurviveEveryRule:
-    """The aliasing the window depends on.
-
-    `_rebuild()` re-reads `self.state`, so a rule that replaced a dict entry
-    instead of editing the object in it would leave the window drawing the
-    state from before the click. Every rule edits in place; this is the test
-    that says so.
-    """
 
     def _ids(self, state):
         return (
@@ -418,15 +355,6 @@ class TestTheStateObjectsSurviveEveryRule:
 
 
 class TestTheSelectorsMergeIsStable:
-    """The merged list comes out the same on every run.
-
-    The TypeScript merged with `Array.from(new Set([...a, ...b]))`
-    (`src/App.tsx:239`), and a JS Set keeps insertion order. The port used
-    `list(set(a) | set(b))`, which is hash-ordered -- and Python salts string
-    hashing per process, so the same clicks left the list in a different order
-    from one run to the next. Nothing renders from that order, so it never
-    reached a prompt; it is still a state that changes when nothing did.
-    """
 
     def test_the_merged_selection_keeps_the_order_it_was_built_in(self):
         schema = _two_selector_schema()

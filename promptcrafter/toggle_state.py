@@ -4,13 +4,6 @@ from promptcrafter.types import Control, ControlState, ManyOf, Selection, Switch
 
 
 def toggle_holds_an_option_list(control_state: ControlState) -> bool:
-    """A toggle whose control offers more than one option narrows to a list;
-    one that does not is a plain on/off.
-
-    The two shapes part company three times -- what a flip writes, what
-    ``is_toggle_enabled`` reads, and which renderer the kind reaches -- and this
-    is the one place that asks which it has.
-    """
     return not isinstance(control_state.selected_options, Switch)
 
 

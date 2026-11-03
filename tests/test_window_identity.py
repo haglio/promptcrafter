@@ -1,18 +1,3 @@
-"""The window has to carry PromptCrafter's own mark and taskbar identity.
-
-Neither comes from the shortcut that launched it.  Qt gives a window no icon
-unless it is handed one, so PromptCrafter came up under a generic fallback --
-not Python's mark, just what Windows reaches for when an app supplies nothing.
-And a process that does not claim the AppUserModelID its pinned shortcut
-carries is treated as a different application, so its window opens beside the
-pin instead of in it.
-
-Asserted on the entry point's syntax tree as well as on the helpers, because
-both calls have to happen before the first window exists: correct helpers that
-the entry point never reaches leave the app looking exactly as broken.  The
-tree rather than the text, so a line wrap cannot turn this red with the launch
-unchanged.
-"""
 from __future__ import annotations
 
 import ast
@@ -30,7 +15,6 @@ ENTRY_POINT = ast.parse((REPO_ROOT / "promptcrafter" / "__main__.py").read_text(
 
 
 def _calls() -> list[str]:
-    """Every call the entry point makes, as it is spelled, in source order."""
     return [ast.unparse(node.func) for node in ast.walk(ENTRY_POINT) if isinstance(node, ast.Call)]
 
 
@@ -44,8 +28,6 @@ class IconTests(unittest.TestCase):
         assert icon_path().is_file(), f"no icon at {icon_path()}"
 
     def test_the_icon_is_found_in_this_checkout_not_another(self):
-        # A worktree has its own copy; resolving to the primary's would judge
-        # the wrong file and hide a change made here.
         assert icon_path().parent == project_root()
         assert project_root() == REPO_ROOT
 
@@ -97,7 +79,6 @@ class TaskbarIdentityTests(unittest.TestCase):
         assert _first_line_calling("claim_this_checkouts_identity") < _first_line_calling("QApplication"), "the id has to be claimed before the first window exists"
 
     def test_setting_it_never_takes_the_app_down(self):
-        # An app that cannot group its taskbar button is still an app that runs.
         with patch("promptcrafter.win32.sys.platform", "win32"), \
              patch("promptcrafter.win32.claim_taskbar_identity", side_effect=OSError("refused")):
             claim_this_checkouts_identity(project_root())
