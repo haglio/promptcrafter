@@ -369,7 +369,7 @@ def _render_switch(
         return None
     if switch_holds_an_option_list(cs):
         return _render_every_selected_option(control, cs, rendering, disabled)
-    if not control.options and control.global_substitutions:
+    if _exists_only_to_drive_a_substitution(control):
         return None
     if control.options:
         base = rendering.text_of(control.options[0].text)
@@ -379,6 +379,10 @@ def _render_switch(
         text=_append_supplements(base, control, rendering),
         weight=cs.weight,
     )
+
+
+def _exists_only_to_drive_a_substitution(control: Control) -> bool:
+    return not control.options and bool(control.global_substitutions)
 
 
 def _render_hidden_opposite(

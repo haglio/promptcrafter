@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from promptcrafter.references import dangling_references, report_dangling_references
+from promptcrafter.references import Dangling, dangling_references, report_dangling_references
 from promptcrafter.runtime import get_text_value
 from promptcrafter.schema import schema as demo_schema
 from promptcrafter.schema_overlay import load_schema
@@ -129,7 +129,7 @@ class TestWhatCountsAsDangling:
 
 class TestWhatTheAppSaysOnTheWayUp:
 
-    def test_each_one_is_logged_with_where_it_was_found(self, caplog):
+    def test_each_one_is_logged_at_start_up_the_one_check_a_private_schema_gets_where_the_suite_runs_without_it(self, caplog):
         schema = _schema(control_extra={
             "hidden_bys": [DisabledOrHiddenBy(control_id="zoom")]})
 
@@ -147,13 +147,25 @@ class TestWhatTheAppSaysOnTheWayUp:
         assert caplog.records == []
 
 
+def _counts_and_kinds_naming_no_id_of_his(found) -> str:
+    return f"{len(found)} unresolved reference(s), kinds: {sorted({d.kind for d in found})}"
+
+
 class TestTheSchemasThisCheckoutCanLoad:
 
     def test_none_of_them_points_at_an_id_it_does_not_hold(self):
         for schema in (demo_schema, load_schema()):
             found = dangling_references(schema)
-            kinds = sorted({d.kind for d in found})
-            assert not found, f"{len(found)} unresolved reference(s), kinds: {kinds}"
+            assert not found, _counts_and_kinds_naming_no_id_of_his(found)
+
+    def test_the_failure_message_counts_and_sorts_the_dangling_by_kind_and_names_no_id_of_his(self):
+        found = [Dangling(kind="option", id="his own word", at="control:tilt"),
+                 Dangling(kind="control", id="another of his", at="section:frame")]
+
+        message = _counts_and_kinds_naming_no_id_of_his(found)
+
+        assert message == "2 unresolved reference(s), kinds: ['control', 'option']"
+        assert "his" not in message
 
 
 class TestAMissingIdAtRenderTime:

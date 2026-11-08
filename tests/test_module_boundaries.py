@@ -79,11 +79,15 @@ def test_the_edges_are_the_ones_written_down():
 
 
 @pytest.mark.parametrize(("importer", "imported"), sorted(EDGES))
-def test_each_import_reaches_down_a_layer(importer, imported):
+def test_each_import_reaches_down_a_layer_and_one_that_cannot_means_the_layers_move_not_the_rule(importer, imported):
     assert LAYERS[importer] > LAYERS[imported], (
         f"{importer} (layer {LAYERS[importer]}) imports {imported} "
         f"(layer {LAYERS[imported]})"
     )
+
+
+def test_style_knows_nothing_of_the_schema_the_state_or_a_control_kind():
+    assert {imported for importer, imported in _edges() if importer == "style"} == set()
 
 
 def test_the_layering_leaves_no_room_for_a_cycle():

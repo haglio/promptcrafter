@@ -9,15 +9,12 @@ from promptcrafter.types import (
     Control,
     DisabledOrHiddenBy,
     GlobalSubstitution,
-    ManyOf,
-    OneOf,
     Option,
     PluralText,
     Schema,
     Section,
     Submenu,
     SupplementedBy,
-    Switch,
     TemplateText,
     TextRef,
     TextReference,
@@ -26,6 +23,7 @@ from promptcrafter.types import (
     texts_of,
 )
 from tests.fixtures.sample_schema import SAMPLE_SCHEMA
+from tests.kind_shapes import SHAPES_BY_KIND
 
 
 def schema_features(schema: Schema) -> set[str]:
@@ -114,14 +112,6 @@ def test_no_schema_this_checkout_can_load_reaches_past_the_test_schema():
         assert not beyond, f"{name} uses {beyond}, which the test schema does not"
 
 
-_SHAPES_BY_KIND = {
-    "or": (OneOf,), "or-adv": (OneOf,), "or-adj": (OneOf,), "or-prefix": (OneOf,),
-    "and-commas": (ManyOf,), "and-commas-adj": (ManyOf,), "and-commas-adv": (ManyOf,),
-    "and-spaces-adj": (ManyOf,), "required": (ManyOf,), "hidden-opposite": (ManyOf,),
-    "switch": (Switch, ManyOf), "global-selector": (Switch, OneOf),
-}
-
-
 def test_every_schema_this_checkout_can_load_opens_a_state_the_renderer_can_read():
     for name, schema in _schemas_this_checkout_can_load():
         state = create_initial_state(schema)
@@ -131,7 +121,7 @@ def test_every_schema_this_checkout_can_load_opens_a_state_the_renderer_can_read
             for control in section.controls
             if not isinstance(
                 getattr(state.controls.get(control.id), "selected_options", None),
-                _SHAPES_BY_KIND[control.kind],
+                SHAPES_BY_KIND[control.kind],
             )
         })
         assert not wrong, f"{name} opens {wrong} controls holding a shape they cannot render"
@@ -142,6 +132,13 @@ def _one_control_of(kind: str) -> Schema:
         Control(id="probe", text="probe", kind=kind,
                 options=[Option(id="zeta", text="zeta")]),
     ])])
+
+
+def test_a_schemas_features_carry_no_id_text_or_name_of_its_own_so_a_failure_over_his_private_schema_says_none():
+    his_words = ("glade", "probe", "zeta")
+
+    for feature in schema_features(_one_control_of("switch")):
+        assert not any(word in feature for word in his_words), feature
 
 
 def test_the_walk_names_a_feature_one_schema_carries_and_another_does_not():

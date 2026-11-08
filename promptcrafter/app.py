@@ -154,7 +154,7 @@ class PromptCrafterWindow(QMainWindow):
 
     def _dress_mode_button(self, target: PromptTarget) -> None:
         button = self._mode_buttons[target]
-        mode = self.state.modes[target]
+        mode = self.state.mode_by_target[target]
         other = "manual" if mode == "auto" else "auto"
         button.setText(other)
         button.setAccessibleName(other)
@@ -164,8 +164,8 @@ class PromptCrafterWindow(QMainWindow):
         button.style().polish(button)
 
     def _toggle_prompt_mode(self, target: PromptTarget) -> None:
-        new_mode = "manual" if self.state.modes[target] == "auto" else "auto"
-        self.state.modes[target] = new_mode
+        new_mode = "manual" if self.state.mode_by_target[target] == "auto" else "auto"
+        self.state.mode_by_target[target] = new_mode
         self._dress_mode_button(target)
         prompt_widget = self.positive_prompt if target == "positive" else self.negative_prompt
         if new_mode == "auto":
@@ -568,9 +568,9 @@ class PromptCrafterWindow(QMainWindow):
         self._refresh_prompts()
 
     def _refresh_prompts(self) -> None:
-        if self.state.modes["positive"] == "auto":
+        if self.state.mode_by_target["positive"] == "auto":
             self.positive_prompt.setPlainText(build_prompt(self.schema, self.state, "positive"))
-        if self.state.modes["negative"] == "auto":
+        if self.state.mode_by_target["negative"] == "auto":
             self.negative_prompt.setPlainText(build_prompt(self.schema, self.state, "negative"))
 
 

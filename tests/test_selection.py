@@ -1,6 +1,32 @@
 from __future__ import annotations
 
+import ast
+from pathlib import Path
+
 from promptcrafter.types import ManyOf, OneOf, Switch
+
+PACKAGE = Path(__file__).resolve().parents[1] / "promptcrafter"
+_THE_SHAPES = {"Switch", "OneOf", "ManyOf"}
+
+
+def _places_testing_a_selections_shape() -> set[tuple[str, str]]:
+    found = set()
+    for path in PACKAGE.glob("*.py"):
+        for function in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if not isinstance(function, ast.FunctionDef):
+                continue
+            for node in ast.walk(function):
+                if (isinstance(node, ast.Call) and ast.unparse(node.func) == "isinstance"
+                        and len(node.args) == 2 and ast.unparse(node.args[1]) in _THE_SHAPES):
+                    found.add((path.stem, function.name))
+    return found
+
+
+def test_readers_ask_a_selection_its_questions_and_only_two_places_test_which_shape_it_is():
+    assert _places_testing_a_selections_shape() == {
+        ("switch_state", "switch_holds_an_option_list"),
+        ("transitions", "toggle_option"),
+    }
 
 
 class TestASwitch:

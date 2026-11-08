@@ -11,15 +11,15 @@ from promptcrafter.paths import icon_path, project_root
 from promptcrafter.win32 import APP_USER_MODEL_ID, claim_this_checkouts_identity
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-ENTRY_POINT = ast.parse((REPO_ROOT / "promptcrafter" / "__main__.py").read_text(encoding="utf-8"))
+ENTRY_POINT_AS_A_TREE_A_LINE_WRAP_CANNOT_CHANGE = ast.parse((REPO_ROOT / "promptcrafter" / "__main__.py").read_text(encoding="utf-8"))
 
 
 def _calls() -> list[str]:
-    return [ast.unparse(node.func) for node in ast.walk(ENTRY_POINT) if isinstance(node, ast.Call)]
+    return [ast.unparse(node.func) for node in ast.walk(ENTRY_POINT_AS_A_TREE_A_LINE_WRAP_CANNOT_CHANGE) if isinstance(node, ast.Call)]
 
 
 def _first_line_calling(name: str) -> int:
-    return min(node.lineno for node in ast.walk(ENTRY_POINT)
+    return min(node.lineno for node in ast.walk(ENTRY_POINT_AS_A_TREE_A_LINE_WRAP_CANNOT_CHANGE)
                if isinstance(node, ast.Call) and ast.unparse(node.func).endswith(name))
 
 
@@ -38,7 +38,7 @@ class IconTests(unittest.TestCase):
 
 
 def _the_call(name: str) -> ast.Call:
-    calls = [node for node in ast.walk(ENTRY_POINT)
+    calls = [node for node in ast.walk(ENTRY_POINT_AS_A_TREE_A_LINE_WRAP_CANNOT_CHANGE)
              if isinstance(node, ast.Call) and ast.unparse(node.func) == name]
     assert len(calls) == 1, f"the entry point calls {name} {len(calls)} times"
     return calls[0]
@@ -68,6 +68,9 @@ class PreviewTests(unittest.TestCase):
 
     def test_a_preview_wears_its_letter_in_the_preview_ink(self):
         assert ast.unparse(_the_call("app.setWindowIcon")) == "app.setWindowIcon(app_icon(icon, preview))"
+
+    def test_the_entry_point_dresses_the_application_since_only_its_sheet_reaches_a_tooltip_a_top_level_popup(self):
+        assert ast.unparse(_the_call("dress_application")) == "dress_application(app)"
 
     def test_the_window_is_told_whether_it_is_a_preview(self):
         assert ast.unparse(_the_call("open_promptcrafter")) == "open_promptcrafter(loading, preview=preview)"
