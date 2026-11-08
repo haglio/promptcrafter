@@ -92,7 +92,7 @@ class TestChoosingOneOfMany:
 
         assert state.controls["alignment"].selected_options == OneOf("villain")
 
-    def test_a_submenu_key_built_another_way_finds_no_state_so_the_app_goes_quiet_rather_than_failing(self):
+    def test_a_key_submenu_state_key_did_not_build_finds_no_state_and_the_app_goes_quiet(self):
         state = a_state()
         toggle_option(state, "appendages", "wings")
 

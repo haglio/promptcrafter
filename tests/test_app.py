@@ -278,13 +278,6 @@ class TestRebuilding:
 
         assert one_controls_container(app, "eye color") is not before
 
-    def test_the_fixture_spells_green_in_three_places_so_only_a_search_inside_one_container_tells_which_built_it(self, app):
-        spelled_green = [option.id for section in SAMPLE_SCHEMA.sections
-                         for control in section.controls for option in control.options
-                         if "green" in option.id]
-
-        assert len(spelled_green) >= 3
-
     def test_a_rebuild_keeps_one_trailing_stretch(self, qtbot, app):
         before = app.sections_layout.count()
 
@@ -579,6 +572,10 @@ class TestGlobalSelector:
     def _choose(self, app, option_label):
         find_radio(one_controls_container(app, "colorize"), option_label).click()
 
+    def test_a_window_wide_search_finds_another_controls_green_while_the_selector_has_built_none(self, app):
+        assert query_radio(one_controls_container(app, "colorize"), "green") is None
+        assert query_radio(app, "green") is not None
+
     def test_hides_options_while_off(self, app):
         colorize = one_controls_container(app, "colorize")
 
@@ -742,7 +739,7 @@ class TestCopying:
         assert QApplication.clipboard().text() == "space robo dino demon monster, bone armor"
 
 
-def test_option_ticks_are_the_familys_tick_control_not_a_qcheckbox_whose_styled_indicator_draws_as_a_down_caret(app):
+def test_option_ticks_are_the_familys_tick_control_not_a_plain_qcheckbox_whose_styled_indicator_draws_as_a_down_caret(app):
     option_ticks = app.findChildren(QCheckBox)
     assert option_ticks
     assert all(isinstance(cb, TickControl) for cb in option_ticks)

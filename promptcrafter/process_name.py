@@ -12,5 +12,5 @@ def namer():
     return ProcessNamer(APP_NAME, icon=icon_path())
 
 
-def ready_the_copy_windows_shows_the_next_run_as() -> None:
+def name_the_next_run() -> None:
     namer().name_this_process(ROLE)
