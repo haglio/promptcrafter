@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import ast
+from pathlib import Path
+
 import pytest
 
 from promptcrafter.state import create_initial_state, submenu_state_key
@@ -47,6 +50,23 @@ def _submenu_of_kind(kind):
             ])),
         ]),
     ])])
+
+
+PACKAGE = Path(__file__).resolve().parents[1] / "promptcrafter"
+
+
+def _calls_in(module: str) -> set[str]:
+    return {ast.unparse(node.func) for node in ast.walk(ast.parse((PACKAGE / module).read_text(encoding="utf-8")))
+            if isinstance(node, ast.Call)}
+
+
+def test_only_submenu_state_key_spells_a_submenus_key_since_a_reader_spelling_it_otherwise_would_find_nothing_and_go_quiet():
+    spelled_elsewhere = [path.name for path in PACKAGE.glob("*.py")
+                         if path.name != "types.py" and "__submenu" in path.read_text(encoding="utf-8")]
+
+    assert spelled_elsewhere == []
+    for reader_or_writer in ("state.py", "runtime.py", "app.py"):
+        assert "submenu_state_key" in _calls_in(reader_or_writer), reader_or_writer
 
 
 class TestSubmenuStateShape:

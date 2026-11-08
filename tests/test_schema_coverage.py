@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import dataclasses
+import re
+from typing import get_args
 
 from promptcrafter.schema import schema as demo_schema
 from promptcrafter.schema_overlay import load_schema, overlay_path
 from promptcrafter.state import create_initial_state
 from promptcrafter.types import (
     Control,
+    ControlKind,
     DisabledOrHiddenBy,
     GlobalSubstitution,
     Option,
@@ -14,6 +17,7 @@ from promptcrafter.types import (
     Schema,
     Section,
     Submenu,
+    SubmenuKind,
     SupplementedBy,
     TemplateText,
     TextRef,
@@ -134,11 +138,21 @@ def _one_control_of(kind: str) -> Schema:
     ])])
 
 
-def test_a_schemas_features_carry_no_id_text_or_name_of_its_own_so_a_failure_over_his_private_schema_says_none():
-    his_words = ("glade", "probe", "zeta")
+def _every_string_of(text) -> list[str]:
+    if isinstance(text, str):
+        return [text]
+    if isinstance(text, PluralText):
+        return [text.singular, text.plural]
+    return [part for part in [*text.singular, *(text.plural or [])] if isinstance(part, str)]
 
-    for feature in schema_features(_one_control_of("switch")):
-        assert not any(word in feature for word in his_words), feature
+
+def test_a_schemas_features_carry_no_id_text_or_name_of_its_own_so_a_failure_over_his_private_schema_says_none():
+    the_schemas_own_ids_and_texts = ({place.id for place, _ in every_holder(SAMPLE_SCHEMA)} | {
+        word for _, holder in every_holder(SAMPLE_SCHEMA) for text in texts_of(holder) for word in _every_string_of(text)}
+    ) - set(get_args(ControlKind)) - set(get_args(SubmenuKind))
+
+    for feature in schema_features(SAMPLE_SCHEMA):
+        assert set(re.split(r"[:=.]", feature)).isdisjoint(the_schemas_own_ids_and_texts), feature
 
 
 def test_the_walk_names_a_feature_one_schema_carries_and_another_does_not():

@@ -9,8 +9,8 @@ from promptcrafter.paths import icon_path
 from promptcrafter.process_name import (
     APP_NAME,
     ROLE,
+    name_the_next_run,
     namer,
-    ready_the_copy_windows_shows_the_next_run_as,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -21,7 +21,7 @@ _THE_ROW_ONE_APP_WITH_ONE_WINDOW_SHOWS = APP_NAME
 
 def test_the_app_readies_the_copy_its_shortcut_starts_through_and_one_it_cannot_make_never_takes_a_launch_down(tmp_path: Path):
     assert_the_process_is_named(
-        ready_the_copy_windows_shows_the_next_run_as, tmp_path,
+        name_the_next_run, tmp_path,
         ProcessName(
             app_name=APP_NAME,
             role=ROLE,

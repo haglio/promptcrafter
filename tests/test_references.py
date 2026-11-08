@@ -165,7 +165,6 @@ class TestTheSchemasThisCheckoutCanLoad:
         message = _counts_and_kinds_naming_no_id_of_his(found)
 
         assert message == "2 unresolved reference(s), kinds: ['control', 'option']"
-        assert "his" not in message
 
 
 class TestAMissingIdAtRenderTime:

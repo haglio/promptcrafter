@@ -9,6 +9,18 @@ PACKAGE = Path(__file__).resolve().parents[1] / "promptcrafter"
 _THE_SHAPES = {"Switch", "OneOf", "ManyOf"}
 
 
+def _names_a_shape(node: ast.expr) -> bool:
+    named = node.elts if isinstance(node, ast.Tuple) else [node]
+    return any(ast.unparse(name) in _THE_SHAPES for name in named)
+
+
+def _tests_a_shape(node: ast.AST) -> bool:
+    if isinstance(node, ast.MatchClass):
+        return _names_a_shape(node.cls)
+    return (isinstance(node, ast.Call) and ast.unparse(node.func) == "isinstance"
+            and len(node.args) == 2 and _names_a_shape(node.args[1]))
+
+
 def _places_testing_a_selections_shape() -> set[tuple[str, str]]:
     found = set()
     for path in PACKAGE.glob("*.py"):
@@ -16,8 +28,7 @@ def _places_testing_a_selections_shape() -> set[tuple[str, str]]:
             if not isinstance(function, ast.FunctionDef):
                 continue
             for node in ast.walk(function):
-                if (isinstance(node, ast.Call) and ast.unparse(node.func) == "isinstance"
-                        and len(node.args) == 2 and ast.unparse(node.args[1]) in _THE_SHAPES):
+                if _tests_a_shape(node):
                     found.add((path.stem, function.name))
     return found
 
