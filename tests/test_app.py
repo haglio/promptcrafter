@@ -90,7 +90,7 @@ def query_section(app, heading_text):
     return find_section(app, heading_text, required=False)
 
 
-def find_control(app, control_id):
+def one_controls_container(app, control_id):
     for widget in app.findChildren(QWidget):
         if widget.property("control_id") == control_id:
             return widget
@@ -179,7 +179,7 @@ class TestUpdatingPrompts:
         assert app.negative_prompt.toPlainText() == "no clutter, blurry, extra limbs"
 
     def test_updates_positive_prompt_from_an_and_commas_adj_control(self, qtbot, app):
-        find_tick(find_control(app, "material vibe"), "crystalline").click()
+        find_tick(one_controls_container(app, "material vibe"), "crystalline").click()
 
         assert app.positive_prompt.toPlainText() == (
             "space robo dino demon monster, crystalline material vibe"
@@ -194,7 +194,7 @@ class TestUpdatingPrompts:
         assert query_tick(app, "cold") is None
         assert "neg-temperature-opposite" in app.state.controls
 
-    def test_clicking_the_chosen_radio_again_clears_it(self, qtbot, app):
+    def test_clicking_the_chosen_radio_again_clears_it_the_one_gesture_for_that_since_qt_radios_have_none(self, qtbot, app):
         find_radio(app, "bone").click()
         assert app.positive_prompt.toPlainText() == "space robo dino demon monster, bone armor"
 
@@ -271,6 +271,20 @@ class TestRebuilding:
 
         assert sorted(gb.title() for gb in app.findChildren(QGroupBox)) == titles
 
+    def test_a_click_rebuilds_the_window_so_a_container_fetched_before_it_is_stale(self, qtbot, app):
+        before = one_controls_container(app, "eye color")
+
+        find_radio(before, "green").click()
+
+        assert one_controls_container(app, "eye color") is not before
+
+    def test_the_fixture_spells_green_in_three_places_so_only_a_search_inside_one_container_tells_which_built_it(self, app):
+        spelled_green = [option.id for section in SAMPLE_SCHEMA.sections
+                         for control in section.controls for option in control.options
+                         if "green" in option.id]
+
+        assert len(spelled_green) >= 3
+
     def test_a_rebuild_keeps_one_trailing_stretch(self, qtbot, app):
         before = app.sections_layout.count()
 
@@ -306,7 +320,7 @@ class TestSubmenus:
 
         assert app.positive_prompt.toPlainText() == "space robo dino demon monster, tail"
 
-    def test_an_or_prefixed_submenu_kind_builds_radios_whatever_follows_the_or(self, qtbot):
+    def test_an_or_prefixed_submenu_kind_builds_radios_whatever_follows_the_or_since_nothing_validates_a_submenu_kind(self, qtbot):
         schema = Schema(sections=[Section(id="grove", text="grove", controls=[
             Control(id="bough", text="bough", kind="and-commas",
                     initially_selected_options=["knot"], options=[
@@ -460,11 +474,11 @@ class TestPluralityInLabels:
 
 class TestTemplateLabels:
     def test_an_option_label_follows_the_control_its_template_references(self, qtbot, app):
-        assert query_radio(find_control(app, "echoes"), "loud as") is not None
+        assert query_radio(one_controls_container(app, "echoes"), "loud as") is not None
 
         find_radio(app, "hero").click()
 
-        assert query_radio(find_control(app, "echoes"), "loud as hero") is not None
+        assert query_radio(one_controls_container(app, "echoes"), "loud as hero") is not None
 
 
 class TestWeights:
@@ -484,7 +498,7 @@ class TestWeights:
     def test_the_control_slider_sets_the_controls_weight(self, qtbot, app):
         find_radio(app, "bone").click()
 
-        find_slider(find_control(app, "armor")).setValue(24)
+        find_slider(one_controls_container(app, "armor")).setValue(24)
 
         assert app.state.controls["armor"].weight == 2.4
         assert app.positive_prompt.toPlainText() == (
@@ -502,7 +516,7 @@ class TestWeights:
         assert find_slider(section) is None
 
     def test_no_control_slider_when_no_selection(self, app):
-        assert find_slider(find_control(app, "armor")) is None
+        assert find_slider(one_controls_container(app, "armor")) is None
 
     def test_section_weight_reset_button_appears(self, qtbot, app):
         section = find_section(app, "negative modes")
@@ -560,13 +574,13 @@ class TestWeights:
 class TestGlobalSelector:
 
     def _click_the_switch(self, app):
-        find_tick(find_control(app, "colorize"), "colorize").click()
+        find_tick(one_controls_container(app, "colorize"), "colorize").click()
 
     def _choose(self, app, option_label):
-        find_radio(find_control(app, "colorize"), option_label).click()
+        find_radio(one_controls_container(app, "colorize"), option_label).click()
 
     def test_hides_options_while_off(self, app):
-        colorize = find_control(app, "colorize")
+        colorize = one_controls_container(app, "colorize")
 
         assert not find_tick(colorize, "colorize").isChecked()
         assert query_radio(colorize, "green") is None
@@ -575,7 +589,7 @@ class TestGlobalSelector:
     def test_shows_options_when_turned_on(self, app):
         self._click_the_switch(app)
 
-        colorize = find_control(app, "colorize")
+        colorize = one_controls_container(app, "colorize")
         assert find_tick(colorize, "colorize").isChecked()
         assert find_radio(colorize, "green").isEnabled()
         assert find_radio(colorize, "black").isEnabled()
@@ -584,7 +598,7 @@ class TestGlobalSelector:
         self._click_the_switch(app)
         self._choose(app, "green")
 
-        assert find_radio(find_control(app, "eye color"), "green").isChecked()
+        assert find_radio(one_controls_container(app, "eye color"), "green").isChecked()
         assert app.positive_prompt.toPlainText() == (
             "space robo dino demon monster, green, green tinted render style"
         )
@@ -593,16 +607,16 @@ class TestGlobalSelector:
         self._click_the_switch(app)
         self._choose(app, "green")
 
-        assert find_tick(find_control(app, "render style"), "green tinted").isChecked()
+        assert find_tick(one_controls_container(app, "render style"), "green tinted").isChecked()
 
     def test_choosing_another_option_releases_the_first(self, app):
         self._click_the_switch(app)
         self._choose(app, "green")
         self._choose(app, "black")
 
-        assert find_radio(find_control(app, "eye color"), "black").isChecked()
-        assert not find_radio(find_control(app, "eye color"), "green").isChecked()
-        assert not find_tick(find_control(app, "render style"), "green tinted").isChecked()
+        assert find_radio(one_controls_container(app, "eye color"), "black").isChecked()
+        assert not find_radio(one_controls_container(app, "eye color"), "green").isChecked()
+        assert not find_tick(one_controls_container(app, "render style"), "green tinted").isChecked()
         assert app.positive_prompt.toPlainText() == (
             "space robo dino demon monster, black, black and white render style"
         )
@@ -612,8 +626,8 @@ class TestGlobalSelector:
         self._choose(app, "green")
         self._click_the_switch(app)
 
-        assert not find_radio(find_control(app, "eye color"), "green").isChecked()
-        assert not find_tick(find_control(app, "render style"), "green tinted").isChecked()
+        assert not find_radio(one_controls_container(app, "eye color"), "green").isChecked()
+        assert not find_tick(one_controls_container(app, "render style"), "green tinted").isChecked()
         assert app.positive_prompt.toPlainText() == "space robo dino demon monster"
 
 
@@ -623,7 +637,7 @@ class TestPromptMode:
 
         find_mode_button(app.positive_prompt).click()
 
-        assert app.state.modes["positive"] == "manual"
+        assert app.state.mode_by_target["positive"] == "manual"
         assert not app.positive_prompt.isReadOnly()
 
     def test_the_button_names_the_mode_it_switches_to_after_a_switch(self, app):
@@ -659,21 +673,21 @@ class TestPromptMode:
     def test_each_prompt_switches_on_its_own(self, app):
         find_mode_button(app.positive_prompt).click()
 
-        assert app.state.modes["negative"] == "auto"
+        assert app.state.mode_by_target["negative"] == "auto"
         assert app.negative_prompt.isReadOnly()
 
     def test_the_negative_button_switches_the_negative_prompt(self, app):
         find_mode_button(app.negative_prompt).click()
 
-        assert app.state.modes["negative"] == "manual"
-        assert app.state.modes["positive"] == "auto"
+        assert app.state.mode_by_target["negative"] == "manual"
+        assert app.state.mode_by_target["positive"] == "auto"
         assert not app.negative_prompt.isReadOnly()
         assert app.positive_prompt.isReadOnly()
 
 
 class TestCopying:
     @pytest.fixture(autouse=True)
-    def _nothing_copied_yet(self, app):
+    def _the_clipboard_one_object_for_the_whole_process_holds_nothing_a_test_expects(self, app):
         QApplication.clipboard().setText("nothing has been copied yet")
 
     def test_the_copy_button_copies_the_prompt_beside_it(self, app):
@@ -718,7 +732,7 @@ class TestCopying:
 
     def test_the_section_copy_leaves_the_other_sections_out(self, app):
         find_radio(app, "bone").click()
-        find_radio(find_control(app, "eye color"), "green").click()
+        find_radio(one_controls_container(app, "eye color"), "green").click()
 
         app._copy_section_prompt("subject-core")
 
@@ -728,7 +742,7 @@ class TestCopying:
         assert QApplication.clipboard().text() == "space robo dino demon monster, bone armor"
 
 
-def test_option_ticks_use_the_shared_tick_control(app):
+def test_option_ticks_are_the_familys_tick_control_not_a_qcheckbox_whose_styled_indicator_draws_as_a_down_caret(app):
     option_ticks = app.findChildren(QCheckBox)
     assert option_ticks
     assert all(isinstance(cb, TickControl) for cb in option_ticks)

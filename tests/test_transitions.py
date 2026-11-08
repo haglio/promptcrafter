@@ -76,7 +76,7 @@ class TestChoosingOneOfMany:
 
         assert state.controls["alignment"].selected_options == OneOf("hero")
 
-    def test_choosing_what_is_already_chosen_empties_the_control(self):
+    def test_choosing_what_is_already_chosen_empties_the_control_the_one_way_to_clear_radios_qt_gives_none_of_its_own(self):
         state = a_state()
         choose_option(state, "alignment", "hero")
 
@@ -91,6 +91,14 @@ class TestChoosingOneOfMany:
         choose_option(state, "alignment", "villain")
 
         assert state.controls["alignment"].selected_options == OneOf("villain")
+
+    def test_a_submenu_key_built_another_way_finds_no_state_so_the_app_goes_quiet_rather_than_failing(self):
+        state = a_state()
+        toggle_option(state, "appendages", "wings")
+
+        choose_option(state, "appendages__wings__submenu_spelled_otherwise", "feathered")
+
+        assert build_prompt(SAMPLE_SCHEMA, state, "positive") == "space robo dino demon monster, wings"
 
     def test_a_submenu_is_chosen_by_its_composite_key(self):
         state = a_state()
@@ -171,7 +179,7 @@ class TestFlippingASwitch:
 
 
 class TestTheGlobalSelector:
-    def test_switching_it_on_leaves_it_with_nothing_chosen(self):
+    def test_switching_it_on_leaves_it_with_nothing_chosen_in_a_shape_still_tellable_from_off(self):
         state = a_state()
         assert state.controls["colorize"].selected_options == Switch(False)
 
@@ -356,7 +364,7 @@ class TestTheStateObjectsSurviveEveryRule:
 
 class TestTheSelectorsMergeIsStable:
 
-    def test_the_merged_selection_keeps_the_order_it_was_built_in(self):
+    def test_the_merged_selection_keeps_the_order_it_was_built_in_where_a_set_would_reorder_it_from_one_run_to_the_next(self):
         schema = _two_selector_schema()
         schema.sections[0].controls.append(
             Control(id="wash", text="wash", kind="and-commas",

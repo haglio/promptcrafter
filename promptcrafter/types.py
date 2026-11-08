@@ -268,10 +268,14 @@ class ManyOf:
         return ManyOf(tuple(o for o in self.chosen if not reaches(o)))
 
     def with_reach_of(self, option_id: str, offered: list[str]) -> Selection:
-        return ManyOf(tuple(dict.fromkeys([*self.chosen, *offered])))
+        return ManyOf(_in_the_order_given_without_repeats([*self.chosen, *offered]))
 
 
 Selection = Switch | OneOf | ManyOf
+
+
+def _in_the_order_given_without_repeats(option_ids: list[str]) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(option_ids))
 
 
 @dataclass
@@ -294,7 +298,7 @@ def _both_prompts_on_auto() -> dict[PromptTarget, PromptMode]:
 class State:
     controls: dict[str, ControlState]
     sections: dict[str, SectionState]
-    modes: dict[PromptTarget, PromptMode] = field(default_factory=_both_prompts_on_auto)
+    mode_by_target: dict[PromptTarget, PromptMode] = field(default_factory=_both_prompts_on_auto)
 
 
 

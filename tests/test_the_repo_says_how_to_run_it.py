@@ -12,11 +12,11 @@ class PromptCrafterRepoTests(unittest.TestCase):
         cls.readme_text = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         cls.attributes_text = (REPO_ROOT / ".gitattributes").read_text(encoding="utf-8")
 
-    def test_app_module_imports_cleanly(self):
+    def test_the_app_module_imports_inside_this_test_so_a_broken_import_fails_it_alone_not_every_tests_collection(self):
         from promptcrafter.app import PromptCrafterWindow  # noqa: PLC0415
         assert callable(PromptCrafterWindow)
 
-    def test_schema_module_loads(self):
+    def test_the_schema_module_loads_inside_this_test_so_a_broken_import_fails_it_alone_not_every_tests_collection(self):
         from promptcrafter.schema import schema  # noqa: PLC0415
         assert len(schema.sections) > 0
 

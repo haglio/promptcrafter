@@ -133,7 +133,7 @@ class TestControlKinds:
 
         assert build_prompt(schema, state, "positive") == "space robo dino demon monster, hero, villain"
 
-    def test_global_substitutions_for_switchs_without_options(self):
+    def test_a_switch_without_options_that_exists_only_to_drive_a_substitution_keeps_its_own_text_out_of_the_prompt(self):
         schema = copy.deepcopy(SAMPLE_SCHEMA)
         schema.sections[1].controls.insert(0, Control(
             id="thorax mode lite",
@@ -185,9 +185,13 @@ _KINDS_KEEPING_BOTH = [(kind, both) for kind, both, _ in _LIST_KINDS]
 _KINDS_KEEPING_ONE = [(kind, one) for kind, _, one in _LIST_KINDS]
 
 
+_THE_SWITCH_THAT_LETS_HIDDEN_OPPOSITE_RENDER_AT_ALL = "ward"
+_THE_SWITCH_THAT_FIRES_THE_RULE_UNDER_TEST_WITHOUT_DISABLING_THE_PROBE = "gale"
+
+
 def _a_control_of_kind(kind, *, control_disabled=False, option_disabled=False,
                        option_hidden=False):
-    gale = [DisabledOrHiddenBy(control_id="gale")]
+    gale = [DisabledOrHiddenBy(control_id=_THE_SWITCH_THAT_FIRES_THE_RULE_UNDER_TEST_WITHOUT_DISABLING_THE_PROBE)]
     probe = Control(
         id="probe", text="probe", kind=kind,
         options=[
@@ -197,12 +201,13 @@ def _a_control_of_kind(kind, *, control_disabled=False, option_disabled=False,
             Option(id="korth", text="korth"),
         ],
         disabled_bys=gale if control_disabled else [],
-        hidden_opposite_bys=[DisabledOrHiddenBy(control_id="ward")],
+        hidden_opposite_bys=[DisabledOrHiddenBy(control_id=_THE_SWITCH_THAT_LETS_HIDDEN_OPPOSITE_RENDER_AT_ALL)],
     )
     return Schema(sections=[Section(id="glade", text="glade", controls=[
-        Control(id="ward", text="ward", kind="switch", initially_selected_options=True,
+        Control(id=_THE_SWITCH_THAT_LETS_HIDDEN_OPPOSITE_RENDER_AT_ALL, text="ward", kind="switch",
+                initially_selected_options=True,
                 options=[Option(id="warded", text="warded")]),
-        Control(id="gale", text="gale", kind="switch",
+        Control(id=_THE_SWITCH_THAT_FIRES_THE_RULE_UNDER_TEST_WITHOUT_DISABLING_THE_PROBE, text="gale", kind="switch",
                 options=[Option(id="gusting", text="gusting")]),
         probe,
     ])])
@@ -210,7 +215,7 @@ def _a_control_of_kind(kind, *, control_disabled=False, option_disabled=False,
 
 def _state_with(schema, selected):
     state = create_initial_state(schema)
-    state.controls["gale"].selected_options = Switch(True)
+    state.controls[_THE_SWITCH_THAT_FIRES_THE_RULE_UNDER_TEST_WITHOUT_DISABLING_THE_PROBE].selected_options = Switch(True)
     state.controls["probe"].selected_options = selected
     state.controls["probe"].enabled = True
     return state

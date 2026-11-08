@@ -23,9 +23,12 @@ from promptcrafter.types import (
     Section,
     SubmenuKind,
 )
+from tests.kind_shapes import KINDS_WHOSE_CONTROL_PICKS_ITS_SHAPE
 
 DECLARED_CONTROL_KINDS = get_args(ControlKind)
 DECLARED_SUBMENU_KINDS = get_args(SubmenuKind)
+
+_KINDS_TEST_PROMPT_RENDERS_WITH_THEIR_TRIGGER_FIRED = ("hidden-opposite",)
 
 
 class TestTheDeclaredKinds:
@@ -38,10 +41,10 @@ class TestTheDeclaredKinds:
         }
 
     @pytest.mark.parametrize("kind", [*DECLARED_CONTROL_KINDS, *DECLARED_SUBMENU_KINDS])
-    def test_the_two_spellings_answer_alike_for_every_kind_that_exists(self, kind):
+    def test_the_two_spellings_the_owner_chose_to_keep_answer_alike_for_every_kind_that_exists(self, kind):
         assert is_or_prefixed_kind(kind) == is_radio_kind(kind)
 
-    def test_a_new_or_kind_has_to_be_added_to_the_set_as_well(self):
+    def test_a_new_or_kind_left_out_of_the_set_would_take_clicks_and_render_nothing_so_it_goes_in_as_well(self):
         assert {k for k in DECLARED_CONTROL_KINDS if is_or_prefixed_kind(k)} == RADIO_CONTROL_KINDS
 
     def test_single_select_is_exactly_the_or_named_kinds(self):
@@ -60,11 +63,11 @@ class TestTheStateShapeMatchesWhatTheRendererReads:
         state = create_initial_state(schema)
         selected = state.controls["bough"].selected_options
 
-        if kind in ("switch", "global-selector"):
+        if kind in KINDS_WHOSE_CONTROL_PICKS_ITS_SHAPE:
             return
         assert isinstance(selected, OneOf) == is_radio_kind(kind)
 
-        if kind == "hidden-opposite":
+        if kind in _KINDS_TEST_PROMPT_RENDERS_WITH_THEIR_TRIGGER_FIRED:
             return
         state.controls["bough"].selected_options = (
             OneOf("oak") if is_radio_kind(kind) else ManyOf(("oak",))

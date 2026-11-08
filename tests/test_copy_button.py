@@ -16,18 +16,18 @@ def _size() -> QSize:
     return QSize(_MARK, _MARK)
 
 
-def test_it_wears_the_familys_copy_mark(qapp):
+def test_it_wears_the_familys_copy_mark_not_an_emoji_drawn_from_whatever_font_windows_picks(qapp):
     button = copy_button("Copy prompt")
 
     assert button.icon().pixmap(_size(), QIcon.Mode.Normal).toImage() == \
         icon_pixmap("copy", _MARK, TEXT_MUTED).toImage()
 
 
-def test_it_carries_no_text_of_its_own(qapp):
+def test_it_carries_no_text_of_its_own_which_qt_would_draw_beside_the_icon_not_in_its_place(qapp):
     assert copy_button("Copy prompt").text() == ""
 
 
-def test_it_brightens_while_the_cursor_is_over_it(qapp):
+def test_it_brightens_while_the_cursor_is_over_it_through_qts_active_picture_since_a_stylesheet_cannot_recolor_a_drawn_icon(qapp):
     button = copy_button("Copy prompt")
     icon = button.icon()
 

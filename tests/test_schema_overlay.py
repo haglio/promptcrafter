@@ -62,7 +62,7 @@ def test_a_directory_named_like_the_overlay_is_not_one(monkeypatch, tmp_path):
     assert load_schema() is demo_schema
 
 
-def test_the_overlay_is_looked_for_in_this_checkout_not_the_primary(monkeypatch, tmp_path):
+def test_the_overlay_is_looked_for_in_this_checkout_not_the_primary_whose_real_schema_would_test_options_this_tree_lacks(monkeypatch, tmp_path):
     monkeypatch.setattr(schema_overlay, "project_root", lambda: tmp_path)
     assert overlay_path() == tmp_path / OVERLAY_NAME
 
@@ -140,7 +140,7 @@ def test_a_template_part_that_is_neither_text_nor_a_ref_is_refused():
         )
 
 
-def test_camel_case_keys_arrive_as_the_snake_case_fields():
+def test_the_camel_case_keys_he_writes_by_hand_arrive_as_the_snake_case_fields():
     built = schema_from_document({
         "sections": [{
             "id": "alpha",

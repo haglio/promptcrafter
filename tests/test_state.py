@@ -64,7 +64,7 @@ class TestSubmenuStateShape:
         assert state.controls[submenu_state_key("bough", "knot")].selected_options == ManyOf()
 
     @pytest.mark.parametrize("kind", ["or", "or-prefix", "or-suffix"])
-    def test_any_or_prefixed_kind_starts_holding_one_choice(self, kind):
+    def test_any_or_prefixed_kind_starts_holding_one_choice_since_nothing_validates_a_submenu_kind(self, kind):
         state = create_initial_state(_submenu_of_kind(kind))
 
         assert state.controls[submenu_state_key("bough", "knot")].selected_options == OneOf()

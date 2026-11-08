@@ -15,12 +15,14 @@ from app_support.launch_smoke import (
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = "promptcrafter"
 
-LAUNCH_FILES = (REPO_ROOT / PACKAGE / "__main__.py", REPO_ROOT / PACKAGE / "opening.py")
+_WHAT_PYTHONW_M_PROMPTCRAFTER_RUNS = REPO_ROOT / PACKAGE / "__main__.py"
+_WHAT_IT_OPENS_THE_WINDOW_THROUGH = REPO_ROOT / PACKAGE / "opening.py"
+LAUNCH_FILES = (_WHAT_PYTHONW_M_PROMPTCRAFTER_RUNS, _WHAT_IT_OPENS_THE_WINDOW_THROUGH)
 
 _THE_LAUNCH_MUST_REACH = ("promptcrafter.app", "promptcrafter.schema", "PyQt6.QtWidgets")
 
 
-def _the_launchs_interpreter(repo_root: Path = REPO_ROOT) -> Path:
+def _the_console_twin_of_the_shortcuts_pythonw_which_has_no_output_to_read(repo_root: Path = REPO_ROOT) -> Path:
     for console in (
         repo_root / ".venv" / "Scripts" / "python.exe",
         repo_root / ".venv" / "bin" / "python",
@@ -35,7 +37,7 @@ def _run_the_launchs_way(statements: list[str]) -> subprocess.CompletedProcess:
     env["QT_QPA_PLATFORM"] = "offscreen"
 
     return subprocess.run(
-        [str(_the_launchs_interpreter()), "-c", "\n".join(statements)],
+        [str(_the_console_twin_of_the_shortcuts_pythonw_which_has_no_output_to_read()), "-c", "\n".join(statements)],
         cwd=REPO_ROOT,
         env=env,
         capture_output=True,
@@ -44,12 +46,12 @@ def _run_the_launchs_way(statements: list[str]) -> subprocess.CompletedProcess:
     )
 
 
-def test_the_replay_takes_the_venv_the_shortcut_starts(tmp_path):
+def test_the_replay_takes_the_venv_the_shortcut_starts_whose_renamed_copy_shares_its_site_packages(tmp_path):
     scripts = tmp_path / ".venv" / "Scripts"
     scripts.mkdir(parents=True)
     (scripts / "python.exe").touch()
 
-    assert _the_launchs_interpreter(tmp_path) == scripts / "python.exe"
+    assert _the_console_twin_of_the_shortcuts_pythonw_which_has_no_output_to_read(tmp_path) == scripts / "python.exe"
 
 
 def test_the_replay_takes_a_posix_venv_the_same_way(tmp_path):
@@ -57,14 +59,14 @@ def test_the_replay_takes_a_posix_venv_the_same_way(tmp_path):
     bin_dir.mkdir(parents=True)
     (bin_dir / "python").touch()
 
-    assert _the_launchs_interpreter(tmp_path) == bin_dir / "python"
+    assert _the_console_twin_of_the_shortcuts_pythonw_which_has_no_output_to_read(tmp_path) == bin_dir / "python"
 
 
-def test_the_replay_falls_back_to_the_interpreter_running_the_suite(tmp_path):
-    assert _the_launchs_interpreter(tmp_path) == Path(sys.executable)
+def test_the_replay_falls_back_to_the_interpreter_running_the_suite_never_one_off_path_whose_packages_are_neither_the_launchs_nor_the_suites(tmp_path):
+    assert _the_console_twin_of_the_shortcuts_pythonw_which_has_no_output_to_read(tmp_path) == Path(sys.executable)
 
 
-def test_the_launch_imports_everything_it_names():
+def test_the_launch_imports_everything_it_names_since_under_pythonw_a_failed_import_shows_only_in_the_launchers_log():
     assert_every_import_resolves(
         _run_the_launchs_way, launch_imports(PACKAGE, LAUNCH_FILES))
 
@@ -72,6 +74,16 @@ def test_the_launch_imports_everything_it_names():
 def test_the_walk_reaches_what_the_launch_is_made_of():
     assert_the_walk_reached(
         launch_imports(PACKAGE, LAUNCH_FILES), _THE_LAUNCH_MUST_REACH)
+
+
+def test_this_file_keeps_only_the_apps_half_which_files_the_launch_runs_and_which_interpreter_the_walk_being_app_supports():
+    helpers = {name for name, value in globals().items()
+               if callable(value) and value.__module__ == __name__ and not name.startswith("test_")}
+
+    assert helpers == {
+        "_the_console_twin_of_the_shortcuts_pythonw_which_has_no_output_to_read",
+        "_run_the_launchs_way",
+    }
 
 
 def test_a_launch_import_that_cannot_resolve_fails_here():
