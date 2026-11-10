@@ -116,9 +116,8 @@ live app by mistake.
 The preview is part of delivering any user-facing change, not an extra: the user
 judges mergability by clicking through the real app. **It comes BEFORE the pull
 request, and their verdict is what opens one** — see Landing below, where opening
-a non-draft PR here merges the work hands-off. Push it with `gh pr create --fill
---draft` if the branch should be visible first, and `gh pr ready` once they say
-it is good.
+a PR here merges the work hands-off. Open it once they say it is good, never as
+a draft; push the branch if it should be visible first.
 
 ## Landing — GitHub merge queue, not local ff-merge
 
