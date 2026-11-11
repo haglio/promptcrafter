@@ -19,7 +19,7 @@ _WHAT_PYTHONW_M_PROMPTCRAFTER_RUNS = REPO_ROOT / PACKAGE / "__main__.py"
 _WHAT_IT_OPENS_THE_WINDOW_THROUGH = REPO_ROOT / PACKAGE / "opening.py"
 LAUNCH_FILES = (_WHAT_PYTHONW_M_PROMPTCRAFTER_RUNS, _WHAT_IT_OPENS_THE_WINDOW_THROUGH)
 
-_THE_LAUNCH_MUST_REACH = ("promptcrafter.app", "promptcrafter.schema", "PyQt6.QtWidgets")
+_THE_LAUNCH_MUST_REACH = ("promptcrafter.app", "promptcrafter.schema", "PySide6.QtWidgets")
 
 
 def _the_launchs_console_interpreter(repo_root: Path = REPO_ROOT) -> Path:

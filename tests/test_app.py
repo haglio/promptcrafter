@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 
 import pytest
-from PyQt6.QtWidgets import (
+from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
     QGroupBox,
@@ -52,7 +52,7 @@ def window_with_a_switch(qtbot):
 
 
 def find_tick(container, label, *, required=True):
-    for cb in container.findChildren((QCheckBox, ToggleSwitch)):
+    for cb in (found for found in container.findChildren(QWidget) if isinstance(found, (QCheckBox, ToggleSwitch))):
         if cb.text() == label or cb.accessibleName() == label:
             return cb
     if required:
@@ -111,7 +111,7 @@ def find_weight_reset(container):
 
 def _drawn(icon) -> bytes:
     image = icon.pixmap(16, 16).toImage()
-    return image.constBits().asstring(image.sizeInBytes())
+    return bytes(image.constBits())
 
 
 def find_mode_button(prompt):

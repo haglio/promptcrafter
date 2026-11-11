@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QPushButton
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QPushButton
 from shared_ui.colors import (
     BG_BUTTON,
     BG_KEYCAP,

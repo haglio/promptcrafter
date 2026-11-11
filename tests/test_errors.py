@@ -5,7 +5,7 @@ import sys
 import threading
 from pathlib import Path
 
-from PyQt6.QtCore import QTimer
+from PySide6.QtCore import QTimer
 
 from promptcrafter.errors import log_errors_and_keep_running
 
