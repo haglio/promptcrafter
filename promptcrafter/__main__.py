@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import sys
 
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 from shared_ui.colors import dress_application
 from shared_ui.loading_window import Loading, LoadingCanceled
 from shared_ui.preview_icon import app_icon

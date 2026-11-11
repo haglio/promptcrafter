@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from PyQt6.QtCore import QSize
-from PyQt6.QtGui import QIcon
+from PySide6.QtCore import QSize
+from PySide6.QtGui import QIcon
 from shared_ui.chrome import ICON_BUTTON_PROPERTY
 from shared_ui.colors import TEXT_MUTED, TEXT_SECONDARY
 from shared_ui.icons import icon_pixmap

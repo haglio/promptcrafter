@@ -20,8 +20,8 @@ class PromptCrafterRepoTests(unittest.TestCase):
         from promptcrafter.schema import schema  # noqa: PLC0415
         assert len(schema.sections) > 0
 
-    def test_docs_cover_pyqt6_desktop(self):
-        assert "PyQt6" in self.readme_text
+    def test_docs_cover_pyside6_desktop(self):
+        assert "PySide6" in self.readme_text
         assert "python -m promptcrafter" in self.readme_text
 
     def test_repo_has_line_ending_policy(self):
