@@ -79,7 +79,7 @@ class PreviewTests(unittest.TestCase):
 class TaskbarIdentityTests(unittest.TestCase):
     def test_the_entry_point_claims_it_before_opening_a_window(self):
         assert "claim_this_checkouts_identity" in _calls()
-        assert _first_line_calling("claim_this_checkouts_identity") < _first_line_calling("QApplication"), "the id has to be claimed before the first window exists"
+        assert _first_line_calling("claim_this_checkouts_identity") < _first_line_calling("the_application"), "the id has to be claimed before the first window exists"
 
     def test_setting_it_never_takes_the_app_down(self):
         with patch("promptcrafter.win32.sys.platform", "win32"), \

@@ -5,6 +5,7 @@ import sys
 
 from PySide6.QtWidgets import QApplication
 from shared_ui.colors import dress_application
+from shared_ui.gui_thread_collection import the_application
 from shared_ui.loading_window import Loading, LoadingCanceled
 from shared_ui.preview_icon import app_icon
 
@@ -22,7 +23,7 @@ name_the_next_run()
 
 log_errors_and_keep_running()
 
-app = QApplication(sys.argv)
+app = the_application(QApplication, sys.argv)
 dress_application(app)
 icon = icon_path()
 if icon.is_file():
