@@ -96,3 +96,8 @@ places = ["taskbar", "checkout"]
 [tool.setuptools.packages.find]
 include = ["promptcrafter*"]
 namespaces = false
+
+# The names the screen capitalizes inside sentence-case text
+# (app_support.sentence_case).
+[tool.haglio.sentence-case]
+names = ["PromptCrafter"]

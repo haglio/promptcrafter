@@ -40,7 +40,7 @@ def test_the_loading_screen_runs_in_a_process_of_its_own_wearing_promptcrafters_
         opening.open_the_loading_screen(None)
 
     opened.assert_called_once_with(
-        caption="PromptCrafter Loading", wordmark="PromptCrafter", icon=icon_path(), preview=None,
+        caption="PromptCrafter loading", wordmark="PromptCrafter", icon=icon_path(), preview=None,
         steps=opening.STEPS, cancel_hint="Press Esc to cancel opening PromptCrafter",
         app_id=APP_USER_MODEL_ID)
 
