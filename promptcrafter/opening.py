@@ -3,9 +3,10 @@ from __future__ import annotations
 import sys
 
 from shared_ui.preview import Preview, taskbar_identity
+from shared_ui.preview_taskbar import preview_on_the_taskbar
 
 from promptcrafter.app import PromptCrafterWindow
-from promptcrafter.paths import icon_path
+from promptcrafter.paths import icon_path, project_root
 from promptcrafter.references import report_dangling_references
 from promptcrafter.schema_overlay import load_schema
 from promptcrafter.win32 import APP_USER_MODEL_ID
@@ -32,4 +33,6 @@ def open_the_loading_screen(preview: Preview | None):
         caption="PromptCrafter loading", wordmark="PromptCrafter", icon=icon_path(), preview=preview,
         steps=STEPS, cancel_hint="Press Esc to cancel opening PromptCrafter",
         app_id=taskbar_identity(APP_USER_MODEL_ID, preview) if sys.platform == "win32" else None,
+        taskbar=preview_on_the_taskbar("PromptCrafter", icon_path(), preview, project_root(),
+                                       project_root() / "state"),
     )

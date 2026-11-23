@@ -4,6 +4,7 @@ import ast
 from pathlib import Path
 from unittest.mock import patch
 
+from shared_ui.preview import Preview, window_title
 from shared_ui.testing import loading_process_opened
 
 from promptcrafter import opening
@@ -42,7 +43,7 @@ def test_the_loading_screen_runs_in_a_process_of_its_own_wearing_promptcrafters_
     opened.assert_called_once_with(
         caption="PromptCrafter loading", wordmark="PromptCrafter", icon=icon_path(), preview=None,
         steps=opening.STEPS, cancel_hint="Press Esc to cancel opening PromptCrafter",
-        app_id=APP_USER_MODEL_ID)
+        app_id=APP_USER_MODEL_ID, taskbar=None)
 
 
 def test_the_launch_opens_its_loading_screen_only_when_a_launcher_with_one_started_it():
@@ -62,3 +63,12 @@ def test_off_windows_the_loading_screen_wears_no_taskbar_identity(monkeypatch):
         opening.open_the_loading_screen(None)
 
     assert opened.call_args.kwargs["app_id"] is None
+
+
+def test_a_previews_loading_screen_wears_its_own_letter_on_its_taskbar_button():
+    with loading_process_opened() as opened:
+        opening.open_the_loading_screen(Preview("the example"))
+
+    button = opened.call_args.kwargs["taskbar"]
+    assert button.name == window_title("PromptCrafter", Preview("the example"))
+    assert button.icon.is_file()
